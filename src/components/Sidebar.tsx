@@ -53,9 +53,9 @@ const Sidebar = () => {
       </div>
 
       {/* Logout Button */}
-      <div className="pb-10 flex items-center space-x-3">
-        <MdOutlineLogout />
-        <button onClick={handleLogout} className="">
+      <div className="pb-10">
+        <button onClick={handleLogout} className="flex items-center gap-3 cursor-pointer">
+          <MdOutlineLogout />
           Logout
         </button>
       </div>

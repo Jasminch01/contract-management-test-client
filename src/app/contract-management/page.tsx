@@ -1,5 +1,5 @@
 
-const page = () => {
+const ContractManagementpage = () => {
     return (
         <div>
             <p>Contract management page</p>
@@ -7,4 +7,4 @@ const page = () => {
     );
 };
 
-export default page;
+export default ContractManagementpage;
