@@ -23,7 +23,6 @@ const menus = [
 
 const Sidebar = () => {
   const handleLogout = () => {
-    // Add your logout logic here
     console.log("User logged out");
   };
 
@@ -31,12 +30,12 @@ const Sidebar = () => {
     <div className="h-screen px-5 flex flex-col justify-between">
       <div>
         <div className="pt-24">
-          <div className="flex items-center gap-3">
+          <Link href={'/'} className="flex items-center gap-3">
             <div className="border border-green-500 px-3 py-2 rounded font-bold">
               W
             </div>
             <p>William Josh</p>
-          </div>
+          </Link>
         </div>
         <div className="pt-7">
           {menus.map((menu, idx) => (

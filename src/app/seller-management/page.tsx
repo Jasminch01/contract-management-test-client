@@ -10,7 +10,7 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const columns = [
   {
-    name: "Buyer Name",
+    name: "Seller Name",
     selector: (row: Client) => row.buyerName,
     sortable: true,
   },
@@ -91,20 +91,20 @@ const handleChange = (selected: {
 };
 
 // BuyerManagementPage component
-const BuyerManagementPage = () => {
+const SellerManagementPage = () => {
   return (
     <div className="mt-20">
       <div className="flex items-center justify-between px-5 pb-10">
         <div>
           <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
-            Create New Buyer
+            Create New Seller
             <IoIosPersonAdd />
           </button>
         </div>
         <div className="px-5 py-1 rounded border border-gray-400 flex items-center">
           <input
             type="text"
-            placeholder="Search Buyer"
+            placeholder="Search Seller"
             className="focus:outline-none"
           />
           <LuSearch className="text-gray-400" />
@@ -112,7 +112,7 @@ const BuyerManagementPage = () => {
       </div>
       <div className="flex items-center justify-between px-5">
         <div className="">
-          <p>List of Buyers</p>
+          <p>List of Seller</p>
         </div>
         <div className="flex items-center space-x-5">
           <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
@@ -141,4 +141,4 @@ const BuyerManagementPage = () => {
   );
 };
 
-export default BuyerManagementPage;
+export default SellerManagementPage;
