@@ -1,5 +1,6 @@
 "use client";
 import { Client } from "@/types/types";
+import Link from "next/link";
 import React from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -96,10 +97,12 @@ const BuyerManagementPage = () => {
     <div className="mt-20">
       <div className="flex items-center justify-between px-5 pb-10">
         <div>
-          <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
-            Create New Buyer
-            <IoIosPersonAdd />
-          </button>
+          <Link href={'/buyer-management/create-buyer'}>
+            <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
+              Create New Buyer
+              <IoIosPersonAdd />
+            </button>
+          </Link>
         </div>
         <div className="px-5 py-1 rounded border border-gray-400 flex items-center">
           <input

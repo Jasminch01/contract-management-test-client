@@ -79,62 +79,94 @@ const data: Client[] = [
   },
 ];
 
-// Handle selected rows
+const customStyles = {
+  cells: {
+    style: {
+      borderRight: "1px solid #ddd", // Add right border to each cell
+    },
+  },
+  headCells: {
+    style: {
+      borderRight: "1px solid #ddd", // Add right border to each header cell
+      fontWeight: "bold",
+      color: "gray",
+    },
+  },
+  // selectableRowsCell: {
+  //   style: {
+  //     borderRight: "none !important", // Remove right border
+  //   },
+  // },
+};
+
 const handleChange = (selected: {
   allSelected: boolean;
   selectedCount: number;
   selectedRows: Client[];
 }) => {
-  // Extract the ids of the selected rows
   const selectedIds = selected.selectedRows.map((row) => row.id);
   console.log("Selected Row IDs: ", selectedIds);
 };
 
-// BuyerManagementPage component
 const SellerManagementPage = () => {
   return (
-    <div className="mt-20">
-      <div className="flex items-center justify-between px-5 pb-10">
-        <div>
-          <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
+    <div className="mt-20 p-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+        {/* Create New Seller Button */}
+        <div className="w-full md:w-auto">
+          <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
             Create New Seller
-            <IoIosPersonAdd />
+            <IoIosPersonAdd className="text-lg" />
           </button>
         </div>
-        <div className="px-5 py-1 rounded border border-gray-400 flex items-center">
+
+        {/* Search Input */}
+        <div className="w-full md:w-auto px-4 py-2 rounded border border-gray-400 flex items-center gap-2">
           <input
             type="text"
             placeholder="Search Seller"
-            className="focus:outline-none"
+            className="w-full focus:outline-none"
           />
           <LuSearch className="text-gray-400" />
         </div>
       </div>
-      <div className="flex items-center justify-between px-5">
-        <div className="">
-          <p>List of Seller</p>
+
+      {/* Table Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        {/* Title */}
+        <div className="w-full md:w-auto">
+          <p className="text-lg font-semibold">List of Sellers</p>
         </div>
-        <div className="flex items-center space-x-5">
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
             <MdOutlineEdit />
             Edit
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
-            <RiDeleteBin6Fill color="red" />
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <RiDeleteBin6Fill className="text-red-500" />
             Delete
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
             <IoFilterSharp />
             Filter
           </button>
         </div>
       </div>
-      <div className="mt-10">
+
+      {/* DataTable */}
+      <div className="overflow-x-auto">
         <DataTable
           columns={columns}
+          customStyles={customStyles}
           data={data}
           selectableRows
           onSelectedRowsChange={handleChange}
+          responsive
+          pagination
+          className="border border-gray-200 rounded"
         />
       </div>
     </div>

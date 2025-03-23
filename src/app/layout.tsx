@@ -33,7 +33,6 @@ export const metadata: Metadata = {
   description: "Contract management app",
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,17 +41,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${satoshiFont.className}`}>
-        
         <div className="flex h-screen">
           {/* Sidebar */}
-          <div className="w-[13%] px-5 h-screen shadow-xl border-r border-gray-200">
-            <Sidebar />
-          </div>
+          <Sidebar />
 
           {/* Main Content */}
-          <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-            {children}
-          </div>
+          <div className="flex-1 h-screen bg-gray-50">{children}</div>
         </div>
       </body>
     </html>
