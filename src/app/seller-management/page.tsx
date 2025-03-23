@@ -140,7 +140,7 @@ const SellerManagementPage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="w-full md:w-auto flex flex-wrap gap-2">
+        <div className="w-full md:w-auto flex gap-2">
           <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
             <MdOutlineEdit />
             Edit
