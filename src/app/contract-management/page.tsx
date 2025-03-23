@@ -161,10 +161,12 @@ const ContractManagementPage = () => {
           </button>
         </div>
       </div>
-      <div className="mt-10">
+      <div className="mt-10 overflow-x-scroll">
         <DataTable
           columns={columns}
           data={data}
+          responsive
+          pagination
           selectableRows
           onSelectedRowsChange={handleChange}
         />

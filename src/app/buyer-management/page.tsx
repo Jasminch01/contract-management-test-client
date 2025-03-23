@@ -137,6 +137,8 @@ const BuyerManagementPage = () => {
           columns={columns}
           data={data}
           selectableRows
+          responsive
+          pagination
           onSelectedRowsChange={handleChange}
         />
       </div>

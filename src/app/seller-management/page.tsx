@@ -157,7 +157,7 @@ const SellerManagementPage = () => {
       </div>
 
       {/* DataTable */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-scroll">
         <DataTable
           columns={columns}
           customStyles={customStyles}
