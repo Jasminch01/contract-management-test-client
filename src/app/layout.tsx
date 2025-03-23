@@ -43,7 +43,7 @@ export default function RootLayout({
       <body className={`${satoshiFont.className}`}>
         <div className="flex h-screen">
           {/* Sidebar */}
-          {/* <Sidebar /> */}
+          <Sidebar />
 
           {/* Main Content */}
           <div className="flex-1 h-screen bg-gray-50">{children}</div>
