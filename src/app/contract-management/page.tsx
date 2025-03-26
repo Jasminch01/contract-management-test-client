@@ -1,6 +1,7 @@
 "use client";
 import { Contract } from "@/types/types";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Changed from next/router
 import React from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -11,46 +12,60 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const columns = [
   {
-    name: "Contract Number",
+    name: "CONTRACT NUMBER",
     selector: (row: Contract) => row.contractNumber,
     sortable: true,
   },
   {
-    name: "Season",
+    name: "SEASON",
     selector: (row: Contract) => row.season,
     sortable: true,
   },
   {
-    name: "Grower",
+    name: "GROWER",
     selector: (row: Contract) => row.grower,
     sortable: true,
   },
   {
-    name: "Tonnes",
+    name: "TONNES",
     selector: (row: Contract) => row.tonnes,
     sortable: true,
   },
   {
-    name: "Buyer",
+    name: "BUYER",
     selector: (row: Contract) => row.buyer,
     sortable: true,
   },
   {
-    name: "Destination",
+    name: "DESTINATION",
     selector: (row: Contract) => row.destination,
     sortable: true,
   },
   {
-    name: "Contract",
+    name: "CONTRACT",
     selector: (row: Contract) => row.contract,
     sortable: true,
   },
   {
-    name: "Status",
+    name: "STATUS",
     selector: (row: Contract) => row.status,
     sortable: true,
+    cell: (row: Contract) => (
+      <span
+        className={`px-2 py-1 rounded text-xs ${
+          row.status === "Approved"
+            ? "bg-green-100 text-green-800"
+            : row.status === "Pending"
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
+        {row.status}
+      </span>
+    ),
   },
 ];
+
 const data: Contract[] = [
   {
     id: "1",
@@ -109,66 +124,109 @@ const data: Contract[] = [
   },
 ];
 
-// Handle selected rows
-const handleChange = (selected: {
-  allSelected: boolean;
-  selectedCount: number;
-  selectedRows: Contract[];
-}) => {
-  // Extract the ids of the selected rows
-  const selectedIds = selected.selectedRows.map((row) => row.id);
-  console.log("Selected Row IDs: ", selectedIds);
+const customStyles = {
+  rows: {
+    style: {
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: "#f5f5f5",
+      },
+    },
+  },
+  cells: {
+    style: {
+      borderRight: "1px solid #ddd",
+      padding: "12px",
+    },
+  },
+  headCells: {
+    style: {
+      borderRight: "1px solid #ddd",
+      fontWeight: "bold",
+      color: "gray",
+      padding: "12px",
+    },
+  },
 };
 
-// BuyerManagementPage component
 const ContractManagementPage = () => {
+  const router = useRouter();
+
+  const handleRowClicked = (row: Contract) => {
+    router.push(`/contract-management/${row.id}`);
+  };
+
+  const handleChange = (selected: {
+    allSelected: boolean;
+    selectedCount: number;
+    selectedRows: Contract[];
+  }) => {
+    const selectedIds = selected.selectedRows.map((row) => row.id);
+    console.log("Selected Row IDs: ", selectedIds);
+  };
+
   return (
-    <div className="mt-20">
-      <div className="flex items-center justify-between px-5 pb-10">
-        <div>
-          <Link href={'/contract-management/create-contract'}>
-            <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
-              Create New Conntract
-              <IoIosPersonAdd />
+    <div className="mt-20 p-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+        {/* Create New Contract Button */}
+        <div className="w-full md:w-auto">
+          <Link href="/contract-management/create-contract">
+            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
+              Create New Contract
+              <IoIosPersonAdd className="text-lg" />
             </button>
           </Link>
         </div>
-        <div className="px-5 py-1 rounded border border-gray-400 flex items-center">
+
+        {/* Search Input */}
+        <div className="w-full md:w-auto px-4 py-2 rounded border border-gray-400 flex items-center gap-2">
           <input
             type="text"
             placeholder="Search Contract"
-            className="focus:outline-none"
+            className="w-full focus:outline-none"
           />
           <LuSearch className="text-gray-400" />
         </div>
       </div>
-      <div className="flex items-center justify-between px-5">
-        <div className="">
-          <p>List of Contract</p>
+
+      {/* Table Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        {/* Title */}
+        <div className="w-full md:w-auto">
+          <p className="text-lg font-semibold">List of Contracts</p>
         </div>
-        <div className="flex items-center space-x-5">
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex gap-2">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
             <MdOutlineEdit />
             Edit
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
-            <RiDeleteBin6Fill color="red" />
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <RiDeleteBin6Fill className="text-red-500" />
             Delete
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
             <IoFilterSharp />
             Filter
           </button>
         </div>
       </div>
-      <div className="mt-10 overflow-x-scroll">
+
+      {/* DataTable */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
         <DataTable
           columns={columns}
           data={data}
-          responsive
-          pagination
+          customStyles={customStyles}
+          onRowClicked={handleRowClicked}
           selectableRows
           onSelectedRowsChange={handleChange}
+          responsive
+          pagination
+          highlightOnHover
+          pointerOnHover
         />
       </div>
     </div>

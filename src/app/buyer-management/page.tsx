@@ -1,6 +1,7 @@
 "use client";
 import { Client } from "@/types/types";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -11,7 +12,7 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 
 const columns = [
   {
-    name: "Buyer Name",
+    name: "BUYER NAME",
     selector: (row: Client) => row.buyerName,
     sortable: true,
   },
@@ -21,17 +22,17 @@ const columns = [
     sortable: true,
   },
   {
-    name: "Main Contract",
+    name: "MAIN CONTRACT",
     selector: (row: Client) => row.mainContract,
     sortable: true,
   },
   {
-    name: "Email",
+    name: "EMAIL",
     selector: (row: Client) => row.email,
     sortable: true,
   },
   {
-    name: "Phone",
+    name: "PHONE",
     selector: (row: Client) => row.phone,
     sortable: true,
   },
@@ -78,72 +79,208 @@ const data: Client[] = [
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
+  {
+    id: "5",
+    buyerName: "Charlie Davis",
+    abn: "99 888 777 666",
+    mainContract: "Contract E",
+    email: "charlie@example.com",
+    phone: "+61 400 000 005",
+  },
 ];
 
-// Handle selected rows
-const handleChange = (selected: {
-  allSelected: boolean;
-  selectedCount: number;
-  selectedRows: Client[];
-}) => {
-  // Extract the ids of the selected rows
-  const selectedIds = selected.selectedRows.map((row) => row.id);
-  console.log("Selected Row IDs: ", selectedIds);
+const customStyles = {
+  table: {
+    style: {
+      border: "1px solid #ddd",
+    },
+  },
+  headRow: {
+    style: {
+      backgroundColor: "#f8f9fa",
+      borderBottom: "1px solid #ddd",
+    },
+  },
+  headCells: {
+    style: {
+      borderRight: "1px solid #ddd",
+      fontWeight: "bold",
+      color: "#495057",
+      fontSize: "0.875rem",
+      padding: "12px 15px",
+    },
+  },
+  cells: {
+    style: {
+      borderRight: "1px solid #ddd",
+      padding: "12px 15px",
+      fontSize: "0.875rem",
+    },
+  },
+  rows: {
+    style: {
+      "&:hover": {
+        backgroundColor: "#f5f5f5",
+        cursor: "pointer",
+      },
+    },
+  },
 };
 
-// BuyerManagementPage component
-const BuyerManagementPage = () => {
+const SellerManagementPage = () => {
+  const router = useRouter();
+
+  const handleRowClicked = (row: Client) => {
+    router.push(`/buyer-management/${row.id}`);
+  };
+
+  const handleChange = (selected: {
+    allSelected: boolean;
+    selectedCount: number;
+    selectedRows: Client[];
+  }) => {
+    const selectedIds = selected.selectedRows.map((row) => row.id);
+    console.log("Selected Row IDs: ", selectedIds);
+  };
+
   return (
-    <div className="mt-20">
-      <div className="flex items-center justify-between px-5 pb-10">
-        <div>
-          <Link href={'/buyer-management/create-buyer'}>
-            <button className="px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center gap-2 cursor-pointer">
+    <div className="mt-20 p-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+        {/* Create New Buyer Button */}
+        <div className="w-full md:w-auto">
+          <Link href="/buyer-management/create-buyer">
+            <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded-md cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
               Create New Buyer
-              <IoIosPersonAdd />
+              <IoIosPersonAdd className="text-lg" />
             </button>
           </Link>
         </div>
-        <div className="px-5 py-1 rounded border border-gray-400 flex items-center">
+
+        {/* Search Input */}
+        <div className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
             placeholder="Search Buyer"
-            className="focus:outline-none"
+            className="w-full focus:outline-none bg-transparent"
           />
-          <LuSearch className="text-gray-400" />
+          <LuSearch className="text-gray-500" />
         </div>
       </div>
-      <div className="flex items-center justify-between px-5">
-        <div className="">
-          <p>List of Buyers</p>
+
+      {/* Table Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        {/* Title */}
+        <div className="w-full md:w-auto">
+          <h2 className="text-lg font-semibold text-gray-800">List of Buyers</h2>
         </div>
-        <div className="flex items-center space-x-5">
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex gap-2">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
             <MdOutlineEdit />
             Edit
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
-            <RiDeleteBin6Fill color="red" />
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+            <RiDeleteBin6Fill className="text-red-500" />
             Delete
           </button>
-          <button className="border px-5 py-1 rounded border-gray-200 flex items-center gap-3 text-sm cursor-pointer">
+          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
             <IoFilterSharp />
             Filter
           </button>
         </div>
       </div>
-      <div className="mt-10">
+
+      {/* DataTable */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
         <DataTable
           columns={columns}
           data={data}
+          customStyles={customStyles}
+          onRowClicked={handleRowClicked}
           selectableRows
+          onSelectedRowsChange={handleChange}
           responsive
           pagination
-          onSelectedRowsChange={handleChange}
+          highlightOnHover
+          pointerOnHover
         />
       </div>
     </div>
   );
 };
 
-export default BuyerManagementPage;
+export default SellerManagementPage;

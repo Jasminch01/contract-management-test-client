@@ -1,5 +1,6 @@
 "use client";
 import { Client } from "@/types/types";
+import Link from "next/link";
 import React from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -7,10 +8,11 @@ import { IoFilterSharp } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
+import { useRouter } from "next/navigation";
 
 const columns = [
   {
-    name: "Seller Name",
+    name: "SELLER NAME",
     selector: (row: Client) => row.buyerName,
     sortable: true,
   },
@@ -20,17 +22,17 @@ const columns = [
     sortable: true,
   },
   {
-    name: "Main Contract",
+    name: "MAIN CONTRACT",
     selector: (row: Client) => row.mainContract,
     sortable: true,
   },
   {
-    name: "Email",
+    name: "EMAIL",
     selector: (row: Client) => row.email,
     sortable: true,
   },
   {
-    name: "Phone",
+    name: "PHONE",
     selector: (row: Client) => row.phone,
     sortable: true,
   },
@@ -80,45 +82,56 @@ const data: Client[] = [
 ];
 
 const customStyles = {
+  rows: {
+    style: {
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: "#f5f5f5",
+      },
+    },
+  },
   cells: {
     style: {
-      borderRight: "1px solid #ddd", // Add right border to each cell
+      borderRight: "1px solid #ddd",
     },
   },
   headCells: {
     style: {
-      borderRight: "1px solid #ddd", // Add right border to each header cell
+      borderRight: "1px solid #ddd",
       fontWeight: "bold",
       color: "gray",
     },
   },
-  // selectableRowsCell: {
-  //   style: {
-  //     borderRight: "none !important", // Remove right border
-  //   },
-  // },
-};
-
-const handleChange = (selected: {
-  allSelected: boolean;
-  selectedCount: number;
-  selectedRows: Client[];
-}) => {
-  const selectedIds = selected.selectedRows.map((row) => row.id);
-  console.log("Selected Row IDs: ", selectedIds);
 };
 
 const SellerManagementPage = () => {
+  const router = useRouter();
+
+  const handleRowClicked = (row: Client) => {
+    router.push(`/seller-management/${row.id}`);
+  };
+
+  const handleChange = (selected: {
+    allSelected: boolean;
+    selectedCount: number;
+    selectedRows: Client[];
+  }) => {
+    const selectedIds = selected.selectedRows.map((row) => row.id);
+    console.log("Selected Row IDs: ", selectedIds);
+  };
+
   return (
     <div className="mt-20 p-4">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
         {/* Create New Seller Button */}
         <div className="w-full md:w-auto">
-          <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
-            Create New Seller
-            <IoIosPersonAdd className="text-lg" />
-          </button>
+          <Link href={`/seller-management/create-seller`}>
+            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
+              Create New Seller
+              <IoIosPersonAdd className="text-lg" />
+            </button>
+          </Link>
         </div>
 
         {/* Search Input */}
@@ -160,12 +173,15 @@ const SellerManagementPage = () => {
       <div className="overflow-x-scroll">
         <DataTable
           columns={columns}
-          customStyles={customStyles}
           data={data}
+          customStyles={customStyles}
+          onRowClicked={handleRowClicked}
           selectableRows
           onSelectedRowsChange={handleChange}
           responsive
           pagination
+          highlightOnHover
+          pointerOnHover
           className="border border-gray-200 rounded"
         />
       </div>

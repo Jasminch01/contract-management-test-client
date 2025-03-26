@@ -1,13 +1,13 @@
 import React from "react";
 
-const CreateBuyerPage = () => {
+const CreateSellerPage = () => {
   return (
     <div className="max-w-7xl mx-auto mt-10 md:mt-32 px-4">
       <div className="flex justify-center">
         <form action="" className="w-full max-w-4xl">
           {/* Heading Section */}
           <div className="mb-10 text-center md:text-left">
-            <h1 className="font-bold text-xl">Create Buyer</h1>
+            <h1 className="font-bold text-xl">Create Seller</h1>
             <p className="text-sm">Fill up the form below</p>
           </div>
 
@@ -17,7 +17,7 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER LEGAL NAME
+                  SELLER LEGAL NAME
                 </label>
                 <input
                   type="text"
@@ -27,7 +27,7 @@ const CreateBuyerPage = () => {
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER OFFICE ADDRESS
+                  SELLER OFFICE ADDRESS
                 </label>
                 <input
                   type="text"
@@ -41,7 +41,7 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER ABN
+                  SELLER ABN
                 </label>
                 <input
                   type="text"
@@ -51,7 +51,7 @@ const CreateBuyerPage = () => {
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER CONTRACT NAME
+                  SELLER CONTRACT NAME
                 </label>
                 <input
                   type="text"
@@ -65,7 +65,7 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER EMAIL
+                  SELLER EMAIL
                 </label>
                 <input
                   type="text"
@@ -75,7 +75,7 @@ const CreateBuyerPage = () => {
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER PHONE NUMBER
+                  SELLER PHONE NUMBER
                 </label>
                 <input
                   type="text"
@@ -101,4 +101,4 @@ const CreateBuyerPage = () => {
   );
 };
 
-export default CreateBuyerPage;
+export default CreateSellerPage;
