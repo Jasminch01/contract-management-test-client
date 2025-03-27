@@ -244,7 +244,9 @@ const SellerManagementPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
         {/* Title */}
         <div className="w-full md:w-auto">
-          <h2 className="text-lg font-semibold text-gray-800">List of Buyers</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            List of Buyers
+          </h2>
         </div>
 
         {/* Action Buttons */}
@@ -265,7 +267,7 @@ const SellerManagementPage = () => {
       </div>
 
       {/* DataTable */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
         <DataTable
           columns={columns}
           data={data}
@@ -273,6 +275,8 @@ const SellerManagementPage = () => {
           onRowClicked={handleRowClicked}
           selectableRows
           onSelectedRowsChange={handleChange}
+          fixedHeader
+          fixedHeaderScrollHeight="600px"
           responsive
           pagination
           highlightOnHover

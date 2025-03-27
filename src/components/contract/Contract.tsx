@@ -6,13 +6,18 @@ const Contract = () => {
       <div className="border border-gray-300">
         <div className="text-sm bg-white py-10">
           {/* Header */}
-          <div className="text-center mb-4">
-            <h1 className="text-xl font-bold">GROWTH GRAIN SERVICES</h1>
-            <p className="text-xs">ABN 64 157 832 216</p>
+          <div className="mb-4 border-b border-gray-300 pb-5 flex items-center space-x-20 px-20">
+            <div>
+              <p>Logo</p>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">GROWTH GRAIN SERVICES</h1>
+              <p className="text-xs">ABN 64 157 832 216</p>
+            </div>
           </div>
           <div className="mb-4 grid grid-cols-2 gap-2 text-xs px-20">
-            <div className="pb-1">
-              <h2 className="font-bold text-sm">BUYER</h2>
+            <div className="pb-1 space-y-2">
+              <h2 className="font-bold text-sm">Buyer</h2>
               <p>Veron Awards Pty, LTD</p>
               <p>Top Box Stock</p>
               <p>Minimum VIC, 3004</p>
@@ -20,8 +25,8 @@ const Contract = () => {
               <p>Veron Contract, 6455744</p>
             </div>
 
-            <div className="pb-1">
-              <h2 className="font-bold text-sm">SELLER</h2>
+            <div className="pb-1 space-y-2">
+              <h2 className="font-bold text-sm">Seller</h2>
               <p>N/A (Having A Co. Pty, LTD)</p>
               <p>3000 Stock Based Road, Bidermount, SA, 5501</p>
               <p>NOIS, 15000000</p>
@@ -31,15 +36,14 @@ const Contract = () => {
           </div>
           {/* Full-width Broker Ref section with borders */}
           <div>
-
-          <div className="w-full py-2 mb-4 border-b border-t  border-gray-300">
-            <div className="flex px-20">
-              <span className="w-1/4 font-semibold">Broker Ref:</span>
-              <span className="w-1/4">JZ002088</span>
-              <span className="w-1/4 font-semibold">Contract Date:</span>
-              <span className="w-1/4">2/01/2025</span>
+            <div className="w-full py-2 mb-4 border-b border-t  border-gray-300">
+              <div className="flex px-20">
+                <span className="w-1/4 font-semibold">Broker Ref:</span>
+                <span className="w-1/4">JZ002088</span>
+                <span className="w-1/4 font-semibold">Contract Date:</span>
+                <span className="w-1/4">2/01/2025</span>
+              </div>
             </div>
-          </div>
           </div>
 
           {/* Buyer/Seller Section */}
@@ -57,34 +61,34 @@ const Contract = () => {
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Quality:</span>
-                <span className="w-3/4">H1 AP EPS CPA, COS, 101 STANDARDS</span>
+                <span className="w-3/4">H1 AS PER GTA CSG-101 STANDARDS</span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Quantity:</span>
                 <span className="w-3/4">
-                  ZG &A METRO TORNES - NE, TOLEBANCE
+                20.66 METRIC TONNES - NIL TOLERANCE
                 </span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Price:</span>
                 <span className="w-3/4">
-                  AS&C PER TONNE IN DISPOT YITTERM, ROCKVORTHY
+                  A$342 PER TONNE IN DISPOT YITTERM, ROCKVORTHY
                 </span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Delivery Period:</span>
                 <span className="w-3/4">
-                  2ND JANUARY - STH JANUARY - SELLERS OPTION
+                  2ND JANUARY - 5TH JANUARY - SELLERS OPTION
                 </span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Payment:</span>
                 <span className="w-3/4">
-                  S DARS END OF WEEK OF CULVERT SANDAR IS END OF WEED
+                  5 DARS END OF WEEK OF CULVERT SANDAR IS END OF WEED
                 </span>
               </div>
 
@@ -101,10 +105,10 @@ const Contract = () => {
               <div className="pb-1">
                 <div className="font-semibold mb-1">Terms & Conditions:</div>
                 <p className="text-xs">
-                  WHEN NOT IN COMPLICITY WITH THE ABOVE CONDITIONS THIS
-                  CONTRAICT EXPRESSIVE CORPORATE WILL TERMS A CONDITIONS OF THE
-                  GIRL NO 3 CONTRACT INCLUDING THE GIRL TRADE RELEASE AND
-                  DISPLIPE RESOLUTION RELEASE
+                  WHEN NOT IN CONFLICT WITH THE ABOVE CONDITIONS THIS CONTRACT
+                  EXPRESSLY INCORPORATES THE TERMS & CONDITIONS OF THE GTA NO 3
+                  CONTRACT INCLUDING THE GTA TRADE RULES AND DISPURE RESOLUTION
+                  RULES
                 </p>
               </div>
 
@@ -116,8 +120,8 @@ const Contract = () => {
               <div className="pb-1">
                 <div className="font-semibold mb-1">Brokerage:</div>
                 <p className="text-xs">
-                  AT SELLERS COST AT ASI 00 PER TONNE ENCLUSIVE OF GETI WOXCE TO
-                  SELLER TO BE FORWARDED ON SEPARATEUT TO THIS CONTRACT
+                  AT SELLERS COST AT A$1.00 PER TONNE (EXCLUSIVE OF GST) INVOICE
+                  TO SELLER TO BE FORWARDED ON SEPARATELY TO THIS CONTRACT
                 </p>
               </div>
             </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { IoArrowBack } from "react-icons/io5";
+
 const CreateContractPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4">
@@ -229,62 +231,62 @@ const CreateContractPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                BUYER
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder=""
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                PRICE (EX-GST)
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder="Price"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                BROKER
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder="Broker"
               />
             </div>
             <div className="md:col-start-1 md:row-start-2">
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                SELLER
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder=""
               />
             </div>
             <div className="md:col-start-2 md:row-start-2">
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                CONVEYANCE
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder="Conveyance"
               />
             </div>
             <div className="md:col-start-3 md:row-start-2">
               <label className="block text-sm font-medium text-gray-700">
-                Broker Reference
+                BROKER REFERENCE
               </label>
               <input
                 type="text"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Enter broker reference"
+                placeholder="Broker Reference"
               />
             </div>
             <div className="md:row-span-2 md:col-start-4 row-start-1">
@@ -303,13 +305,13 @@ const CreateContractPage = () => {
           <div className="flex flex-col md:flex-row gap-4 justify-end">
             <button
               type="submit"
-              className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center gap-3"
             >
-              Back
+              <IoArrowBack /> Back
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="px-6 py-2 text-black border border-gray-300 rounded  focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               Save Contract
             </button>
