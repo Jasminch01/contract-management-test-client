@@ -1,12 +1,12 @@
 import React from "react";
 import { MdOutlineEdit } from "react-icons/md";
 
-const sellerInformationPage = () => {
+const buyerInformationPage = () => {
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
         <div className=" mx-auto max-w-6xl">
-          <p className="text-xl font-semibold">Seller information </p>
+          <p className="text-xl font-semibold">Buyer information </p>
         </div>
       </div>
       <div>
@@ -19,9 +19,7 @@ const sellerInformationPage = () => {
             <div className="flex flex-col border border-gray-300 rounded-md flex-1">
               {/* Left Data Rows */}
               <div className="flex border-b border-gray-300 w-full">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Seller Legal Name
-                </div>
+                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Legal Name</div>
                 <div className="w-1/2 p-3">William Hanry</div>
               </div>
               <div className="flex border-b border-gray-300">
@@ -30,12 +28,12 @@ const sellerInformationPage = () => {
               </div>
               <div className="flex border-b border-gray-300">
                 <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Seller Additional NGR&apos;s
+                  Buyer Additional NGR&apos;s
                 </div>
                 <div className="w-1/2 p-3">75674</div>
               </div>
               <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Email</div>
+                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Email</div>
                 <div className="w-1/2 p-3">outlook.mail</div>
               </div>
             </div>
@@ -60,7 +58,7 @@ const sellerInformationPage = () => {
               </div>
               <div className="flex">
                 <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Seller Phone Number:
+                  Buyer Phone Number:
                 </div>
                 <div className="w-1/2 p-3">0357634</div>
               </div>
@@ -80,4 +78,4 @@ const sellerInformationPage = () => {
   );
 };
 
-export default sellerInformationPage;
+export default buyerInformationPage;
