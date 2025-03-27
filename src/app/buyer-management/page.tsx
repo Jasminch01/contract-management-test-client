@@ -222,7 +222,7 @@ const SellerManagementPage = () => {
         {/* Create New Buyer Button */}
         <div className="w-full md:w-auto">
           <Link href="/buyer-management/create-buyer">
-            <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded-md cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
+            <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
               Create New Buyer
               <IoIosPersonAdd className="text-lg" />
             </button>
@@ -267,7 +267,7 @@ const SellerManagementPage = () => {
       </div>
 
       {/* DataTable */}
-      <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-auto rounded-lg border border-gray-200">
         <DataTable
           columns={columns}
           data={data}

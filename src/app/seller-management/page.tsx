@@ -127,7 +127,7 @@ const SellerManagementPage = () => {
         {/* Create New Seller Button */}
         <div className="w-full md:w-auto">
           <Link href={`/seller-management/create-seller`}>
-            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
+            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors">
               Create New Seller
               <IoIosPersonAdd className="text-lg" />
             </button>

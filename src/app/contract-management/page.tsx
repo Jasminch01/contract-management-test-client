@@ -172,7 +172,7 @@ const ContractManagementPage = () => {
         {/* Create New Contract Button */}
         <div className="w-full md:w-auto">
           <Link href="/contract-management/create-contract">
-            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors">
+            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors rounded">
               Create New Contract
               <IoIosPersonAdd className="text-lg" />
             </button>
@@ -215,7 +215,7 @@ const ContractManagementPage = () => {
       </div>
 
       {/* DataTable */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-300">
         <DataTable
           columns={columns}
           data={data}
