@@ -40,6 +40,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/Favicon.png" sizes="any" />
+        <meta name="description" content={`${metadata.description}`} />
+        <meta name="keywords" content={`${metadata.keywords}`} />
+      </head>
       <body className={`${satoshiFont.className}`}>
         <div className="md:flex h-screen">
           <Sidebar />
