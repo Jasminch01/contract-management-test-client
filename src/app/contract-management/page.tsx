@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation"; // Changed from next/router
 import React from "react";
 import DataTable from "react-data-table-component";
-import { IoIosPersonAdd } from "react-icons/io";
-import { IoFilterSharp } from "react-icons/io5";
+import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
+import { IoDocumentText, IoFilterSharp } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
-import { RiDeleteBin6Fill } from "react-icons/ri";
+import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
 
 const columns = [
   {
@@ -51,17 +51,14 @@ const columns = [
     selector: (row: Contract) => row.status,
     sortable: true,
     cell: (row: Contract) => (
-      <span
-        className={`px-2 py-1 rounded text-xs ${
-          row.status === "Approved"
-            ? "bg-green-100 text-green-800"
-            : row.status === "Pending"
-            ? "bg-yellow-100 text-yellow-800"
-            : "bg-red-100 text-red-800"
-        }`}
-      >
+      <p className={`text-xs flex items-center gap-x-3`}>
+        <RiCircleFill
+          className={`${
+            row.status !== "Complete" ? "text-[#FAD957]" : "text-[#B1B1B1]"
+          }`}
+        />
         {row.status}
-      </span>
+      </p>
     ),
   },
 ];
@@ -76,7 +73,7 @@ const data: Contract[] = [
     buyer: "ABC Foods",
     destination: "Sydney",
     contract: "Active",
-    status: "Approved",
+    status: "Not done",
   },
   {
     id: "2",
@@ -87,7 +84,7 @@ const data: Contract[] = [
     buyer: "XYZ Distributors",
     destination: "Melbourne",
     contract: "Active",
-    status: "Pending",
+    status: "Complete",
   },
   {
     id: "3",
@@ -98,7 +95,7 @@ const data: Contract[] = [
     buyer: "Fresh Produce Co.",
     destination: "Brisbane",
     contract: "Inactive",
-    status: "Rejected",
+    status: "Not done",
   },
   {
     id: "4",
@@ -109,7 +106,7 @@ const data: Contract[] = [
     buyer: "Global Foods",
     destination: "Perth",
     contract: "Active",
-    status: "Approved",
+    status: "Complete",
   },
   {
     id: "5",
@@ -120,7 +117,7 @@ const data: Contract[] = [
     buyer: "Organic Farms",
     destination: "Adelaide",
     contract: "Inactive",
-    status: "Pending",
+    status: "Complete",
   },
 ];
 
@@ -129,7 +126,7 @@ const customStyles = {
     style: {
       cursor: "pointer",
       "&:hover": {
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#D3D3D3",
       },
     },
   },
@@ -166,9 +163,9 @@ const ContractManagementPage = () => {
   };
 
   return (
-    <div className="mt-20 p-4">
+    <div className="mt-20">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Contract Button */}
         <div className="w-full md:w-auto">
           <Link href="/contract-management/create-contract">
@@ -191,43 +188,67 @@ const ContractManagementPage = () => {
       </div>
 
       {/* Table Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        {/* Title */}
-        <div className="w-full md:w-auto">
-          <p className="text-lg font-semibold">List of Contracts</p>
+      <div className="mt-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
+          {/* Title */}
+          <div className="w-full md:w-auto">
+            <p className="text-lg font-semibold">List of Contracts</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="w-full md:w-auto flex gap-2">
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoDocumentText />
+              Open BN PDF
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoIosSend />
+              Email to Buyer
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoIosSend />
+              Email to Seller
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoIosSend />
+              Email to Seller
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <MdOutlineEdit />
+              Edit
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <RiDeleteBin6Fill className="text-red-500" />
+              Delete
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <RiCircleFill className="text-[#FAD957]" />
+              Status
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoFilterSharp />
+              Filter
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="w-full md:w-auto flex gap-2">
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <MdOutlineEdit />
-            Edit
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <RiDeleteBin6Fill className="text-red-500" />
-            Delete
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <IoFilterSharp />
-            Filter
-          </button>
+        {/* DataTable */}
+        <div className="overflow-x-auto border border-gray-300">
+          <DataTable
+            columns={columns}
+            data={data}
+            customStyles={customStyles}
+            onRowClicked={handleRowClicked}
+            selectableRows
+            onSelectedRowsChange={handleChange}
+            fixedHeader
+            fixedHeaderScrollHeight="600px"
+            responsive
+            pagination
+            highlightOnHover
+            pointerOnHover
+          />
         </div>
-      </div>
-
-      {/* DataTable */}
-      <div className="overflow-x-auto rounded-lg border border-gray-300">
-        <DataTable
-          columns={columns}
-          data={data}
-          customStyles={customStyles}
-          onRowClicked={handleRowClicked}
-          selectableRows
-          onSelectedRowsChange={handleChange}
-          responsive
-          pagination
-          highlightOnHover
-          pointerOnHover
-        />
       </div>
     </div>
   );

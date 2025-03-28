@@ -121,9 +121,9 @@ const SellerManagementPage = () => {
   };
 
   return (
-    <div className="mt-20 p-4">
+    <div className="mt-20">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
         {/* Create New Seller Button */}
         <div className="w-full md:w-auto">
           <Link href={`/seller-management/create-seller`}>
@@ -144,46 +144,49 @@ const SellerManagementPage = () => {
           <LuSearch className="text-gray-400" />
         </div>
       </div>
+      <div className="mt-3">
+        {/* Table Controls */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
+          {/* Title */}
+          <div className="w-full md:w-auto">
+            <p className="text-lg font-semibold">List of Sellers</p>
+          </div>
 
-      {/* Table Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        {/* Title */}
-        <div className="w-full md:w-auto">
-          <p className="text-lg font-semibold">List of Sellers</p>
+          {/* Action Buttons */}
+          <div className="w-full md:w-auto flex gap-2">
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <MdOutlineEdit />
+              Edit
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <RiDeleteBin6Fill className="text-red-500" />
+              Delete
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+              <IoFilterSharp />
+              Filter
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="w-full md:w-auto flex gap-2">
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <MdOutlineEdit />
-            Edit
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <RiDeleteBin6Fill className="text-red-500" />
-            Delete
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-            <IoFilterSharp />
-            Filter
-          </button>
+        {/* DataTable */}
+        <div className="overflow-x-scroll">
+          <DataTable
+            columns={columns}
+            data={data}
+            customStyles={customStyles}
+            onRowClicked={handleRowClicked}
+            selectableRows
+            onSelectedRowsChange={handleChange}
+            fixedHeader
+            fixedHeaderScrollHeight="600px"
+            responsive
+            pagination
+            highlightOnHover
+            pointerOnHover
+            className="border border-gray-200 rounded"
+          />
         </div>
-      </div>
-
-      {/* DataTable */}
-      <div className="overflow-x-scroll">
-        <DataTable
-          columns={columns}
-          data={data}
-          customStyles={customStyles}
-          onRowClicked={handleRowClicked}
-          selectableRows
-          onSelectedRowsChange={handleChange}
-          responsive
-          pagination
-          highlightOnHover
-          pointerOnHover
-          className="border border-gray-200 rounded"
-        />
       </div>
     </div>
   );

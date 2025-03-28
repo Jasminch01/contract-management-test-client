@@ -216,9 +216,9 @@ const SellerManagementPage = () => {
   };
 
   return (
-    <div className="mt-20 p-4">
+    <div className="mt-20">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-10">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Buyer Button */}
         <div className="w-full md:w-auto">
           <Link href="/buyer-management/create-buyer">
@@ -239,49 +239,50 @@ const SellerManagementPage = () => {
           <LuSearch className="text-gray-500" />
         </div>
       </div>
+      <div className="mt-3">
+        {/* Table Controls */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
+          {/* Title */}
+          <div className="w-full md:w-auto">
+            <h2 className="text-lg font-semibold text-gray-800">
+              List of Buyers
+            </h2>
+          </div>
 
-      {/* Table Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        {/* Title */}
-        <div className="w-full md:w-auto">
-          <h2 className="text-lg font-semibold text-gray-800">
-            List of Buyers
-          </h2>
+          {/* Action Buttons */}
+          <div className="w-full md:w-auto flex gap-2">
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+              <MdOutlineEdit />
+              Edit
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+              <RiDeleteBin6Fill className="text-red-500" />
+              Delete
+            </button>
+            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+              <IoFilterSharp />
+              Filter
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="w-full md:w-auto flex gap-2">
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
-            <MdOutlineEdit />
-            Edit
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
-            <RiDeleteBin6Fill className="text-red-500" />
-            Delete
-          </button>
-          <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
-            <IoFilterSharp />
-            Filter
-          </button>
+        {/* DataTable */}
+        <div className="overflow-auto rounded-lg border border-gray-200">
+          <DataTable
+            columns={columns}
+            data={data}
+            customStyles={customStyles}
+            onRowClicked={handleRowClicked}
+            selectableRows
+            onSelectedRowsChange={handleChange}
+            fixedHeader
+            fixedHeaderScrollHeight="600px"
+            responsive
+            pagination
+            highlightOnHover
+            pointerOnHover
+          />
         </div>
-      </div>
-
-      {/* DataTable */}
-      <div className="overflow-auto rounded-lg border border-gray-200">
-        <DataTable
-          columns={columns}
-          data={data}
-          customStyles={customStyles}
-          onRowClicked={handleRowClicked}
-          selectableRows
-          onSelectedRowsChange={handleChange}
-          fixedHeader
-          fixedHeaderScrollHeight="600px"
-          responsive
-          pagination
-          highlightOnHover
-          pointerOnHover
-        />
       </div>
     </div>
   );

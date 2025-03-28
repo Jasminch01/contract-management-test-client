@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 const Contract = () => {
@@ -6,9 +7,14 @@ const Contract = () => {
       <div className="border border-gray-300">
         <div className="text-sm bg-white py-10">
           {/* Header */}
-          <div className="mb-4 border-b border-gray-300 pb-5 flex items-center space-x-20 px-20">
+          <div className="mb-4 border-b border-gray-300 pb-5 flex items-center space-x-20 pl-20">
             <div>
-              <p>Logo</p>
+              <Image
+                src={"/Original.png"}
+                alt="growth-grain-logo"
+                width={50}
+                height={50}
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold">GROWTH GRAIN SERVICES</h1>
@@ -47,7 +53,7 @@ const Contract = () => {
           </div>
 
           {/* Buyer/Seller Section */}
-          <div className="px-20">
+          <div className="pl-20 pr-10">
             <div className="space-y-2 text-xs">
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Commodity:</span>
@@ -67,7 +73,7 @@ const Contract = () => {
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Quantity:</span>
                 <span className="w-3/4">
-                20.66 METRIC TONNES - NIL TOLERANCE
+                  20.66 METRIC TONNES - NIL TOLERANCE
                 </span>
               </div>
 
