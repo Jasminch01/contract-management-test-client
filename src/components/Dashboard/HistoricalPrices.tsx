@@ -3,7 +3,7 @@ import React from "react";
 const HistoricalPrices = () => {
   return (
     <div>
-      <div className="mt-20 p-10 rounded border-t-5 border-purple-500 shadow-sm h-[29.7rem] w-[20rem] flex flex-col">
+      <div className="mt-20 p-10 rounded border-t-5 border-purple-500 shadow-sm h-[29.7rem] w-[25rem] flex flex-col">
         {/* Fixed Heading */}
         <div className="pb-4">
           <p className="text-lg">Historical Daily Prices</p>
