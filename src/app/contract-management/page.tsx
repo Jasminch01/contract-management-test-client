@@ -42,8 +42,8 @@ const columns = [
     sortable: true,
   },
   {
-    name: "CONTRACT",
-    selector: (row: Contract) => row.contract,
+    name: "CONTRACT PRICE",
+    selector: (row: Contract) => row.contractPrice,
     sortable: true,
   },
   {
@@ -72,7 +72,7 @@ const data: Contract[] = [
     tonnes: 150,
     buyer: "ABC Foods",
     destination: "Sydney",
-    contract: "Active",
+    contractPrice: "100",
     status: "Not done",
   },
   {
@@ -83,7 +83,7 @@ const data: Contract[] = [
     tonnes: 200,
     buyer: "XYZ Distributors",
     destination: "Melbourne",
-    contract: "Active",
+    contractPrice: "299",
     status: "Complete",
   },
   {
@@ -94,7 +94,7 @@ const data: Contract[] = [
     tonnes: 100,
     buyer: "Fresh Produce Co.",
     destination: "Brisbane",
-    contract: "Inactive",
+    contractPrice: "400",
     status: "Not done",
   },
   {
@@ -105,7 +105,7 @@ const data: Contract[] = [
     tonnes: 250,
     buyer: "Global Foods",
     destination: "Perth",
-    contract: "Active",
+    contractPrice: "200",
     status: "Complete",
   },
   {
@@ -116,7 +116,7 @@ const data: Contract[] = [
     tonnes: 300,
     buyer: "Organic Farms",
     destination: "Adelaide",
-    contract: "Inactive",
+    contractPrice: "123",
     status: "Complete",
   },
 ];
@@ -126,7 +126,7 @@ const customStyles = {
     style: {
       cursor: "pointer",
       "&:hover": {
-        backgroundColor: "#D3D3D3",
+        backgroundColor: "#E8F2FF",
       },
     },
   },
@@ -196,7 +196,7 @@ const ContractManagementPage = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="w-full md:w-auto flex gap-2">
+          <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
             <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
               <IoDocumentText />
               Export as PDF
@@ -241,7 +241,6 @@ const ContractManagementPage = () => {
             fixedHeaderScrollHeight="600px"
             responsive
             pagination
-            highlightOnHover
             pointerOnHover
           />
         </div>

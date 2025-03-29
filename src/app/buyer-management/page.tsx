@@ -22,7 +22,7 @@ const columns = [
     sortable: true,
   },
   {
-    name: "MAIN CONTRACT",
+    name: "MAIN CONTACT",
     selector: (row: Client) => row.mainContract,
     sortable: true,
   },
@@ -43,7 +43,7 @@ const data: Client[] = [
     id: "1",
     buyerName: "John Doe",
     abn: "12 345 678 901",
-    mainContract: "Contract A",
+    mainContract: "Commex International",
     email: "john@example.com",
     phone: "+61 400 000 001",
   },
@@ -51,7 +51,7 @@ const data: Client[] = [
     id: "2",
     buyerName: "Jane Smith",
     abn: "98 765 432 109",
-    mainContract: "Contract B",
+    mainContract: "Commex International",
     email: "jane@example.com",
     phone: "+61 400 000 002",
   },
@@ -59,7 +59,7 @@ const data: Client[] = [
     id: "3",
     buyerName: "Alice Johnson",
     abn: "11 222 333 444",
-    mainContract: "Contract C",
+    mainContract: "Commex International",
     email: "alice@example.com",
     phone: "+61 400 000 003",
   },
@@ -67,7 +67,7 @@ const data: Client[] = [
     id: "4",
     buyerName: "Bob Brown",
     abn: "55 666 777 888",
-    mainContract: "Contract D",
+    mainContract: "Commex International",
     email: "bob@example.com",
     phone: "+61 400 000 004",
   },
@@ -75,7 +75,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -83,7 +83,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -91,7 +91,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -99,7 +99,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -107,7 +107,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -115,7 +115,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -123,7 +123,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -131,7 +131,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -139,7 +139,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -147,7 +147,7 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
@@ -155,18 +155,13 @@ const data: Client[] = [
     id: "5",
     buyerName: "Charlie Davis",
     abn: "99 888 777 666",
-    mainContract: "Contract E",
+    mainContract: "Commex International",
     email: "charlie@example.com",
     phone: "+61 400 000 005",
   },
 ];
 
 const customStyles = {
-  table: {
-    style: {
-      border: "1px solid #ddd",
-    },
-  },
   headRow: {
     style: {
       backgroundColor: "#f8f9fa",
@@ -177,22 +172,19 @@ const customStyles = {
     style: {
       borderRight: "1px solid #ddd",
       fontWeight: "bold",
-      color: "#495057",
-      fontSize: "0.875rem",
-      padding: "12px 15px",
+      color: "gray",
     },
   },
   cells: {
     style: {
       borderRight: "1px solid #ddd",
       padding: "12px 15px",
-      fontSize: "0.875rem",
     },
   },
   rows: {
     style: {
       "&:hover": {
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#E8F2FF",
         cursor: "pointer",
       },
     },
@@ -279,7 +271,6 @@ const SellerManagementPage = () => {
             fixedHeaderScrollHeight="600px"
             responsive
             pagination
-            highlightOnHover
             pointerOnHover
           />
         </div>

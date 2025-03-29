@@ -15,6 +15,6 @@ export interface Contract {
   tonnes: number;
   buyer: string;
   destination: string;
-  contract: string;
+  contractPrice: string;
   status: string;
 }

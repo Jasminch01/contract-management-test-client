@@ -51,7 +51,7 @@ const CreateSellerPage = () => {
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  SELLER CONTRACT NAME
+                  SELLER MAIN NGR
                 </label>
                 <input
                   type="text"
@@ -62,6 +62,28 @@ const CreateSellerPage = () => {
             </div>
 
             {/* Row 3 */}
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="w-full md:w-1/2">
+                <label className="block text-sm font-medium text-gray-700">
+                  SELLER ADDITIONAL NGR’S
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder=""
+                />
+              </div>
+              <div className="w-full md:w-1/2">
+                <label className="block text-sm font-medium text-gray-700">
+                  SELLER CONTACT NAME
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder=""
+                />
+              </div>
+            </div>
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
