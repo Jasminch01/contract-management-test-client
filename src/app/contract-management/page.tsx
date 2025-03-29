@@ -199,15 +199,11 @@ const ContractManagementPage = () => {
           <div className="w-full md:w-auto flex gap-2">
             <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
               <IoDocumentText />
-              Open BN PDF
+              Export as PDF
             </button>
             <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
               <IoIosSend />
               Email to Buyer
-            </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-              <IoIosSend />
-              Email to Seller
             </button>
             <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
               <IoIosSend />

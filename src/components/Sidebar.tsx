@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"; // Import usePathname
 import { MdOutlineLogout } from "react-icons/md";
 import { useState } from "react"; // Import useState
 import { FaBars } from "react-icons/fa"; // Import hamburger icon
+import Image from "next/image";
 
 const menus = [
   {
@@ -70,10 +71,8 @@ const Sidebar = () => {
                 className="flex items-center justify-center gap-3"
                 onClick={handleMenuItemClick} // Close sidebar on mobile
               >
-                <div className="border border-green-500 px-3 py-2 rounded font-bold">
-                  W
-                </div>
-                <p>William Josh</p>
+                <Image className="rounded-full size-10" src={'/Original.png'} alt="user-image" width={100} height={100}/>
+                <p className="font-bold">William Josh</p>
               </Link>
             </div>
 
