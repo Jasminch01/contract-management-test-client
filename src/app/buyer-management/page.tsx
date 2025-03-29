@@ -268,7 +268,7 @@ const SellerManagementPage = () => {
             selectableRows
             onSelectedRowsChange={handleChange}
             fixedHeader
-            fixedHeaderScrollHeight="600px"
+            fixedHeaderScrollHeight="500px"
             responsive
             pagination
             pointerOnHover
