@@ -48,7 +48,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row  items-center 2xl:gap-20 gap-5">
+        <div className="flex flex-col lg:flex-row 2xl:gap-20 gap-5 2xl:mt-20 mt-5">
           <HistoricalPrices />
           <HistoycalNotebooks />
           <ContractProgress/>
