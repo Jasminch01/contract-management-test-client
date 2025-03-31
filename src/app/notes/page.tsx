@@ -1,5 +1,5 @@
 "use client";
-import { Client } from "@/types/types";
+import { Note } from "@/types/types";
 import Link from "next/link";
 import React from "react";
 import DataTable from "react-data-table-component";
@@ -13,71 +13,76 @@ import { useRouter } from "next/navigation";
 const columns = [
   {
     name: "NOTEBOOK NAME",
-    selector: (row: Client) => row.buyerName,
+    selector: (row: Note) => row.noteName,
     sortable: true,
   },
   {
     name: "NOTES",
-    selector: (row: Client) => row.abn,
+    selector: (row: Note) => row.notes,
     sortable: true,
   },
   {
     name: "BROKER REFERANCE",
-    selector: (row: Client) => row.mainContract,
+    selector: (row: Note) => row.br,
     sortable: true,
   },
   {
     name: "DATE",
-    selector: (row: Client) => row.email,
+    selector: (row: Note) => row.date,
     sortable: true,
   },
   {
     name: "TIME",
-    selector: (row: Client) => row.phone,
+    selector: (row: Note) => row.time,
     sortable: true,
   },
 ];
 
-const data: Client[] = [
+const data: Note[] = [
   {
     id: "1",
-    buyerName: "John Doe",
-    abn: "12 345 678 901",
-    mainContract: "Commex International",
-    email: "john@example.com",
-    phone: "+61 400 000 001",
+    noteName: "Notebook 1456",
+    notes:
+      "It is a long established fact that a reader will be distracted by the readable content of a page",
+    br: "JZ02088",
+    date: "2/4/2025",
+    time: "10:45AM",
   },
   {
     id: "2",
-    buyerName: "Jane Smith",
-    abn: "98 765 432 109",
-    mainContract: "Commex International",
-    email: "jane@example.com",
-    phone: "+61 400 000 002",
+    noteName: "Notebook 1456",
+    notes:
+      "It is a long established fact that a reader will be distracted by the readable content of a page",
+    br: "JZ02088",
+    date: "2/4/2025",
+    time: "10:45AM",
   },
   {
     id: "3",
-    buyerName: "Alice Johnson",
-    abn: "11 222 333 444",
-    mainContract: "Commex International",
-    email: "alice@example.com",
-    phone: "+61 400 000 003",
+    noteName: "Notebook 1456",
+    notes:
+      "It is a long established fact that a reader will be distracted by the readable content of a page",
+    br: "JZ02088",
+    date: "2/4/2025",
+    time: "10:45AM",
   },
   {
     id: "4",
-    buyerName: "Bob Brown",
-    abn: "55 666 777 888",
-    mainContract: "Commex International",
-    email: "bob@example.com",
-    phone: "+61 400 000 004",
+    noteName: "Notebook 1456",
+    notes:
+      "It is a long established fact that a reader will be distracted by the readable content of a page",
+    br: "JZ02088",
+    date: "2/4/2025",
+    time: "10:45AM",
   },
   {
     id: "5",
-    buyerName: "Charlie Davis",
-    abn: "99 888 777 666",
-    mainContract: "Commex International",
-    email: "charlie@example.com",
-    phone: "+61 400 000 005",
+    noteName: "Notebook 1456",
+    notes:
+      "It is a long established fact that a reader will be distracted by the readable content of a page",
+    br: "JZ02088",
+    date: "2/4/2025",
+    time: "10:45AM",
   },
 ];
 
@@ -107,14 +112,14 @@ const customStyles = {
 const NotesPage = () => {
   const router = useRouter();
 
-  const handleRowClicked = (row: Client) => {
+  const handleRowClicked = (row: Note) => {
     router.push(`/note/${row.id}`);
   };
 
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
-    selectedRows: Client[];
+    selectedRows: Note[];
   }) => {
     const selectedIds = selected.selectedRows.map((row) => row.id);
     console.log("Selected Row IDs: ", selectedIds);
@@ -124,7 +129,7 @@ const NotesPage = () => {
     <div className="mt-20">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
-        {/* Create New Seller Button */}
+        {/* Create New note Button */}
         <div className="w-full md:w-auto">
           <Link href={`/seller-management/create-seller`}>
             <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors">

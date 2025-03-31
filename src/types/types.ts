@@ -6,6 +6,14 @@ export interface Client {
   email: string;
   phone: string;
 }
+export interface Note {
+  id: string;
+  noteName: string;
+  notes: string;
+  br: string;
+  date: string;
+  time: string;
+}
 
 export interface Buyer {
   id: string;
