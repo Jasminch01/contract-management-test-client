@@ -23,6 +23,10 @@ const menus = [
     page: "Seller Management",
     link: "/seller-management",
   },
+  {
+    page: "Notes",
+    link: "/notes",
+  },
 ];
 
 const Sidebar = () => {

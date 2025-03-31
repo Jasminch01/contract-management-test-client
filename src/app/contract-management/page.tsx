@@ -1,7 +1,7 @@
 "use client";
 import { Contract } from "@/types/types";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Changed from next/router
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
@@ -92,31 +92,116 @@ const customStyles = {
   },
 };
 
+const statusOptions = [
+  { value: "all", label: "All Statuses" },
+  { value: "draft", label: "Draft" },
+  { value: "active", label: "Active" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 const ContractManagementPage = () => {
   const router = useRouter();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Contract[]>([]);
+  const [originalData, setOriginalData] = useState<Contract[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
+  // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
     router.push(`/contract-management/${row.id}`);
   };
 
+  // Handle row selection
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
     selectedRows: Contract[];
   }) => {
-    const selectedIds = selected.selectedRows.map((row) => row.id);
-    console.log("Selected Row IDs: ", selectedIds);
+    setSelectedRows(selected.selectedRows);
   };
 
+  // Load data
   useEffect(() => {
     fetch("/contracts.json")
       .then((res) => res.json())
       .then((data) => {
         setData(data);
+        setOriginalData(data);
       });
   }, []);
-  console.log(data);
+
+  // Filter data based on search term and status
+  useEffect(() => {
+    let filteredData = originalData;
+
+    if (searchTerm) {
+      filteredData = filteredData.filter((contract) =>
+        Object.values(contract).some(
+          (value) =>
+            value &&
+            value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    if (selectedStatus !== "all") {
+      filteredData = filteredData.filter(
+        (contract) => contract.status === selectedStatus
+      );
+    }
+
+    setData(filteredData);
+  }, [searchTerm, selectedStatus, originalData]);
+
+  // Handle delete selected contracts
+  const handleDelete = () => {
+    if (selectedRows.length === 0) {
+      alert("Please select at least one contract to delete");
+      return;
+    }
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    const newData = originalData.filter(
+      (contract) => !selectedRows.some((row) => row.id === contract.id)
+    );
+    setOriginalData(newData);
+    setSelectedRows([]);
+    setIsDeleteConfirmOpen(false);
+    alert(`${selectedRows.length} contract(s) deleted successfully`);
+  };
+
+  // Handle edit selected contract
+  const handleEdit = () => {
+    if (selectedRows.length !== 1) {
+      alert("Please select exactly one contract to edit");
+      return;
+    }
+    router.push(`/contract-management/${selectedRows[0].id}/edit`);
+  };
+
+  // Handle status change
+
+  // Handle export to PDF
+  const handleExportPDF = () => {
+    // In a real app, this would generate a PDF
+    alert(`Exporting ${data.length} contracts to PDF`);
+  };
+
+  // Handle email actions
+  const handleEmail = (recipient: "buyer" | "seller") => {
+    if (selectedRows.length === 0) {
+      alert(`Please select at least one contract to email ${recipient}`);
+      return;
+    }
+    alert(`Emailing ${selectedRows.length} contracts to ${recipient}`);
+  };
+
   return (
     <div className="mt-20">
       {/* Header Section */}
@@ -137,6 +222,8 @@ const ContractManagementPage = () => {
             type="text"
             placeholder="Search Contract"
             className="w-full focus:outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <LuSearch className="text-gray-400" />
         </div>
@@ -152,34 +239,67 @@ const ContractManagementPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={handleExportPDF}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <IoDocumentText />
               Export as PDF
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={() => handleEmail("buyer")}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <IoIosSend />
               Email to Buyer
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={() => handleEmail("seller")}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <IoIosSend />
               Email to Seller
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={handleEdit}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <MdOutlineEdit />
               Edit
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={handleDelete}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-              <RiCircleFill className="text-[#FAD957]" />
-              Status
-            </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
-              <IoFilterSharp />
-              Filter
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              >
+                <IoFilterSharp />
+                Filter
+              </button>
+              {isFilterOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 p-2">
+                  <p className="font-medium mb-2">Filter by Status</p>
+                  {statusOptions.map((option) => (
+                    <div 
+                      key={option.value}
+                      className={`p-2 hover:bg-gray-100 cursor-pointer ${selectedStatus === option.value ? 'bg-gray-100' : ''}`}
+                      onClick={() => {
+                        setSelectedStatus(option.value);
+                        setIsFilterOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -200,6 +320,32 @@ const ContractManagementPage = () => {
           />
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
+            <p className="mb-4">
+              Are you sure you want to delete {selectedRows.length} selected contract(s)?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
