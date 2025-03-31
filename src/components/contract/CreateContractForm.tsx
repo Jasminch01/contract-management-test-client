@@ -1,9 +1,16 @@
+"use client";
 import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
 import SellerSelect from "./SellerSelect";
+import { useRouter } from "next/navigation";
 
 const CreateContractForm = () => {
+  const router = useRouter();
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push('/contract-management'); // Navigate back
+  };
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
       <form className="space-y-6 mt-6 md:mt-10">
@@ -279,7 +286,8 @@ const CreateContractForm = () => {
         {/* Submit Buttons */}
         <div className="flex flex-col md:flex-row gap-4 justify-end">
           <button
-            type="submit"
+            type="button"
+            onClick={handleBack}
             className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center gap-3"
           >
             <IoArrowBack /> Back

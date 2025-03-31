@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
+import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoDocumentText, IoFilterSharp } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
@@ -54,7 +55,9 @@ const columns = [
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status !== "completed" ? "text-[#FAD957]" : "text-[#B1B1B1]"
+            row.status.toLowerCase() !== "completed"
+              ? "text-[#FAD957]"
+              : "text-[#B1B1B1]"
           }`}
         />
         {row.status}
@@ -93,11 +96,9 @@ const customStyles = {
 };
 
 const statusOptions = [
-  { value: "all", label: "All Statuses" },
-  { value: "draft", label: "Draft" },
-  { value: "active", label: "Active" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
+  { value: "recent", label: "Recent" },
+  { value: "Completed", label: "Completed" },
+  { value: "Not Done", label: "Not Done" },
 ];
 
 const ContractManagementPage = () => {
@@ -160,7 +161,7 @@ const ContractManagementPage = () => {
   // Handle delete selected contracts
   const handleDelete = () => {
     if (selectedRows.length === 0) {
-      alert("Please select at least one contract to delete");
+      toast.error("Please select at least one contract to delete");
       return;
     }
     setIsDeleteConfirmOpen(true);
@@ -173,37 +174,40 @@ const ContractManagementPage = () => {
     setOriginalData(newData);
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
-    alert(`${selectedRows.length} contract(s) deleted successfully`);
+    toast.success(`${selectedRows.length} contract(s) deleted successfully`);
   };
 
   // Handle edit selected contract
   const handleEdit = () => {
     if (selectedRows.length !== 1) {
-      alert("Please select exactly one contract to edit");
+      toast.error("Please select exactly one contract to edit");
       return;
     }
     router.push(`/contract-management/${selectedRows[0].id}/edit`);
   };
 
-  // Handle status change
-
   // Handle export to PDF
   const handleExportPDF = () => {
     // In a real app, this would generate a PDF
-    alert(`Exporting ${data.length} contracts to PDF`);
+    if (selectedRows.length === 0) {
+      toast.error(`Please select at least one contract to generate PDF`);
+      return;
+    }
+    toast.success(`Exporting ${data.length} contracts to PDF`);
   };
 
   // Handle email actions
   const handleEmail = (recipient: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
-      alert(`Please select at least one contract to email ${recipient}`);
+      toast.error(`Please select at least one contract to email ${recipient}`);
       return;
     }
-    alert(`Emailing ${selectedRows.length} contracts to ${recipient}`);
+    toast.success(`Emailing ${selectedRows.length} contracts to ${recipient}`);
   };
 
   return (
     <div className="mt-20">
+      <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Contract Button */}
@@ -239,43 +243,59 @@ const ContractManagementPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
-            <button 
+            <button
               onClick={handleExportPDF}
-              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+                selectedRows.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }`}
             >
               <IoDocumentText />
               Export as PDF
             </button>
-            <button 
+            <button
               onClick={() => handleEmail("buyer")}
-              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}
             >
               <IoIosSend />
               Email to Buyer
             </button>
-            <button 
+            <button
               onClick={() => handleEmail("seller")}
-              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors ${
+                selectedRows.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }`}
             >
               <IoIosSend />
               Email to Seller
             </button>
-            <button 
+            <button
               onClick={handleEdit}
-              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors ${
+                selectedRows.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }`}
             >
               <MdOutlineEdit />
               Edit
             </button>
-            <button 
+            <button
               onClick={handleDelete}
-              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors ${
+                selectedRows.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }`}
             >
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
               >
@@ -284,11 +304,15 @@ const ContractManagementPage = () => {
               </button>
               {isFilterOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 p-2">
-                  <p className="font-medium mb-2">Filter by Status</p>
+                  <p className="font-medium mb-2 text-center">
+                    Filter by Status
+                  </p>
                   {statusOptions.map((option) => (
-                    <div 
+                    <div
                       key={option.value}
-                      className={`p-2 hover:bg-gray-100 cursor-pointer ${selectedStatus === option.value ? 'bg-gray-100' : ''}`}
+                      className={`p-2 text-center hover:bg-gray-100 cursor-pointer ${
+                        selectedStatus === option.value ? "bg-gray-100" : ""
+                      }`}
                       onClick={() => {
                         setSelectedStatus(option.value);
                         setIsFilterOpen(false);
@@ -327,7 +351,8 @@ const ContractManagementPage = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
             <p className="mb-4">
-              Are you sure you want to delete {selectedRows.length} selected contract(s)?
+              Are you sure you want to delete {selectedRows.length} selected
+              contract(s)?
             </p>
             <div className="flex justify-end gap-3">
               <button

@@ -113,7 +113,7 @@ const NotesPage = () => {
   const router = useRouter();
 
   const handleRowClicked = (row: Note) => {
-    router.push(`/note/${row.id}`);
+    router.push(`/notes/${row.id}`);
   };
 
   const handleChange = (selected: {
@@ -131,7 +131,7 @@ const NotesPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
         {/* Create New note Button */}
         <div className="w-full md:w-auto">
-          <Link href={`/seller-management/create-seller`}>
+          <Link href={`/notes/create-note`}>
             <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors">
               Create New Note
               <IoIosPersonAdd className="text-lg" />

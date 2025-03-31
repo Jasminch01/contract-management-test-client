@@ -32,7 +32,7 @@
       "sellersContract": "/contracts/CT-2023-001-seller.pdf",
       "buyersContract": "/contracts/CT-2023-001-buyer.pdf"
     },
-    "status": "active",
+    "status": "Not Done",
     "createdAt": "2023-05-15T10:30:00Z",
     "updatedAt": "2023-05-15T10:30:00Z"
   },
@@ -69,7 +69,7 @@
       "sellersContract": "/contracts/CT-2023-002-seller.pdf",
       "buyersContract": "/contracts/CT-2023-002-buyer.pdf"
     },
-    "status": "pending",
+    "status": "Not Done",
     "createdAt": "2023-06-20T14:15:00Z",
     "updatedAt": "2023-06-20T14:15:00Z"
   },
@@ -105,7 +105,7 @@
       "sellersContract": "/contracts/CT-2023-003-seller.pdf",
       "buyersContract": "/contracts/CT-2023-003-buyer.pdf"
     },
-    "status": "completed",
+    "status": "Completed",
     "createdAt": "2023-07-10T09:45:00Z",
     "updatedAt": "2023-10-20T16:30:00Z"
   }
