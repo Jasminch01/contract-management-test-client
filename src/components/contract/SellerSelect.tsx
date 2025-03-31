@@ -7,7 +7,7 @@ interface Buyer {
   name: string;
 }
 
-const BuyerSelect = () => {
+const SellerSelect = () => {
   // Sample initial buyers data with proper typing
   const initialBuyers: Buyer[] = [
     { id: 1, name: "John Doe" },
@@ -16,7 +16,6 @@ const BuyerSelect = () => {
   ];
 
   // State management with proper types
-
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -33,10 +32,12 @@ const BuyerSelect = () => {
     setIsDropdownOpen(false);
   };
 
+  // Handle adding a new buyer
+
   return (
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 uppercase">
-        BUYER
+        SELLER
       </label>
 
       {/* Search input and dropdown toggle */}
@@ -44,7 +45,7 @@ const BuyerSelect = () => {
         <input
           type="text"
           className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-          placeholder="Search buyer..."
+          placeholder="Search seller..."
           value={searchTerm}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setSearchTerm(e.target.value);
@@ -104,7 +105,7 @@ const BuyerSelect = () => {
                 </div>
               ))
             ) : (
-              <div className="px-4 py-2 text-gray-500">No buyers found</div>
+              <div className="px-4 py-2 text-gray-500">No sellers found</div>
             )}
           </div>
 
@@ -115,7 +116,7 @@ const BuyerSelect = () => {
               className="w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-100 rounded flex items-center"
             >
               <IoIosAdd />
-              Add New Buyer
+              Add New Seller
             </button>
           </div>
         </div>
@@ -124,4 +125,4 @@ const BuyerSelect = () => {
   );
 };
 
-export default BuyerSelect;
+export default SellerSelect;

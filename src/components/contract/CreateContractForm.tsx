@@ -1,47 +1,42 @@
 import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
+import SellerSelect from "./SellerSelect";
 
 const CreateContractForm = () => {
   return (
-    <div>
+    <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
       <form className="space-y-6 mt-6 md:mt-10">
-        <div className="grid grid-cols-4 grid-rows-8 gap-x-10">
-          <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                Contract Number
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Enter contract number"
-              />
-            </div>
+        <div className="grid grid-cols-4v grid-rows-8 gap-x-10">
+          <div className="">
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              Contract Number
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Enter contract number"
+            />
           </div>
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                TONNES
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Tonnes"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              TONNES
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Tonnes"
+            />
           </div>
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                CERTIFICATION SCHEME
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Certification Scheme"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              CERTIFICATION SCHEME
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Certification Scheme"
+            />
           </div>
           <div className="row-span-2">
             <div className="md:row-span-2 md:col-start-4 row-start-1">
@@ -55,39 +50,35 @@ const CreateContractForm = () => {
               />
             </div>
           </div>
+
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                CONTRACT DATE
-              </label>
-              <input
-                type="date"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              CONTRACT DATE
+            </label>
+            <input
+              type="date"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              DELIVERY PERIOD
+            </label>
+            <input
+              type="date"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
           </div>
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                DELIVERY PERIOD
-              </label>
-              <input
-                type="date"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              />
-            </div>
-          </div>
-          <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                COMMODITY SEASON
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Commodity Season"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              COMMODITY SEASON
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Commodity Season"
+            />
           </div>
           <div className="row-start-3">
             <div>
@@ -114,56 +105,48 @@ const CreateContractForm = () => {
             </div>
           </div>
           <div className="row-start-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                PAYMENT TERMS
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Bank"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              PAYMENT TERMS
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Bank"
+            />
           </div>
           <div className="col-start-1 row-start-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                COMMODITY
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Commodity"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              COMMODITY
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Commodity"
+            />
           </div>
           <div className="col-start-2 row-start-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                FREIGHT
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Freight"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              FREIGHT
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Freight"
+            />
           </div>
           <div className="col-start-3 row-start-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                BROKER RATE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Broker Rate"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              BROKER RATE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Broker Rate"
+            />
           </div>
           <div className="row-span-2 col-start-4 row-start-3">
             <div className="md:row-span-2 md:col-start-4 row-start-1">
-              <label className="block textxsm font-medium text-gray-700 uppercase">
+              <label className="block text-xs font-medium text-gray-700 uppercase">
                 SPECIAL CONDITION
               </label>
               <textarea
@@ -174,40 +157,34 @@ const CreateContractForm = () => {
             </div>
           </div>
           <div className="row-start-5">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                GRADE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Grade"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              GRADE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Grade"
+            />
           </div>
           <div className="row-start-5">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                WEIGHTS
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Weights"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              WEIGHTS
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Weights"
+            />
           </div>
           <div className="row-start-5">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                BUYER CONTRACT REFERENCE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Buyer Contract Reference"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              BUYER CONTRACT REFERENCE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Buyer Contract Reference"
+            />
           </div>
           <div className="row-span-2 row-start-5">
             <div className="md:row-span-2 md:col-start-4 row-start-1">
@@ -225,91 +202,77 @@ const CreateContractForm = () => {
             <BuyerSelect />
           </div>
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                PRICE (EX-GST)
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Price"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              PRICE (EX-GST)
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Price"
+            />
           </div>
           <div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                BROKER
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Broker"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              BROKER
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Broker"
+            />
           </div>
           <div className="row-start-7">
-            <BuyerSelect />
+            <SellerSelect />
           </div>
           <div className="row-start-7">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                CONVEYANCE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Conveyance"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              CONVEYANCE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Conveyance"
+            />
           </div>
           <div className="row-start-7">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                BROKER REFERENCE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Broker Reference"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              BROKER REFERENCE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Broker Reference"
+            />
           </div>
           <div className="row-start-8">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                ATTACH SELLERS CONTRACT
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Sellers Contract (PDF/XLSX etc)"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              ATTACH SELLERS CONTRACT
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Sellers Contract (PDF/XLSX etc)"
+            />
           </div>
           <div className="row-start-8">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                SELLER CONTRACT REFERENCE
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Seller Contract Reference"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              SELLER CONTRACT REFERENCE
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Seller Contract Reference"
+            />
           </div>
           <div className="row-start-8">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 uppercase">
-                ATTACH BUYERS CONTRACT
-              </label>
-              <input
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder="Buyers Contract (PDF/XLSX etc)"
-              />
-            </div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              ATTACH BUYERS CONTRACT
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder="Buyers Contract (PDF/XLSX etc)"
+            />
           </div>
         </div>
 

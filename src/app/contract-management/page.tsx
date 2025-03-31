@@ -2,7 +2,7 @@
 import { Contract } from "@/types/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Changed from next/router
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoDocumentText, IoFilterSharp } from "react-icons/io5";
@@ -18,7 +18,7 @@ const columns = [
   },
   {
     name: "SEASON",
-    selector: (row: Contract) => row.season,
+    selector: (row: Contract) => row.commoditySeason,
     sortable: true,
   },
   {
@@ -33,7 +33,7 @@ const columns = [
   },
   {
     name: "BUYER",
-    selector: (row: Contract) => row.buyer,
+    selector: (row: Contract) => row.buyer.name,
     sortable: true,
   },
   {
@@ -43,7 +43,7 @@ const columns = [
   },
   {
     name: "CONTRACT PRICE",
-    selector: (row: Contract) => row.contractPrice,
+    selector: (row: Contract) => row.priceExGst,
     sortable: true,
   },
   {
@@ -54,70 +54,16 @@ const columns = [
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status !== "Complete" ? "text-[#FAD957]" : "text-[#B1B1B1]"
+            row.status !== "completed" ? "text-[#FAD957]" : "text-[#B1B1B1]"
           }`}
         />
         {row.status}
       </p>
     ),
   },
-];
-
-const data: Contract[] = [
   {
-    id: "1",
-    contractNumber: "CN12345",
-    season: "2023",
-    grower: "John Doe",
-    tonnes: 150,
-    buyer: "ABC Foods",
-    destination: "Sydney",
-    contractPrice: "100",
-    status: "Not done",
-  },
-  {
-    id: "2",
-    contractNumber: "CN67890",
-    season: "2023",
-    grower: "Jane Smith",
-    tonnes: 200,
-    buyer: "XYZ Distributors",
-    destination: "Melbourne",
-    contractPrice: "299",
-    status: "Complete",
-  },
-  {
-    id: "3",
-    contractNumber: "CN11223",
-    season: "2022",
-    grower: "Alice Johnson",
-    tonnes: 100,
-    buyer: "Fresh Produce Co.",
-    destination: "Brisbane",
-    contractPrice: "400",
-    status: "Not done",
-  },
-  {
-    id: "4",
-    contractNumber: "CN44556",
-    season: "2023",
-    grower: "Bob Brown",
-    tonnes: 250,
-    buyer: "Global Foods",
-    destination: "Perth",
-    contractPrice: "200",
-    status: "Complete",
-  },
-  {
-    id: "5",
-    contractNumber: "CN77889",
-    season: "2022",
-    grower: "Charlie Davis",
-    tonnes: 300,
-    buyer: "Organic Farms",
-    destination: "Adelaide",
-    contractPrice: "123",
-    status: "Complete",
+    name: "NOTES",
+    selector: (row: Contract) => row.notes,
   },
 ];
 
@@ -148,6 +94,7 @@ const customStyles = {
 
 const ContractManagementPage = () => {
   const router = useRouter();
+  const [data, setData] = useState([]);
 
   const handleRowClicked = (row: Contract) => {
     router.push(`/contract-management/${row.id}`);
@@ -162,6 +109,14 @@ const ContractManagementPage = () => {
     console.log("Selected Row IDs: ", selectedIds);
   };
 
+  useEffect(() => {
+    fetch("/contracts.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+      });
+  }, []);
+  console.log(data);
   return (
     <div className="mt-20">
       {/* Header Section */}
