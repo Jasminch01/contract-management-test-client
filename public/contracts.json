@@ -21,7 +21,19 @@
     "buyer": {
       "id": "BUY-001",
       "name": "Global Foods Inc.",
-      "email": "purchasing@globalfoods.com"
+      "email": "purchasing@globalfoods.com",
+      "address": "Viterra inner Harbor"
+    },
+    "seller":{
+      "id": 1,
+      "sellerLegalName": "Fresh Fields Agriculture Pty Ltd",
+      "sellerOfficeAddress": "300 Barangaroo Ave, Sydney NSW 2000",
+      "sellerABN": "67 890 123 456",
+      "sellerMainNGR": "NGR3210987",
+      "sellerAdditionalNGRs": ["NGR8901234"],
+      "sellerContactName": "David Thompson",
+      "sellerEmail": "d.thompson@freshfields.com.au",
+      "sellerPhoneNumber": "+61 2 5432 1098"
     },
     "priceExGst": "250.00",
     "broker": "John Smith Brokerage",
@@ -58,7 +70,19 @@
     "buyer": {
       "id": "BUY-002",
       "name": "European Roasters Ltd.",
-      "email": "procurement@euro-roasters.com"
+      "email": "procurement@euro-roasters.com",
+      "address": "Viterra inner Harbor"
+    },
+    "seller":{
+      "id": 2,
+      "sellerLegalName": "Organic Harvest Co-operative",
+      "sellerOfficeAddress": "200 George St, Sydney NSW 2000",
+      "sellerABN": "45 678 901 234",
+      "sellerMainNGR": "NGR9871234",
+      "sellerAdditionalNGRs": ["NGR4567890", "NGR3216549", "NGR7890123"],
+      "sellerContactName": "Michael Brown",
+      "sellerEmail": "michael.b@organicharvest.org",
+      "sellerPhoneNumber": "+61 2 7654 3210"
     },
     "priceExGst": "8.50",
     "broker": "International Commodity Brokers",
@@ -95,7 +119,19 @@
     "buyer": {
       "id": "BUY-003",
       "name": "Asian Food Processors",
-      "email": "orders@asianfoodprocessors.com"
+      "email": "orders@asianfoodprocessors.com",
+      "address": "Viterra inner Harbor"
+    },
+    "seller": {
+      "id": 3,
+      "sellerLegalName": "Sunny Acres Produce Ltd",
+      "sellerOfficeAddress": "100 Market St, Sydney NSW 2000",
+      "sellerABN": "98 765 432 109",
+      "sellerMainNGR": "NGR5678912",
+      "sellerAdditionalNGRs": ["NGR3456789"],
+      "sellerContactName": "Sarah Johnson",
+      "sellerEmail": "s.johnson@sunnyacres.com.au",
+      "sellerPhoneNumber": "+61 2 8765 4321"
     },
     "priceExGst": "320.00",
     "broker": "Pacific Grain Traders",

@@ -1,7 +1,7 @@
 "use client";
 import { Client } from "@/types/types";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoFilterSharp } from "react-icons/io5";
@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 const columns = [
   {
     name: "SELLER NAME",
-    selector: (row: Client) => row.buyerName,
+    selector: (row: Client) => row.name,
     sortable: true,
   },
   {
@@ -35,49 +35,6 @@ const columns = [
     name: "PHONE",
     selector: (row: Client) => row.phone,
     sortable: true,
-  },
-];
-
-const data: Client[] = [
-  {
-    id: "1",
-    buyerName: "John Doe",
-    abn: "12 345 678 901",
-    mainContract: "Commex International",
-    email: "john@example.com",
-    phone: "+61 400 000 001",
-  },
-  {
-    id: "2",
-    buyerName: "Jane Smith",
-    abn: "98 765 432 109",
-    mainContract: "Commex International",
-    email: "jane@example.com",
-    phone: "+61 400 000 002",
-  },
-  {
-    id: "3",
-    buyerName: "Alice Johnson",
-    abn: "11 222 333 444",
-    mainContract: "Commex International",
-    email: "alice@example.com",
-    phone: "+61 400 000 003",
-  },
-  {
-    id: "4",
-    buyerName: "Bob Brown",
-    abn: "55 666 777 888",
-    mainContract: "Commex International",
-    email: "bob@example.com",
-    phone: "+61 400 000 004",
-  },
-  {
-    id: "5",
-    buyerName: "Charlie Davis",
-    abn: "99 888 777 666",
-    mainContract: "Commex International",
-    email: "charlie@example.com",
-    phone: "+61 400 000 005",
   },
 ];
 
@@ -105,7 +62,15 @@ const customStyles = {
 };
 
 const SellerManagementPage = () => {
+  const [data, setData] = useState<Client[]>([]);
   const router = useRouter();
+  useEffect(() => {
+    fetch("/buyer.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+      });
+  }, []);
 
   const handleRowClicked = (row: Client) => {
     router.push(`/seller-management/${row.id}`);

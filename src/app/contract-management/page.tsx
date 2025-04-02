@@ -23,8 +23,13 @@ const columns = [
     sortable: true,
   },
   {
+    name: "NGR",
+    selector: (row: Contract) => row.seller.sellerMainNGR,
+    sortable: true,
+  },
+  {
     name: "GROWER",
-    selector: (row: Contract) => row.grower,
+    selector: (row: Contract) => row.seller.sellerLegalName,
     sortable: true,
   },
   {
@@ -39,7 +44,7 @@ const columns = [
   },
   {
     name: "DESTINATION",
-    selector: (row: Contract) => row.destination,
+    selector: (row: Contract) => row.buyer.address,
     sortable: true,
   },
   {
@@ -71,6 +76,12 @@ const columns = [
 ];
 
 const customStyles = {
+  table: {
+    style: {
+      minWidth: "100%", // Ensures table can expand beyond container
+      width: "auto", // Allows horizontal expansion
+    },
+  },
   rows: {
     style: {
       cursor: "pointer",
@@ -328,7 +339,7 @@ const ContractManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-x-auto border border-gray-300">
+        <div className="overflow-x-auto border border-gray-300 max-w-full">
           <DataTable
             columns={columns}
             data={data}

@@ -1,11 +1,4 @@
-export interface Client {
-  id: string;
-  buyerName: string;
-  abn: string;
-  mainContract: string;
-  email: string;
-  phone: string;
-}
+
 export interface Note {
   id: string;
   noteName: string;
@@ -18,7 +11,23 @@ export interface Note {
 export interface Buyer {
   id: string;
   name: string;
+  abn: string;
+  officeAddress: string;
+  contactName: string;
   email: string;
+  phone: string;
+}
+
+interface Seller {
+  id: number;
+  sellerLegalName: string;
+  sellerOfficeAddress: string;
+  sellerABN: string;
+  sellerMainNGR: string;
+  sellerAdditionalNGRs: string[];
+  sellerContactName: string;
+  sellerEmail: string;
+  sellerPhoneNumber: string;
 }
 
 export interface ContractAttachments {
@@ -52,6 +61,7 @@ export interface Contract {
   buyerContractReference: string;
   notes: string;
   buyer: Buyer;
+  seller: Seller;
   priceExGst: string;
   broker: string;
   conveyance: string;

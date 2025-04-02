@@ -1,7 +1,10 @@
+import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
 import React from "react";
-
-const Contract = () => {
+interface ContractProps {
+  contract: Tcontract;
+}
+const Contract: React.FC<ContractProps> = ({ contract }) => {
   return (
     <div className="max-w-3xl mx-auto mt-5">
       <div className="border border-gray-300">
@@ -24,20 +27,19 @@ const Contract = () => {
           <div className="mb-4 grid grid-cols-2 gap-2 text-xs px-20">
             <div className="pb-1 space-y-2">
               <h2 className="font-bold text-sm">Buyer</h2>
-              <p>Veron Awards Pty, LTD</p>
+              <p>{contract.buyer.name}</p>
               <p>Top Box Stock</p>
               <p>Minimum VIC, 3004</p>
-              <p>Contact: Fully Eurasian</p>
-              <p>Veron Contract, 6455744</p>
+              <p>{contract.buyer.address}</p>
+              <p>{contract.buyer.email}</p>
             </div>
 
             <div className="pb-1 space-y-2">
               <h2 className="font-bold text-sm">Seller</h2>
-              <p>N/A (Having A Co. Pty, LTD)</p>
-              <p>3000 Stock Based Road, Bidermount, SA, 5501</p>
-              <p>NOIS, 15000000</p>
-              <p>Contact: Total Money Code #2/287</p>
-              <p>Email: mvnews@diggard.com</p>
+              <p>{contract.seller.sellerLegalName}</p>
+              <p>{contract.seller.sellerOfficeAddress}</p>
+              <p>{contract.seller.sellerContactName}</p>
+              <p>{contract.seller.sellerEmail}</p>
             </div>
           </div>
           {/* Full-width Broker Ref section with borders */}
@@ -45,9 +47,9 @@ const Contract = () => {
             <div className="w-full py-2 mb-4 border-b border-t  border-gray-300">
               <div className="flex px-20">
                 <span className="w-1/4 font-semibold">Broker Ref:</span>
-                <span className="w-1/4">JZ002088</span>
+                <span className="w-1/4">{contract.brokerReference}</span>
                 <span className="w-1/4 font-semibold">Contract Date:</span>
-                <span className="w-1/4">2/01/2025</span>
+                <span className="w-1/4">{contract.contractDate}</span>
               </div>
             </div>
           </div>
@@ -57,12 +59,12 @@ const Contract = () => {
             <div className="space-y-2 text-xs">
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Commodity:</span>
-                <span className="w-3/4">ALISTRALIAN WHEAT</span>
+                <span className="w-3/4">{contract.commodity}</span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Season:</span>
-                <span className="w-3/4">20342/2025</span>
+                <span className="w-3/4">{contract.commoditySeason}</span>
               </div>
 
               <div className="flex pb-1">
@@ -80,14 +82,15 @@ const Contract = () => {
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Price:</span>
                 <span className="w-3/4">
-                  A$342 PER TONNE IN DISPOT YITTERM, ROCKVORTHY
+                  A${contract.priceExGst} PER TONNE IN DISPOT YITTERM, ROCKVORTHY
                 </span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Delivery Period:</span>
                 <span className="w-3/4">
-                  2ND JANUARY - 5TH JANUARY - SELLERS OPTION
+                  {/* 2ND JANUARY - 5TH JANUARY - SELLERS OPTION */}
+                  {contract.deliveryOption}
                 </span>
               </div>
 
@@ -100,12 +103,12 @@ const Contract = () => {
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Freight:</span>
-                <span className="w-3/4">NOT APPLICABLE</span>
+                <span className="w-3/4">{contract.freight}</span>
               </div>
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Weight:</span>
-                <span className="w-3/4">FINAL AT TRANSFERRED TO BUYER</span>
+                <span className="w-3/4">{contract.weights}</span>
               </div>
 
               <div className="pb-1">
@@ -120,7 +123,7 @@ const Contract = () => {
 
               <div className="flex pb-1">
                 <span className="w-1/4 font-semibold">Special Conditions:</span>
-                <span className="w-3/4">NIL</span>
+                <span className="w-3/4 uppercase">{contract.specialCondition}</span>
               </div>
 
               <div className="pb-1">
