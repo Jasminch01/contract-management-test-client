@@ -30,7 +30,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <p>{contract.buyer.name}</p>
               <p>Top Box Stock</p>
               <p>Minimum VIC, 3004</p>
-              <p>{contract.buyer.address}</p>
+              <p>{contract.buyer.officeAddress}</p>
               <p>{contract.buyer.email}</p>
             </div>
 
