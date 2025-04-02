@@ -71,7 +71,7 @@ const SellerManagementPage = () => {
         setData(data);
       });
   }, []);
-
+  console.log(data);
   const handleRowClicked = (row: Seller) => {
     router.push(`/seller-management/${row.id}`);
   };
