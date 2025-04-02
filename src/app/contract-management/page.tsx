@@ -44,7 +44,7 @@ const columns = [
   },
   {
     name: "DESTINATION",
-    selector: (row: Contract) => row.buyer.address,
+    selector: (row: Contract) => row.buyer.officeAddress,
     sortable: true,
   },
   {
