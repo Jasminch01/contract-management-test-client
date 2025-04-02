@@ -18,7 +18,7 @@ export interface Buyer {
   phone: string;
 }
 
-interface Seller {
+export interface Seller {
   id: number;
   sellerLegalName: string;
   sellerOfficeAddress: string;

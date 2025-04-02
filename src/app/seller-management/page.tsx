@@ -1,5 +1,4 @@
 "use client";
-import { Client } from "@/types/types";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
@@ -9,31 +8,32 @@ import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { useRouter } from "next/navigation";
+import { Seller } from "@/types/types";
 
 const columns = [
   {
     name: "SELLER NAME",
-    selector: (row: Client) => row.name,
+    selector: (row: Seller) => row.sellerLegalName,
     sortable: true,
   },
   {
     name: "ABN",
-    selector: (row: Client) => row.abn,
+    selector: (row: Seller) => row.sellerABN,
     sortable: true,
   },
   {
     name: "MAIN CONTACT",
-    selector: (row: Client) => row.mainContract,
+    selector: (row: Seller) => row.sellerContactName,
     sortable: true,
   },
   {
     name: "EMAIL",
-    selector: (row: Client) => row.email,
+    selector: (row: Seller) => row.sellerEmail,
     sortable: true,
   },
   {
     name: "PHONE",
-    selector: (row: Client) => row.phone,
+    selector: (row: Seller) => row.sellerPhoneNumber,
     sortable: true,
   },
 ];
@@ -62,7 +62,7 @@ const customStyles = {
 };
 
 const SellerManagementPage = () => {
-  const [data, setData] = useState<Client[]>([]);
+  const [data, setData] = useState<Seller[]>([]);
   const router = useRouter();
   useEffect(() => {
     fetch("/buyer.json")
@@ -72,14 +72,14 @@ const SellerManagementPage = () => {
       });
   }, []);
 
-  const handleRowClicked = (row: Client) => {
+  const handleRowClicked = (row: Seller) => {
     router.push(`/seller-management/${row.id}`);
   };
 
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
-    selectedRows: Client[];
+    selectedRows: Seller[];
   }) => {
     const selectedIds = selected.selectedRows.map((row) => row.id);
     console.log("Selected Row IDs: ", selectedIds);
