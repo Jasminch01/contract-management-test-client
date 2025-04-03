@@ -1,5 +1,7 @@
 "use client";
+import ExportContractPdf from "@/components/contract/ExportContractPdf";
 import { Contract } from "@/types/types";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -198,14 +200,14 @@ const ContractManagementPage = () => {
   };
 
   // Handle export to PDF
-  const handleExportPDF = () => {
-    // In a real app, this would generate a PDF
-    if (selectedRows.length === 0) {
-      toast.error(`Please select at least one contract to generate PDF`);
-      return;
-    }
-    toast.success(`Exporting ${data.length} contracts to PDF`);
-  };
+  // const handleExportPDF = () => {
+  //   // In a real app, this would generate a PDF
+  //   if (selectedRows.length === 0) {
+  //     toast.error(`Please select at least one contract to generate PDF`);
+  //     return;
+  //   }
+  //   toast.success(`Exporting ${selectedRows.length} contracts to PDF`);
+  // };
 
   // Handle email actions
   const handleEmail = (recipient: "buyer" | "seller") => {
@@ -254,7 +256,7 @@ const ContractManagementPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
-            <button
+            {/* <button
               onClick={handleExportPDF}
               className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
@@ -265,6 +267,38 @@ const ContractManagementPage = () => {
               <IoDocumentText />
               Export as PDF
             </button>
+             */}
+
+            {selectedRows.length > 0 ? (
+              <PDFDownloadLink
+                document={<ExportContractPdf contracts={selectedRows} />}
+                fileName={`contracts_${new Date()
+                  .toISOString()
+                  .slice(0, 10)}.pdf`}
+                className="w-full md:w-auto"
+              >
+                {({ loading }) => (
+                  <button
+                    className={`px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+                      loading ? "opacity-70" : ""
+                    }`}
+                    disabled={loading}
+                  >
+                    <IoDocumentText />
+                    {loading ? "Generating PDF..." : "Export as PDF"}
+                  </button>
+                )}
+              </PDFDownloadLink>
+            ) : (
+              <button
+                className={`px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-not-allowed hover:bg-gray-100 transition-colors`}
+                disabled
+              >
+                <IoDocumentText />
+                Export as PDF
+              </button>
+            )}
+
             <button
               onClick={() => handleEmail("buyer")}
               className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}

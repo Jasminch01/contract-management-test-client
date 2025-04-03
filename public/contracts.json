@@ -19,12 +19,15 @@
     "buyerContractReference": "BCR-2023-001",
     "notes": "Sample to be approved before shipment",
     "buyer": {
-      "id": "BUY-001",
-      "name": "Global Foods Inc.",
-      "email": "purchasing@globalfoods.com",
-      "address": "Viterra inner Harbor"
+      "id": "1",
+      "name": "Commex International",
+      "abn": "12345678901",
+      "officeAddress": "Level 5, 100 Collins Street, Melbourne VIC 3000",
+      "contactName": "William Hanry",
+      "email": "william@commex.com",
+      "phone": "+61 3 9123 4567"
     },
-    "seller":{
+    "seller": {
       "id": 1,
       "sellerLegalName": "Fresh Fields Agriculture Pty Ltd",
       "sellerOfficeAddress": "300 Barangaroo Ave, Sydney NSW 2000",
@@ -68,12 +71,15 @@
     "buyerContractReference": "BCR-2023-002",
     "notes": "Roast profile samples to be provided",
     "buyer": {
-      "id": "BUY-002",
-      "name": "European Roasters Ltd.",
-      "email": "procurement@euro-roasters.com",
-      "address": "Viterra inner Harbor"
+      "id": "2",
+      "name": "Global Trade Solutions",
+      "abn": "23456789012",
+      "officeAddress": "Suite 10, 200 George Street, Sydney NSW 2000",
+      "contactName": "Sarah Johnson",
+      "email": "sarah@globaltrade.com",
+      "phone": "+61 2 9234 5678"
     },
-    "seller":{
+    "seller": {
       "id": 2,
       "sellerLegalName": "Organic Harvest Co-operative",
       "sellerOfficeAddress": "200 George St, Sydney NSW 2000",
@@ -117,10 +123,13 @@
     "buyerContractReference": "BCR-2023-003",
     "notes": "Shipment to be fumigated prior to loading",
     "buyer": {
-      "id": "BUY-003",
-      "name": "Asian Food Processors",
-      "email": "orders@asianfoodprocessors.com",
-      "address": "Viterra inner Harbor"
+      "id": "3",
+      "name": "Pacific Imports Pty Ltd",
+      "abn": "34567890123",
+      "officeAddress": "15 Eagle Street, Brisbane QLD 4000",
+      "contactName": "Michael Chen",
+      "email": "michael@pacificimports.com",
+      "phone": "+61 7 3456 7890"
     },
     "seller": {
       "id": 3,
