@@ -9,6 +9,7 @@ import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { Seller } from "@/types/types";
+import toast, { Toaster } from "react-hot-toast";
 
 const columns = [
   {
@@ -50,6 +51,7 @@ const customStyles = {
   cells: {
     style: {
       borderRight: "1px solid #ddd",
+      padding: "12px 15px",
     },
   },
   headCells: {
@@ -57,21 +59,53 @@ const customStyles = {
       borderRight: "1px solid #ddd",
       fontWeight: "bold",
       color: "gray",
+      padding: "12px 15px",
+    },
+  },
+  headRow: {
+    style: {
+      backgroundColor: "#f8f9fa",
+      borderBottom: "1px solid #ddd",
     },
   },
 };
 
 const SellerManagementPage = () => {
   const [data, setData] = useState<Seller[]>([]);
+  const [filteredData, setFilteredData] = useState<Seller[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRows, setSelectedRows] = useState<Seller[]>([]);
+  const [toggleCleared, setToggleCleared] = useState(false);
   const router = useRouter();
+
   useEffect(() => {
-    fetch("/buyer.json")
+    fetch("/seller.json")
       .then((res) => res.json())
       .then((data) => {
         setData(data);
+        setFilteredData(data);
       });
   }, []);
-  console.log(data);
+
+  useEffect(() => {
+    const result = data.filter((seller) => {
+      return (
+        seller.sellerLegalName
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        seller.sellerABN?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.sellerContactName
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        seller.sellerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.sellerPhoneNumber
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
+    });
+    setFilteredData(result);
+  }, [searchTerm, data]);
+
   const handleRowClicked = (row: Seller) => {
     router.push(`/seller-management/${row.id}`);
   };
@@ -81,18 +115,56 @@ const SellerManagementPage = () => {
     selectedCount: number;
     selectedRows: Seller[];
   }) => {
-    const selectedIds = selected.selectedRows.map((row) => row.id);
-    console.log("Selected Row IDs: ", selectedIds);
+    setSelectedRows(selected.selectedRows);
+  };
+
+  const handleEdit = () => {
+    if (selectedRows.length === 0) {
+      toast("Please select at least one seller to edit");
+      return;
+    }
+    if (selectedRows.length > 1) {
+      toast("Please select only one seller to edit");
+      return;
+    }
+    router.push(`/seller-management/${selectedRows[0].id}/edit`);
+  };
+
+  const handleDelete = () => {
+    if (selectedRows.length === 0) {
+      toast("Please select at least one seller to delete");
+      return;
+    }
+
+    if (
+      window.confirm("Are you sure you want to delete the selected sellers?")
+    ) {
+      const newData = data.filter(
+        (item) => !selectedRows.some((row) => row.id === item.id)
+      );
+      setData(newData);
+      setFilteredData(newData);
+      setToggleCleared(!toggleCleared);
+      toast.success(`${selectedRows.length} seller(s) deleted successfully`);
+    }
+  };
+
+  const handleFilter = () => {
+    // This could be expanded with a more complex filter modal/dialog
+    // For now, we'll just show a toast and reset the search
+    setSearchTerm("");
+    // toast("Advanced filter functionality can be added here");
   };
 
   return (
     <div className="mt-20">
+      <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
         {/* Create New Seller Button */}
         <div className="w-full md:w-auto">
           <Link href={`/seller-management/create-seller`}>
-            <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors">
+            <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
               Create New Seller
               <IoIosPersonAdd className="text-lg" />
             </button>
@@ -100,13 +172,15 @@ const SellerManagementPage = () => {
         </div>
 
         {/* Search Input */}
-        <div className="w-full md:w-auto px-4 py-2 rounded border border-gray-400 flex items-center gap-2">
+        <div className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
             placeholder="Search Seller"
-            className="w-full focus:outline-none"
+            className="w-full focus:outline-none bg-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <LuSearch className="text-gray-400" />
+          <LuSearch className="text-gray-500" />
         </div>
       </div>
       <div className="mt-3">
@@ -114,20 +188,34 @@ const SellerManagementPage = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
           {/* Title */}
           <div className="w-full md:w-auto">
-            <p className="text-lg font-semibold">List of Sellers</p>
+            <h2 className="text-lg font-semibold text-gray-800">
+              List of Sellers
+            </h2>
+            <p className="text-sm text-gray-500">
+              {filteredData.length} seller(s) found
+            </p>
           </div>
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex gap-2">
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleEdit}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <MdOutlineEdit />
               Edit
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleDelete}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleFilter}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <IoFilterSharp />
               Filter
             </button>
@@ -135,20 +223,22 @@ const SellerManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-x-scroll">
+        <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
           <DataTable
             columns={columns}
-            data={data}
+            data={filteredData}
             customStyles={customStyles}
             onRowClicked={handleRowClicked}
             selectableRows
             onSelectedRowsChange={handleChange}
+            clearSelectedRows={toggleCleared}
             fixedHeader
             fixedHeaderScrollHeight="500px"
             responsive
             pagination
             pointerOnHover
-            className="border border-gray-200 rounded"
+            selectableRowsHighlight
+            highlightOnHover
           />
         </div>
       </div>

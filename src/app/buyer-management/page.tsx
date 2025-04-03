@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
+import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoFilterSharp } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
@@ -70,7 +71,33 @@ const customStyles = {
 
 const SellerManagementPage = () => {
   const [data, setData] = useState<Buyer[]>([]);
+  const [filteredData, setFilteredData] = useState<Buyer[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
+  const [toggleCleared, setToggleCleared] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/buyer.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setFilteredData(data);
+      });
+  }, []);
+
+  useEffect(() => {
+    const result = data.filter((item) => {
+      return (
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.phone.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+    setFilteredData(result);
+  }, [searchTerm, data]);
 
   const handleRowClicked = (row: Buyer) => {
     router.push(`/buyer-management/${row.id}`);
@@ -81,19 +108,46 @@ const SellerManagementPage = () => {
     selectedCount: number;
     selectedRows: Buyer[];
   }) => {
-    const selectedIds = selected.selectedRows.map((row) => row.id);
-    console.log("Selected Row IDs: ", selectedIds);
+    setSelectedRows(selected.selectedRows);
   };
-  useEffect(() => {
-    fetch("/buyer.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-      });
-  }, []);
+
+  const handleEdit = () => {
+    if (selectedRows.length === 0) {
+      toast("Please select at least one row to edit");
+      return;
+    }
+    if (selectedRows.length > 1) {
+      toast("Please select only one row to edit");
+      return;
+    }
+    router.push(`/buyer-management/${selectedRows[0].id}/edit`);
+  };
+
+  const handleDelete = () => {
+    if (selectedRows.length === 0) {
+      toast("Please select at least one row to delete");
+      return;
+    }
+
+    if (window.confirm("Are you sure you want to delete the selected items?")) {
+      const newData = data.filter(
+        (item) => !selectedRows.some((row) => row.id === item.id)
+      );
+      setData(newData);
+      setFilteredData(newData);
+      setToggleCleared(!toggleCleared);
+      toast.success("Selected buyers deleted successfully");
+    }
+  };
+
+  const handleFilter = () => {
+    // This could be expanded with a more complex filter modal/dialog
+    // toast("Filter functionality can be expanded here");
+  };
 
   return (
     <div className="mt-20">
+      <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Buyer Button */}
@@ -112,6 +166,8 @@ const SellerManagementPage = () => {
             type="text"
             placeholder="Search Buyer"
             className="w-full focus:outline-none bg-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <LuSearch className="text-gray-500" />
         </div>
@@ -124,19 +180,31 @@ const SellerManagementPage = () => {
             <h2 className="text-lg font-semibold text-gray-800">
               List of Buyers
             </h2>
+            <p className="text-sm text-gray-500">
+              {filteredData.length} buyers found
+            </p>
           </div>
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex gap-2">
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+            <button
+              onClick={handleEdit}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <MdOutlineEdit />
               Edit
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+            <button
+              onClick={handleDelete}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+            <button
+              onClick={handleFilter}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+            >
               <IoFilterSharp />
               Filter
             </button>
@@ -147,16 +215,19 @@ const SellerManagementPage = () => {
         <div className="overflow-auto rounded-lg border border-gray-200">
           <DataTable
             columns={columns}
-            data={data}
+            data={filteredData}
             customStyles={customStyles}
             onRowClicked={handleRowClicked}
             selectableRows
             onSelectedRowsChange={handleChange}
+            clearSelectedRows={toggleCleared}
             fixedHeader
             fixedHeaderScrollHeight="500px"
             responsive
             pagination
             pointerOnHover
+            selectableRowsHighlight
+            highlightOnHover
           />
         </div>
       </div>
