@@ -245,7 +245,7 @@ const ContractManagementPage = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
+          <div className="w-full md:w-auto lg:flex lg:flex-row gap-2 grid grid-cols-3">
             <ExportCsv selectedRows={selectedRows} />
             <PdfExportButton selectedRows={selectedRows} />
 
