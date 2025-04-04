@@ -1,17 +1,12 @@
 // components/contract/PdfExportButton.tsx
 "use client";
 
-import dynamic from "next/dynamic";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Contract } from "@/types/types";
 import { IoDocumentText } from "react-icons/io5";
 import ExportContractPdf from "./ExportContractPdf";
-
-const PDFDownloadLink = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
-  { ssr: false }
-);
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 interface PdfExportButtonProps {
   selectedRows: Contract[];
