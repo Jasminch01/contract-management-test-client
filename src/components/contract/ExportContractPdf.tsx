@@ -1,3 +1,4 @@
+
 import { Contract } from "@/types/types";
 import React from "react";
 import {
@@ -8,6 +9,7 @@ import {
   StyleSheet,
   Image as PdfImage,
 } from "@react-pdf/renderer";
+
 
 const contractPdfStyles = StyleSheet.create({
   page: {

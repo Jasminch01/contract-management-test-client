@@ -1,14 +1,14 @@
 "use client";
-import ExportContractPdf from "@/components/contract/ExportContractPdf";
+import ExportCsv from "@/components/contract/ExportCsv";
+import PdfExportButton from "@/components/contract/PdfExportButton";
 import { Contract } from "@/types/types";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
-import { IoDocumentText, IoFilterSharp } from "react-icons/io5";
+import { IoFilterSharp } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
@@ -199,16 +199,6 @@ const ContractManagementPage = () => {
     router.push(`/contract-management/${selectedRows[0].id}/edit`);
   };
 
-  // Handle export to PDF
-  // const handleExportPDF = () => {
-  //   // In a real app, this would generate a PDF
-  //   if (selectedRows.length === 0) {
-  //     toast.error(`Please select at least one contract to generate PDF`);
-  //     return;
-  //   }
-  //   toast.success(`Exporting ${selectedRows.length} contracts to PDF`);
-  // };
-
   // Handle email actions
   const handleEmail = (recipient: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
@@ -256,48 +246,8 @@ const ContractManagementPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex flex-col lg:flex-row gap-2">
-            {/* <button
-              onClick={handleExportPDF}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
-                selectedRows.length > 0
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed"
-              }`}
-            >
-              <IoDocumentText />
-              Export as PDF
-            </button>
-             */}
-
-            {selectedRows.length > 0 ? (
-              <PDFDownloadLink
-                document={<ExportContractPdf contracts={selectedRows} />}
-                fileName={`contracts_${new Date()
-                  .toISOString()
-                  .slice(0, 10)}.pdf`}
-                className="w-full md:w-auto"
-              >
-                {({ loading }) => (
-                  <button
-                    className={`px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
-                      loading ? "opacity-70" : ""
-                    }`}
-                    disabled={loading}
-                  >
-                    <IoDocumentText />
-                    {loading ? "Generating PDF..." : "Export as PDF"}
-                  </button>
-                )}
-              </PDFDownloadLink>
-            ) : (
-              <button
-                className={`px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-not-allowed hover:bg-gray-100 transition-colors`}
-                disabled
-              >
-                <IoDocumentText />
-                Export as PDF
-              </button>
-            )}
+            <ExportCsv selectedRows={selectedRows} />
+            <PdfExportButton selectedRows={selectedRows} />
 
             <button
               onClick={() => handleEmail("buyer")}
