@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Growth Grain Contract Management System
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Growth Grain Contract Management is a comprehensive web application designed to streamline contract management processes for agricultural businesses. The system provides tools for creating, tracking, and managing grain contracts with features for buyers, sellers, and administrators.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. User Authentication System
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Secure login/logout functionality
+- Role-based access control (Admin, Buyer, Seller)
+- Password reset via email
+- User profile management
+- Session management
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Dashboard
 
-## Learn More
+- Overview of active contracts
+- Quick stats (total contracts, pending approvals, expiring soon)
+- Recent activity feed
+- Graphical representation of contract status distribution
+- Upcoming important dates
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Contract Management (CRUD Operations)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Create**: Add new contracts with all relevant details
+- **Read**: View contract details in organized layouts
+- **Update**: Modify existing contract terms and conditions
+- **Delete**: Archive or remove contracts (with confirmation)
+- **Bulk operations**: Manage multiple contracts simultaneously
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Advanced Search & Filtering
 
-## Deploy on Vercel
+- Full-text search across all contract fields
+- Filter by:
+  - Contract status (Draft, Active, Completed, Cancelled)
+  - Date ranges (created, modified, expiration)
+  - Buyer/Seller information
+  - Grain type and quality specifications
+  - Price ranges and delivery terms
+- Saved search/filter presets
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 5. Export Functionality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Export contract data to:
+  - CSV (for spreadsheet analysis)
+  - PDF (for printing or sharing)
+- Customizable export templates
+- Batch export multiple contracts
+- Scheduled automatic exports
+
+### 6. Buyer/Seller Management
+
+- Maintain directories of buyers and sellers
+- Contact information management
+- Performance history tracking
+- Relationship notes and tags
+- Communication logs
+
+### 7. Notes System
+
+- Add notes to contracts, buyers, or sellers
+- Categorize notes (general, quality, payment, etc.)
+- Attach documents to notes
+- Note search functionality
+- Pin important notes
+
+### 8. Email Communication
+
+- Send emails directly from the system
+- Email templates for common communications
+- Track email history per contract
+- Scheduled email reminders
+- Read receipts and delivery notifications
+
+## Technology Stack
+
+### Frontend
+
+- Next.js
+- Redux for state management
+- Chart.js for data visualization
+- react-pdf for PDF generation
+- react-data-table-component for data tables
+
+### Backend
+
+- Node.js with Express.js
+- MongoDB with Mongoose ORM
+- JWT for authentication
+- Nodemailer for email functionality
+- PDFKit for server-side PDF generation
+- ExcelJS for CSV/Excel exports
