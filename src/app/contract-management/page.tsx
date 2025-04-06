@@ -15,6 +15,11 @@ import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
 
 const columns = [
   {
+    name: "DATE",
+    selector: (row: Contract) => row.contractDate,
+    sortable: true,
+  },
+  {
     name: "CONTRACT NUMBER",
     selector: (row: Contract) => row.contractNumber,
     sortable: true,
@@ -337,6 +342,8 @@ const ContractManagementPage = () => {
             onSelectedRowsChange={handleChange}
             fixedHeader
             fixedHeaderScrollHeight="500px"
+            highlightOnHover
+            selectableRowsHighlight
             responsive
             pagination
             pointerOnHover
