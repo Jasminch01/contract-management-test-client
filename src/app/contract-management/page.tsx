@@ -204,13 +204,53 @@ const ContractManagementPage = () => {
     router.push(`/contract-management/${selectedRows[0].id}/edit`);
   };
 
-  // Handle email actions
-  const handleEmail = (recipient: "buyer" | "seller") => {
+  const handleEmail = async (recipientType: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
-      toast.error(`Please select at least one contract to email ${recipient}`);
+      toast.error(
+        `Please select at least one contract to email ${recipientType}`
+      );
       return;
     }
-    toast.success(`Emailing ${selectedRows.length} contracts to ${recipient}`);
+
+    try {
+      // Create email recipients
+      const recipients = selectedRows
+        .map((row) =>
+          recipientType === "buyer" ? row.buyer.email : row.seller.sellerEmail
+        )
+        .filter((email) => email); // Remove any empty emails
+
+      if (recipients.length === 0) {
+        toast.error(
+          `No valid ${recipientType} emails found in selected contracts`
+        );
+        return;
+      }
+
+      // Create subject
+      const subject = `${selectedRows.length} Contract(s) - ${
+        recipientType === "buyer" ? "Buyer" : "Seller"
+      } Documents`;
+
+      // Create mailto link with BCC
+      const mailtoLink = `mailto:?bcc=${recipients.join(
+        ","
+      )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+        "Please find attached contract documents."
+      )}`;
+
+      // Open email client after a short delay to allow PDF download
+      setTimeout(() => {
+        window.location.href = mailtoLink;
+      }, 500);
+
+      toast.success(
+        `Preparing email to ${recipients.length} ${recipientType}(s)`
+      );
+    } catch (error) {
+      console.error("Error preparing email:", error);
+      toast.error("Failed to prepare email");
+    }
   };
 
   return (
