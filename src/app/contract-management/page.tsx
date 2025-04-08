@@ -201,7 +201,7 @@ const ContractManagementPage = () => {
       toast.error("Please select exactly one contract to edit");
       return;
     }
-    router.push(`/contract-management/${selectedRows[0].id}/edit`);
+    router.push(`/contract-management/edit/${selectedRows[0].id}`);
   };
 
   const handleEmail = async (recipientType: "buyer" | "seller") => {
