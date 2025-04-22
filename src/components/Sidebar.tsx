@@ -101,7 +101,7 @@ const Sidebar = () => {
           </div>
 
           {/* Logout Button */}
-          <div className="pb-10">
+          <div className="pb-10 flex justify-center">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100"
