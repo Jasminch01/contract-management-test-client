@@ -83,12 +83,6 @@ const columns = [
 ];
 
 const customStyles = {
-  table: {
-    style: {
-      minWidth: "100%", // Ensures table can expand beyond container
-      width: "auto", // Allows horizontal expansion
-    },
-  },
   rows: {
     style: {
       cursor: "pointer",

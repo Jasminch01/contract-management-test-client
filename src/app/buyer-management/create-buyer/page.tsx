@@ -84,6 +84,16 @@ const CreateBuyerPage = () => {
                 />
               </div>
             </div>
+            <div className="w-full md:w-1/2">
+              <label className="block text-sm font-medium text-gray-700">
+                ACCOUNT NUMBER
+              </label>
+              <input
+                type="text"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder=""
+              />
+            </div>
           </div>
 
           {/* Submit Button */}
