@@ -8,9 +8,9 @@ const Dashboard = () => {
     <div className="mt-20 px-10">
       <div className="2xl:pb-10">
         <p className="font-bold mb-10">Dashboard</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-7 gap-5 2xl:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-7 gap-3 2xl:gap-10">
           {/* Card 1 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Commission</p>
             <div className="flex items-center justify-between mt-auto">
               <p className="text-xl font-bold">$1208</p>
@@ -19,7 +19,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 2 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Weekly Commission</p>
             <div className="flex items-center justify-between mt-auto">
               <p className="text-xl font-bold">$120800</p>
@@ -28,7 +28,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 3 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Notebook</p>
             <div className="mt-auto">
               <p className="text-xl font-bold">08</p>
@@ -36,7 +36,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 4 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Total Contracts</p>
             <div className="flex items-center justify-between mt-auto">
               <p className="text-xl font-bold">32</p>
@@ -45,7 +45,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 5 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Completed Contracts</p>
             <div className="mt-auto">
               <p className="text-xl font-bold">10</p>
@@ -53,7 +53,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 6 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Uncomplete Contracts</p>
             <div className="mt-auto">
               <p className="text-xl font-bold">22</p>
@@ -61,7 +61,7 @@ const Dashboard = () => {
           </div>
 
           {/* Card 7 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-5 flex flex-col h-full">
+          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Today Contracts</p>
             <div className="mt-auto">
               <p className="text-xl font-bold">7</p>
