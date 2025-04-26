@@ -9,13 +9,13 @@ const CreateContractForm = () => {
   const router = useRouter();
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push('/contract-management'); // Navigate back
+    router.push("/contract-management"); // Navigate back
   };
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
       <form className="space-y-6 mt-6 md:mt-10">
-        <div className="grid grid-cols-4v grid-rows-8 gap-x-10">
-          <div className="">
+        <div className="grid grid-cols-4 grid-rows-8 gap-x-10">
+          <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               Contract Number
             </label>
@@ -27,70 +27,38 @@ const CreateContractForm = () => {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              TONNES
+              BUYER CONTACT NAME
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Tonnes"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              CERTIFICATION SCHEME
+              SELLER CONTACT NAME
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Certification Scheme"
+              placeholder="SELLER CONTACT NAME"
             />
           </div>
           <div className="row-span-2">
-            <div className="md:row-span-2 md:col-start-4 row-start-1">
+            <div className=" md:col-start-4">
               <label className="block text-xs font-medium text-gray-700 uppercase">
-                TERMS & CONDITIONS
+                COMMODITY SEASON
               </label>
-              <textarea
-                className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder=""
-                rows={5}
+              <input
+                type="text"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              CONTRACT DATE
-            </label>
-            <input
-              type="date"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              DELIVERY PERIOD
-            </label>
-            <input
-              type="date"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              COMMODITY SEASON
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Commodity Season"
-            />
           </div>
           <div className="row-start-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 uppercase">
-                BROKER REFERENCE
+                BUYER CONTRACT REFERENCE
               </label>
               <input
                 type="text"
@@ -113,22 +81,22 @@ const CreateContractForm = () => {
           </div>
           <div className="row-start-3">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              PAYMENT TERMS
+              BROKER RATE
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Bank"
+              placeholder="BROKER RATE"
             />
           </div>
           <div className="col-start-1 row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              COMMODITY
+              SELLER CONTRACT REFERENCE
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Commodity"
+              placeholder="SL 001"
             />
           </div>
           <div className="col-start-2 row-start-4">
@@ -143,12 +111,12 @@ const CreateContractForm = () => {
           </div>
           <div className="col-start-3 row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BROKER RATE
+              BUYER CONTRACT REFERENCE
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Broker Rate"
+              placeholder="BUYER CONTRACT REFERENCE"
             />
           </div>
           <div className="row-span-2 col-start-4 row-start-3">
@@ -185,12 +153,12 @@ const CreateContractForm = () => {
           </div>
           <div className="row-start-5">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BUYER CONTRACT REFERENCE
+              BROKERAGE PAYABLE BY
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Buyer Contract Reference"
+              placeholder=""
             />
           </div>
           <div className="row-span-2 row-start-5">
@@ -220,7 +188,7 @@ const CreateContractForm = () => {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BROKER
+              ATTACH BUYERS CONTRACT
             </label>
             <input
               type="text"
@@ -243,12 +211,12 @@ const CreateContractForm = () => {
           </div>
           <div className="row-start-7">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BROKER REFERENCE
+              CERTIFICATION SCHEME
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Broker Reference"
+              placeholder="CERTIFICATION SCHEME"
             />
           </div>
           <div className="row-start-8">
@@ -263,7 +231,7 @@ const CreateContractForm = () => {
           </div>
           <div className="row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              SELLER CONTRACT REFERENCE
+              COMMODITY
             </label>
             <input
               type="text"
