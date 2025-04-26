@@ -44,7 +44,7 @@ const CreateContractForm = () => {
               placeholder="SELLER CONTACT NAME"
             />
           </div>
-          <div className="row-span-2">
+          <div className="">
             <div className=" md:col-start-4">
               <label className="block text-xs font-medium text-gray-700 uppercase">
                 COMMODITY SEASON

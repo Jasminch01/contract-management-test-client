@@ -1,7 +1,7 @@
 "use client";
 import { Note } from "@/types/types";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoFilterSharp } from "react-icons/io5";
@@ -38,54 +38,6 @@ const columns = [
   },
 ];
 
-const data: Note[] = [
-  {
-    id: "1",
-    noteName: "Notebook 1456",
-    notes:
-      "It is a long established fact that a reader will be distracted by the readable content of a page",
-    br: "JZ02088",
-    date: "2/4/2025",
-    time: "10:45AM",
-  },
-  {
-    id: "2",
-    noteName: "Notebook 1456",
-    notes:
-      "It is a long established fact that a reader will be distracted by the readable content of a page",
-    br: "JZ02088",
-    date: "2/4/2025",
-    time: "10:45AM",
-  },
-  {
-    id: "3",
-    noteName: "Notebook 1456",
-    notes:
-      "It is a long established fact that a reader will be distracted by the readable content of a page",
-    br: "JZ02088",
-    date: "2/4/2025",
-    time: "10:45AM",
-  },
-  {
-    id: "4",
-    noteName: "Notebook 1456",
-    notes:
-      "It is a long established fact that a reader will be distracted by the readable content of a page",
-    br: "JZ02088",
-    date: "2/4/2025",
-    time: "10:45AM",
-  },
-  {
-    id: "5",
-    noteName: "Notebook 1456",
-    notes:
-      "It is a long established fact that a reader will be distracted by the readable content of a page",
-    br: "JZ02088",
-    date: "2/4/2025",
-    time: "10:45AM",
-  },
-];
-
 const customStyles = {
   rows: {
     style: {
@@ -111,6 +63,7 @@ const customStyles = {
 
 const NotesPage = () => {
   const router = useRouter();
+  const [data, setData] = useState<Note[]>([]);
 
   const handleRowClicked = (row: Note) => {
     router.push(`/notes/${row.id}`);
@@ -124,6 +77,14 @@ const NotesPage = () => {
     const selectedIds = selected.selectedRows.map((row) => row.id);
     console.log("Selected Row IDs: ", selectedIds);
   };
+
+  useEffect(() => {
+    fetch("/notes.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+      });
+  }, []);
 
   return (
     <div className="mt-20">

@@ -99,7 +99,7 @@ const CreateSellerPage = () => {
                 />
               </div>
               <div className="w-full md:w-1/2">
-                <SellerLocationZone/>
+                <SellerLocationZone />
               </div>
             </div>
 
@@ -124,6 +124,16 @@ const CreateSellerPage = () => {
                   placeholder=""
                 />
               </div>
+            </div>
+            <div className="w-full md:w-1/2">
+              <label className="block text-sm font-medium text-gray-700">
+                AUTHORITY TO ACT (FORM)
+              </label>
+              <input
+                type="file"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder=""
+              />
             </div>
           </div>
 
