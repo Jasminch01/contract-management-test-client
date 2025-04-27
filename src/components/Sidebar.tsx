@@ -28,6 +28,10 @@ const menus = [
     link: "/notes",
   },
   {
+    page: "Historical Daily Prices",
+    link: "/historical-prices",
+  },
+  {
     page: "Rubbish Bin",
     link: "/rubbish-bin",
   },
