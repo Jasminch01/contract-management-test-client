@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation"; // Import usePathname
 import { MdOutlineLogout } from "react-icons/md";
 import { useState } from "react"; // Import useState
-import { FaBars } from "react-icons/fa"; // Import hamburger icon
+import { FaBars, FaTrash } from "react-icons/fa"; // Import hamburger icon
 import Image from "next/image";
 
 const menus = [
@@ -98,14 +98,17 @@ const Sidebar = () => {
                 <li key={idx} className="list-none mb-4">
                   <Link
                     href={menu.link}
-                    className={`flex items-center justify-center px-5 pb-2 transition-all ${
+                    className={`flex items-center justify-center gap-5 px-5 pb-2 transition-all ${
                       pathname === menu.link
-                        ? "shadow-md" // Active tab styles
-                        : "text-gray-700 hover:bg-gray-100" // Inactive tab styles
+                        ? "shadow-md"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
-                    onClick={handleMenuItemClick} // Close sidebar on mobile
+                    onClick={handleMenuItemClick}
                   >
-                    {menu.page}
+                    {menu.link === "/rubbish-bin" && (
+                      <FaTrash className="ml-2" />
+                    )}
+                    <span>{menu.page}</span>
                   </Link>
                 </li>
               ))}
