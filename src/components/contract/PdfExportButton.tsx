@@ -45,22 +45,28 @@ const PdfExportButton = ({ selectedRows }: PdfExportButtonProps) => {
     setLoading(true);
 
     try {
-      // Dynamically import required PDF libraries
-      const { pdf } = await import("@react-pdf/renderer");
-      const { default: ExportContractPdf } = await import(
-        "./ExportContractPdf"
-      );
-      const { saveAs } = await import("file-saver");
+      // Dynamically import with proper error handling
+      const [PDFLib, ExportContractPdf, FileSaver] = await Promise.all([
+        import("@react-pdf/renderer").catch(() => null),
+        import("./ExportContractPdf").catch(() => null),
+        import("file-saver").catch(() => null),
+      ]);
 
-      // Generate PDF blob
-      const blob = await pdf(
-        <ExportContractPdf contracts={selectedRows} />
+      if (!PDFLib || !ExportContractPdf?.default || !FileSaver?.saveAs) {
+        throw new Error("Required libraries failed to load");
+      }
+
+      // Create PDF instance
+      const PDFDocument = PDFLib.pdf;
+      const blob = await PDFDocument(
+        <ExportContractPdf.default contracts={selectedRows} />
       ).toBlob();
 
-      // Download the file
-      saveAs(blob, `contract_${selectedRows[0].contractNumber}.pdf`);
+      // Save the file
+      FileSaver.saveAs(blob, `contract_${selectedRows[0].contractNumber}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
+      // Optionally show user feedback
     } finally {
       setLoading(false);
     }
