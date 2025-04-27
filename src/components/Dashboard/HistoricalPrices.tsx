@@ -3,7 +3,7 @@ import React from "react";
 const HistoricalPrices = () => {
   return (
     <div>
-      <div className="2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm 2xl:h-[29.7rem] 2xl:w-[25rem] h-[18rem] flex flex-col">
+      <div className="2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm 2xl:h-[29.7rem] 2xl:w-[22rem] h-[18rem] flex flex-col">
         {/* Fixed Heading */}
         <div className="2xl:pb-4">
           <p className="text-lg">Historical Daily Prices</p>
@@ -19,9 +19,8 @@ const HistoricalPrices = () => {
                   <div className="h-full w-px bg-[#A7A7A7]"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>
@@ -37,9 +36,8 @@ const HistoricalPrices = () => {
                   <div className="h-full w-px bg-[#A7A7A7]"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>
@@ -54,9 +52,8 @@ const HistoricalPrices = () => {
                   <div className="h-full w-px bg-[#A7A7A7]"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>
@@ -71,9 +68,8 @@ const HistoricalPrices = () => {
                   <div className="h-full w-px bg-[#A7A7A7]"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>
@@ -88,9 +84,8 @@ const HistoricalPrices = () => {
                   <div className="h-full w-px bg-[#A7A7A7]"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>
@@ -105,9 +100,8 @@ const HistoricalPrices = () => {
                   <div className="w-5 h-5 rounded-full border-purple-500 border-2"></div>
                 </div>
                 <div className="pl-14">
-                  <div className="flex items-center space-x-8">
-                    <p>Contract</p>
-                    <p>#123456</p>
+                  <div className="">
+                    <p>Australian Wheat</p>
                   </div>
                   <div className="flex items-center space-x-14">
                     <p className="text-green-500 font-bold">$340</p>

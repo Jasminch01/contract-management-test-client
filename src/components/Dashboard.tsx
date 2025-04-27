@@ -1,5 +1,6 @@
 "use client";
 import ContractProgress from "./Dashboard/ContractProgress";
+import HistoricalDailyCommision from "./Dashboard/HistoricalDailyCommision";
 import HistoricalPrices from "./Dashboard/HistoricalPrices";
 import HistoycalNotebooks from "./Dashboard/HistoycalNotebooks";
 
@@ -68,9 +69,10 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row 2xl:gap-20 gap-5 2xl:mt-20 mt-5">
-          <HistoricalPrices />
+        <div className="flex flex-col lg:flex-row 2xl:gap-10 gap-5 2xl:mt-20 mt-5">
+          <HistoricalDailyCommision/>
           <HistoycalNotebooks />
+          <HistoricalPrices />
           <ContractProgress />
         </div>
       </div>
