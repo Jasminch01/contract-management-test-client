@@ -9,6 +9,7 @@ import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const columns = [
   {
@@ -64,9 +65,22 @@ const customStyles = {
 const NotesPage = () => {
   const router = useRouter();
   const [data, setData] = useState<Note[]>([]);
+  const [selectedRows, setSelectedRows] = useState<Note[]>([]);
 
   const handleRowClicked = (row: Note) => {
     router.push(`/notes/${row.id}`);
+  };
+
+  const handleEdit = () => {
+    if (selectedRows.length === 0) {
+      toast("Please select at least one seller to edit");
+      return;
+    }
+    if (selectedRows.length > 1) {
+      toast("Please select only one seller to edit");
+      return;
+    }
+    router.push(`/notes/edit/${selectedRows[0].id}`);
   };
 
   const handleChange = (selected: {
@@ -74,8 +88,7 @@ const NotesPage = () => {
     selectedCount: number;
     selectedRows: Note[];
   }) => {
-    const selectedIds = selected.selectedRows.map((row) => row.id);
-    console.log("Selected Row IDs: ", selectedIds);
+    setSelectedRows(selected.selectedRows);
   };
 
   useEffect(() => {
@@ -120,7 +133,10 @@ const NotesPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex gap-2">
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleEdit}
+              className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+            >
               <MdOutlineEdit />
               Edit
             </button>

@@ -120,7 +120,7 @@ const SellerManagementPage = () => {
       toast("Please select only one row to edit");
       return;
     }
-    router.push(`/buyer-management/${selectedRows[0].id}/edit`);
+    router.push(`/buyer-management/${selectedRows[0].id}`);
   };
 
   const handleDelete = () => {

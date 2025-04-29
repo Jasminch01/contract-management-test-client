@@ -127,7 +127,7 @@ const SellerManagementPage = () => {
       toast("Please select only one seller to edit");
       return;
     }
-    router.push(`/seller-management/${selectedRows[0].id}/edit`);
+    router.push(`/seller-management/${selectedRows[0].id}`);
   };
 
   const handleDelete = () => {

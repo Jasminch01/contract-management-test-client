@@ -4,12 +4,27 @@ import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
 import SellerSelect from "./SellerSelect";
 import { useRouter } from "next/navigation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { addDays } from "date-fns";
+import { useState } from "react";
 
 const CreateContractForm = () => {
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]);
+  const [startDate, endDate] = dateRange;
   const router = useRouter();
+
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management"); // Navigate back
+    router.push("/contract-management");
+  };
+
+  const handleDateChange = (update: [Date | null, Date | null]) => {
+    setDateRange(update);
+    // You can add additional logic here to handle the dates in your form state
   };
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
@@ -22,31 +37,43 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Enter contract number"
+              placeholder=""
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BUYER CONTACT NAME
+              DELIVERY PERIOD
+            </label>
+
+            <DatePicker
+              selectsRange={true}
+              startDate={startDate}
+              endDate={endDate}
+              onChange={handleDateChange}
+              isClearable={true}
+              placeholderText="Select date range"
+              className="mt-1 block w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              monthsShown={2}
+              dateFormat="MMM d, yyyy"
+              minDate={new Date()}
+              maxDate={addDays(new Date(), 365)}
+              shouldCloseOnSelect={false}
+              selectsDisabledDaysInRange
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              PAYMENT TERMS
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder=""
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              SELLER CONTACT NAME
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="SELLER CONTACT NAME"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              COMMODITY SEASON
+              DELIVERY DESTINATION
             </label>
             <input
               type="text"
@@ -60,7 +87,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="BR 001"
+              placeholder=""
             />
           </div>
           <div>
@@ -70,7 +97,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="PDF File"
+              placeholder=""
             />
           </div>
           <div>
@@ -80,7 +107,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="BROKER RATE"
+              placeholder=""
             />
           </div>
           <div className="row-span-2">
@@ -90,7 +117,7 @@ const CreateContractForm = () => {
             <textarea
               className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              rows={5}
+              rows={4}
             />
           </div>
           <div>
@@ -110,7 +137,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="BUYER CONTRACT REFERENCE"
+              placeholder=""
             />
           </div>
           <div>
@@ -145,14 +172,7 @@ const CreateContractForm = () => {
             />
           </div>
           <div className="row-start-4">
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              BROKERAGE PAYABLE BY
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-            />
+            <SellerSelect />
           </div>
           <div className="row-span-2 row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
@@ -161,7 +181,7 @@ const CreateContractForm = () => {
             <textarea
               className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              rows={5}
+              rows={4}
             />
           </div>
           <div>
@@ -245,7 +265,7 @@ const CreateContractForm = () => {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              ATTACH SELLERS CONTRACT
+              TONNES
             </label>
             <input
               type="text"

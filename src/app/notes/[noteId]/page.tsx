@@ -9,7 +9,6 @@ const NoteDetailspage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log(noteId);
 
   useEffect(() => {
     const fetchContractData = async () => {
