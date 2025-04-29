@@ -8,7 +8,8 @@
     "sellerAdditionalNGRs": ["NGR654321", "NGR789012"],
     "sellerContactName": "John Peterson",
     "sellerEmail": "john.p@auscommodities.com",
-    "sellerPhoneNumber": "+61 2 9956 7890"
+    "sellerPhoneNumber": "+61 2 9956 7890",
+    "isDeleted" : true
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
     "sellerAdditionalNGRs": ["NGR765432"],
     "sellerContactName": "Sarah Williams",
     "sellerEmail": "sarah.w@scagri.com",
-    "sellerPhoneNumber": "+61 3 8675 4321"
+    "sellerPhoneNumber": "+61 3 8675 4321",
+    "isDeleted" : true
   },
   {
     "id": 3,
@@ -30,7 +32,8 @@
     "sellerAdditionalNGRs": ["NGR876543", "NGR210987", "NGR543210"],
     "sellerContactName": "Michael Brown",
     "sellerEmail": "michael.b@outbackproduce.com",
-    "sellerPhoneNumber": "+61 7 3456 7890"
+    "sellerPhoneNumber": "+61 7 3456 7890",
+    "isDeleted" :false
   },
   {
     "id": 4,
@@ -41,7 +44,8 @@
     "sellerAdditionalNGRs": [],
     "sellerContactName": "Emma Johnson",
     "sellerEmail": "emma.j@wfarmerscoop.com",
-    "sellerPhoneNumber": "+61 8 9456 1234"
+    "sellerPhoneNumber": "+61 8 9456 1234",
+    "isDeleted" : false
   },
   {
     "id": 5,
@@ -52,7 +56,8 @@
     "sellerAdditionalNGRs": ["NGR098765"],
     "sellerContactName": "David Wilson",
     "sellerEmail": "david.w@adelaidegrains.com",
-    "sellerPhoneNumber": "+61 8 8234 5678"
+    "sellerPhoneNumber": "+61 8 8234 5678",
+    "isDeleted" : false
   },
   {
     "id": 6,
@@ -63,7 +68,8 @@
     "sellerAdditionalNGRs": ["NGR109876", "NGR432109"],
     "sellerContactName": "Olivia Green",
     "sellerEmail": "olivia.g@taspremium.com",
-    "sellerPhoneNumber": "+61 3 6234 5678"
+    "sellerPhoneNumber": "+61 3 6234 5678",
+    "isDeleted" : false
   },
   {
     "id": 7,
@@ -74,7 +80,8 @@
     "sellerAdditionalNGRs": [],
     "sellerContactName": "James Taylor",
     "sellerEmail": "james.t@topendproduce.com",
-    "sellerPhoneNumber": "+61 8 8945 6789"
+    "sellerPhoneNumber": "+61 8 8945 6789",
+    "isDeleted" : false
   },
   {
     "id": 8,
@@ -85,7 +92,8 @@
     "sellerAdditionalNGRs": ["NGR321098"],
     "sellerContactName": "Sophie Martin",
     "sellerEmail": "sophie.m@canberraagri.com",
-    "sellerPhoneNumber": "+61 2 6123 4567"
+    "sellerPhoneNumber": "+61 2 6123 4567",
+    "isDeleted" : false
   },
   {
     "id": 9,
@@ -96,7 +104,8 @@
     "sellerAdditionalNGRs": ["NGR210987", "NGR543210", "NGR876543"],
     "sellerContactName": "Robert Chen",
     "sellerEmail": "robert.c@murraytrade.com",
-    "sellerPhoneNumber": "+61 3 9234 5678"
+    "sellerPhoneNumber": "+61 3 9234 5678",
+    "isDeleted" : false
   },
   {
     "id": 10,
@@ -107,6 +116,7 @@
     "sellerAdditionalNGRs": ["NGR654321"],
     "sellerContactName": "Jennifer Lee",
     "sellerEmail": "jennifer.l@bluemountainsorganic.com",
-    "sellerPhoneNumber": "+61 2 9345 6789"
+    "sellerPhoneNumber": "+61 2 9345 6789",
+    "isDeleted" : false
   }
 ]

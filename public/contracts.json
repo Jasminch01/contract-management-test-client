@@ -48,6 +48,7 @@
       "buyersContract": "/contracts/CT-2023-001-buyer.pdf"
     },
     "status": "Not Done",
+    "isdeleted": false,
     "createdAt": "2023-05-15T10:30:00Z",
     "updatedAt": "2023-05-15T10:30:00Z"
   },
@@ -100,6 +101,7 @@
       "buyersContract": "/contracts/CT-2023-002-buyer.pdf"
     },
     "status": "Not Done",
+    "isDeleted": true,
     "createdAt": "2023-06-20T14:15:00Z",
     "updatedAt": "2023-06-20T14:15:00Z"
   },
@@ -151,6 +153,7 @@
       "buyersContract": "/contracts/CT-2023-003-buyer.pdf"
     },
     "status": "Completed",
+    "isDeleted": false,
     "createdAt": "2023-07-10T09:45:00Z",
     "updatedAt": "2023-10-20T16:30:00Z"
   }

@@ -69,6 +69,7 @@ export interface Contract {
   sellerContractReference: string;
   attachments: ContractAttachments;
   status: ContractStatus;
+  isDeleted : boolean;
   createdAt: string; // ISO datetime format
   updatedAt: string; // ISO datetime format
 }

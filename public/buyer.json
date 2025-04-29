@@ -6,7 +6,8 @@
     "officeAddress": "Level 5, 100 Collins Street, Melbourne VIC 3000",
     "contactName": "William Hanry",
     "email": "william@commex.com",
-    "phone": "+61 3 9123 4567"
+    "phone": "+61 3 9123 4567",
+    "isDeleted" : false
   },
   {
     "id": "2",
@@ -15,7 +16,8 @@
     "officeAddress": "Suite 10, 200 George Street, Sydney NSW 2000",
     "contactName": "Sarah Johnson",
     "email": "sarah@globaltrade.com",
-    "phone": "+61 2 9234 5678"
+    "phone": "+61 2 9234 5678",
+    "isDeleted" : false
   },
   {
     "id": "3",
@@ -24,7 +26,8 @@
     "officeAddress": "15 Eagle Street, Brisbane QLD 4000",
     "contactName": "Michael Chen",
     "email": "michael@pacificimports.com",
-    "phone": "+61 7 3456 7890"
+    "phone": "+61 7 3456 7890",
+    "isDeleted" : false
   },
   {
     "id": "4",
@@ -33,7 +36,8 @@
     "officeAddress": "50 St Georges Terrace, Perth WA 6000",
     "contactName": "Emma Wilson",
     "email": "emma@southerncross.com",
-    "phone": "+61 8 9456 1234"
+    "phone": "+61 8 9456 1234",
+    "isDeleted" : false
   },
   {
     "id": "5",
@@ -42,7 +46,8 @@
     "officeAddress": "25 Grenfell Street, Adelaide SA 5000",
     "contactName": "David Brown",
     "email": "david@aussietrade.com",
-    "phone": "+61 8 8234 5678"
+    "phone": "+61 8 8234 5678",
+    "isDeleted" : false
   },
   {
     "id": "6",
@@ -51,7 +56,8 @@
     "officeAddress": "162 Macquarie Street, Hobart TAS 7000",
     "contactName": "Olivia Smith",
     "email": "olivia@outbackcom.com",
-    "phone": "+61 3 6234 5678"
+    "phone": "+61 3 6234 5678",
+    "isDeleted" : false
   },
   {
     "id": "7",
@@ -60,7 +66,8 @@
     "officeAddress": "1 Franklin Street, Darwin NT 0800",
     "contactName": "James Wilson",
     "email": "james@kangarootrade.com",
-    "phone": "+61 8 8945 6789"
+    "phone": "+61 8 8945 6789",
+    "isDeleted" : false
   },
   {
     "id": "8",
@@ -69,7 +76,8 @@
     "officeAddress": "50 Marcus Clarke Street, Canberra ACT 2601",
     "contactName": "Sophie Martin",
     "email": "sophie@boomerang.com",
-    "phone": "+61 2 6123 4567"
+    "phone": "+61 2 6123 4567",
+    "isDeleted" : false
   },
   {
     "id": "9",
@@ -78,7 +86,8 @@
     "officeAddress": "500 Bourke Street, Melbourne VIC 3000",
     "contactName": "Robert Taylor",
     "email": "robert@koalaexport.com",
-    "phone": "+61 3 9234 5678"
+    "phone": "+61 3 9234 5678",
+    "isDeleted" : true
   },
   {
     "id": "10",
@@ -87,6 +96,7 @@
     "officeAddress": "60 Margaret Street, Sydney NSW 2000",
     "contactName": "Jennifer Lee",
     "email": "jennifer@wattletrade.com",
-    "phone": "+61 2 9345 6789"
+    "phone": "+61 2 9345 6789",
+    "isDeleted" : false
   }
 ]
