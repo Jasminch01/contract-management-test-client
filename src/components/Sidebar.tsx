@@ -70,7 +70,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed lg:relative lg:w-[15%] h-screen shadow-right border-r border-gray-200 bg-white transform transition-transform duration-300 ease-in-out z-20 ${
+        className={`fixed lg:relative lg:w-[15%] h-screen shadow-right border-r border-gray-200 bg-white transform transition-transform duration-300 ease-in-out top-0 z-20 ${
           isSidebarOpen
             ? "translate-x-0 w-[70%]"
             : "-translate-x-full lg:translate-x-0"
@@ -79,7 +79,7 @@ const Sidebar = () => {
         <div className="h-screen px-2 flex flex-col justify-between">
           <div>
             {/* Logo and User Info */}
-            <div className="lg:pt-24">
+            <div className="pt-24">
               <Link
                 href={"/"}
                 className="flex items-center justify-center gap-3"
@@ -120,7 +120,7 @@ const Sidebar = () => {
           </div>
 
           {/* Logout Button */}
-          <div className="pb-10 flex justify-center">
+          <div className="xl:pb-10 flex justify-center">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100"

@@ -355,37 +355,6 @@ const ContractManagementPage = () => {
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            {/* <div className="relative">
-              <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
-              >
-                <IoFilterSharp />
-                Filter
-              </button>
-              {isFilterOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 p-2">
-                  <p className="font-medium mb-2 text-center">
-                    Filter by Status
-                  </p>
-                  {statusOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className={`p-2 text-center hover:bg-gray-100 cursor-pointer ${
-                        selectedStatus === option.value ? "bg-gray-100" : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedStatus(option.value);
-                        setIsFilterOpen(false);
-                      }}
-                    >
-                      {option.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div> */}
-
             <div className="relative">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -506,7 +475,7 @@ const ContractManagementPage = () => {
                   onClick={confirmDelete}
                   className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
                 >
-                  Delete
+                  Move
                 </button>
               </div>
             </div>

@@ -46,9 +46,9 @@ export default function RootLayout({
         <meta name="keywords" content={`${metadata.keywords}`} />
       </head>
       <body className={`${satoshiFont.className}`}>
-        <div className="md:flex h-screen">
+        <div className="md:flex h-full bg-gray-50">
           <Sidebar />
-          <div className="md:flex-1 h-screen bg-gray-50 w-[50rem]">{children}</div>
+          <div className="md:flex-1 h-full w-full xl:w-[30rem]">{children}</div>
         </div>
         {/* {children} */}
       </body>
