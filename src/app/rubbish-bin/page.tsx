@@ -3,7 +3,7 @@ import { Buyer, Contract, Note, Seller } from "@/types/types";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoFilterSharp } from "react-icons/io5";
-import { RiDeleteBin6Fill } from "react-icons/ri";
+import { RiDeleteBin6Fill, RiResetLeftFill } from "react-icons/ri";
 
 interface DeletedItem {
   id: string;
@@ -14,14 +14,16 @@ interface DeletedItem {
   type: "Contract" | "Note" | "Seller" | "Buyer";
   isDeleted: boolean;
   deletedAt: string;
-  // Add other fields as needed
 }
 
 const RubbishBin = () => {
   const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<DeletedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  //   const [selectedRows, setSelectedRows] = useState<DeletedItem[]>([]);
-  //   const [toggleCleared, setToggleCleared] = useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<
+    ("Contract" | "Note" | "Seller" | "Buyer")[]
+  >([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,10 +34,10 @@ const RubbishBin = () => {
         const contractsRes = await fetch("contracts.json");
         const contracts = await contractsRes.json();
 
-        console.log(contracts);
         // Fetch notes data
         const notesRes = await fetch("notes.json");
         const notes = await notesRes.json();
+
         // Fetch sellers data
         const sellersRes = await fetch("seller.json");
         const sellers = await sellersRes.json();
@@ -55,6 +57,7 @@ const RubbishBin = () => {
         // Filter only deleted items
         const deleted = allItems.filter((item) => item.isDeleted);
         setDeletedItems(deleted);
+        setFilteredItems(deleted);
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -64,20 +67,39 @@ const RubbishBin = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (activeFilters.length === 0) {
+      setFilteredItems(deletedItems);
+    } else {
+      setFilteredItems(
+        deletedItems.filter((item) => activeFilters.includes(item.type))
+      );
+    }
+  }, [activeFilters, deletedItems]);
+
+  const toggleFilter = (type: "Contract" | "Note" | "Seller" | "Buyer") => {
+    if (activeFilters.includes(type)) {
+      setActiveFilters(activeFilters.filter((t) => t !== type));
+    } else {
+      setActiveFilters([...activeFilters, type]);
+    }
+  };
+
   const columns = [
     {
-      name: "Name",
+      name: "NAME",
       selector: (row: DeletedItem) =>
         row.name || row.sellerLegalName || row.contractNumber || row.noteName,
       sortable: true,
     },
     {
-      name: "Type",
+      name: "TYPE",
       selector: (row: DeletedItem) => row.type,
       sortable: true,
     },
     {
-      name: "Deleted At",
+      name: "DATE ADDED",
       selector: (row: DeletedItem) =>
         new Date(row.deletedAt).toLocaleDateString(),
       sortable: true,
@@ -115,7 +137,7 @@ const RubbishBin = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Buyer Button */}
         <div className="w-full md:w-auto">
-          <p className="">Rubbish bin</p>
+          <p className="text-lg font-semibold text-gray-800">Rubbish bin</p>
         </div>
 
         {/* Search Input */}
@@ -128,27 +150,90 @@ const RubbishBin = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
           {/* Title */}
           <div className="w-full md:w-auto">
-            <h2 className="text-lg font-semibold text-gray-800">
-              List of deleted itmes
+            <h2 className="font-semibold text-gray-800">
+              List of deleted items
             </h2>
             <p className="text-sm text-gray-500">
-              {deletedItems.length}deleted items found
+              {filteredItems.length} deleted items found
+              {activeFilters.length > 0 &&
+                ` (filtered by ${activeFilters.join(", ")})`}
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="w-full md:w-auto flex gap-2">
+          <div className="w-full md:w-auto flex gap-2 relative">
             <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+              <RiResetLeftFill />
               Restore
             </button>
             <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
               <RiDeleteBin6Fill className="text-red-500" />
-              Parmanent Delete
+              Permanent Delete
             </button>
-            <button className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
-              <IoFilterSharp />
-              Filter
-            </button>
+            <div className="relative">
+              <button
+                className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              >
+                <IoFilterSharp />
+                Filter
+                {activeFilters.length > 0 && ` (${activeFilters.length})`}
+              </button>
+              {showFilterDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                  <div className="p-2">
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer rounded ${
+                        activeFilters.includes("Contract")
+                          ? "bg-blue-100"
+                          : "hover:bg-gray-100"
+                      }`}
+                      onClick={() => toggleFilter("Contract")}
+                    >
+                      Contracts
+                    </div>
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer rounded ${
+                        activeFilters.includes("Note")
+                          ? "bg-blue-100"
+                          : "hover:bg-gray-100"
+                      }`}
+                      onClick={() => toggleFilter("Note")}
+                    >
+                      Notes
+                    </div>
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer rounded ${
+                        activeFilters.includes("Seller")
+                          ? "bg-blue-100"
+                          : "hover:bg-gray-100"
+                      }`}
+                      onClick={() => toggleFilter("Seller")}
+                    >
+                      Sellers
+                    </div>
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer rounded ${
+                        activeFilters.includes("Buyer")
+                          ? "bg-blue-100"
+                          : "hover:bg-gray-100"
+                      }`}
+                      onClick={() => toggleFilter("Buyer")}
+                    >
+                      Buyers
+                    </div>
+                    {activeFilters.length > 0 && (
+                      <div
+                        className="px-4 py-2 text-sm cursor-pointer rounded hover:bg-gray-100 text-blue-500"
+                        onClick={() => setActiveFilters([])}
+                      >
+                        Clear all filters
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -156,8 +241,9 @@ const RubbishBin = () => {
         <div className="overflow-auto border border-gray-200">
           <DataTable
             columns={columns}
-            data={deletedItems}
+            data={filteredItems}
             progressPending={loading}
+            selectableRows
             pagination
             highlightOnHover
             noDataComponent={<div className="p-4">No deleted items found</div>}

@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
+import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
-import { IoFilterSharp } from "react-icons/io5";
+import { IoFilterSharp, IoWarning } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
@@ -122,6 +123,7 @@ const ContractManagementPage = () => {
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isFilterActive, setIsFilterActive] = useState(false);
 
   // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
@@ -170,6 +172,17 @@ const ContractManagementPage = () => {
     setData(filteredData);
   }, [searchTerm, selectedStatus, originalData]);
 
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    setIsFilterActive(value !== "all");
+    setIsFilterOpen(false);
+  };
+
+  const clearFilter = () => {
+    setSelectedStatus("all");
+    setIsFilterActive(false);
+    setIsFilterOpen(false);
+  };
   // Handle delete selected contracts
   const handleDelete = () => {
     if (selectedRows.length === 0) {
@@ -285,6 +298,16 @@ const ContractManagementPage = () => {
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto lg:flex lg:flex-row gap-2 grid grid-cols-3">
+            <button
+              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+                selectedRows.length > 0
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50 pointer-events-none"
+              }`}
+            >
+              <HiOutlineDocumentDuplicate />
+              Duplicate
+            </button>
             <ExportCsv selectedRows={selectedRows} />
             <PdfExportButton selectedRows={selectedRows} />
 
@@ -332,7 +355,7 @@ const ContractManagementPage = () => {
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            <div className="relative">
+            {/* <div className="relative">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors"
@@ -359,6 +382,79 @@ const ContractManagementPage = () => {
                       {option.label}
                     </div>
                   ))}
+                </div>
+              )}
+            </div> */}
+
+            <div className="relative">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}
+              >
+                <IoFilterSharp />
+                Filter
+              </button>
+
+              {isFilterOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
+                  <div className="border-b border-gray-200 p-3">
+                    <p className="font-medium text-gray-700">
+                      Filter by Status
+                    </p>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto">
+                    {statusOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
+                          selectedStatus === option.value
+                            ? "bg-blue-50 text-blue-600"
+                            : "hover:bg-gray-50"
+                        }`}
+                        onClick={() => handleStatusChange(option.value)}
+                      >
+                        <span className="flex-grow">{option.label}</span>
+                        {selectedStatus === option.value && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-blue-500"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {isFilterActive && (
+                    <div
+                      className="border-t border-gray-200 px-4 py-2 text-sm cursor-pointer text-red-500 hover:bg-red-50 flex items-center justify-between"
+                      onClick={clearFilter}
+                    >
+                      <span>Clear filter</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -388,25 +484,31 @@ const ContractManagementPage = () => {
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
         <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-            <p className="mb-4">
-              Are you sure you want to delete {selectedRows.length} selected
-              contract(s)?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsDeleteConfirmOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div className="px-5 py-3 border-b border-[#D3D3D3]">
+              <h3 className="text-lg font-semibold flex gap-x-5 items-center">
+                <IoWarning color="red" />
+                Move “Contract” to Rubbish bin ?
+              </h3>
+            </div>
+            <div className="mt-5 px-5 pb-5">
+              <p className="mb-4 text-center">
+                Are you sure you want to move this contract ?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setIsDeleteConfirmOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
