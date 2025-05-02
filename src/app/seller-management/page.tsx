@@ -3,7 +3,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoIosPersonAdd } from "react-icons/io";
-import { IoFilterSharp } from "react-icons/io5";
+import { IoFilterSharp, IoWarning } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
@@ -76,6 +76,7 @@ const SellerManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Seller[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -127,7 +128,7 @@ const SellerManagementPage = () => {
       toast("Please select only one seller to edit");
       return;
     }
-    router.push(`/seller-management/${selectedRows[0].id}`);
+    router.push(`/seller-management/edit/${selectedRows[0].id}`);
   };
 
   const handleDelete = () => {
@@ -135,25 +136,24 @@ const SellerManagementPage = () => {
       toast("Please select at least one seller to delete");
       return;
     }
+    setIsDeleteConfirmOpen(true);
+  };
 
-    if (
-      window.confirm("Are you sure you want to delete the selected sellers?")
-    ) {
-      const newData = data.filter(
-        (item) => !selectedRows.some((row) => row.id === item.id)
-      );
-      setData(newData);
-      setFilteredData(newData);
-      setToggleCleared(!toggleCleared);
-      toast.success(`${selectedRows.length} seller(s) deleted successfully`);
-    }
+  const confirmDelete = () => {
+    const newData = data.filter(
+      (item) => !selectedRows.some((row) => row.id === item.id)
+    );
+    setData(newData);
+    setSelectedRows([]);
+    setFilteredData(newData);
+    setToggleCleared(!toggleCleared);
+    setIsDeleteConfirmOpen(false);
+    toast.success(`${selectedRows.length} seller(s) deleted successfully`);
   };
 
   const handleFilter = () => {
-    // This could be expanded with a more complex filter modal/dialog
-    // For now, we'll just show a toast and reset the search
     setSearchTerm("");
-    // toast("Advanced filter functionality can be added here");
+  // toast("Advanced filter functionality can be added here");
   };
 
   return (
@@ -242,6 +242,39 @@ const SellerManagementPage = () => {
           />
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div className="px-5 py-3 border-b border-[#D3D3D3]">
+              <h3 className="text-lg font-semibold flex gap-x-5 items-center">
+                <IoWarning color="red" />
+                Delete selected sellers?
+              </h3>
+            </div>
+            <div className="mt-5 px-5 pb-5">
+              <p className="mb-4 text-center">
+                Are you sure you want to delete {selectedRows.length} selected seller(s)? This action cannot be undone.
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setIsDeleteConfirmOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

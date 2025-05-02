@@ -1,4 +1,15 @@
+export interface HistoricalPrice {
+  id: string;
+  commodity: string;
+  date: string;
+  price: number;
+  quality: string;
+  comment?: string; // Optional field
+}
 
+export interface HistoricalPricesData {
+  historical_prices: HistoricalPrice[];
+}
 export interface Note {
   id: string;
   noteName: string;
@@ -69,7 +80,7 @@ export interface Contract {
   sellerContractReference: string;
   attachments: ContractAttachments;
   status: ContractStatus;
-  isDeleted : boolean;
+  isDeleted: boolean;
   createdAt: string; // ISO datetime format
   updatedAt: string; // ISO datetime format
 }

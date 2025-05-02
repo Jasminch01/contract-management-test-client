@@ -9,7 +9,7 @@ const ContractEditpage = () => {
   const { contractId } = useParams<{ contractId: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-console.log(contractId)
+  console.log(contractId);
   useEffect(() => {
     const fetchContractData = async () => {
       try {
