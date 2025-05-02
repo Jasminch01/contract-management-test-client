@@ -53,7 +53,7 @@ const CreateContractForm = () => {
               onChange={handleDateChange}
               isClearable={true}
               placeholderText="Select date range"
-              className="mt-1 block w-full xl:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 w-full xl:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               calendarClassName="w-full sm:w-auto" // Makes calendar responsive
               dateFormat="MMM d, yyyy"
               minDate={new Date()}
@@ -294,13 +294,13 @@ const CreateContractForm = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center gap-3"
+            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
           >
             <IoArrowBack /> Back
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center gap-3"
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
           >
             Preview Contract
             <CiExport />
