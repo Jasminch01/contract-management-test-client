@@ -313,7 +313,7 @@ const ContractManagementPage = () => {
 
             <button
               onClick={() => handleEmail("buyer")}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50 pointer-events-none"
@@ -324,7 +324,7 @@ const ContractManagementPage = () => {
             </button>
             <button
               onClick={() => handleEmail("seller")}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50 pointer-events-none"
@@ -335,7 +335,7 @@ const ContractManagementPage = () => {
             </button>
             <button
               onClick={handleEdit}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50 pointer-events-none"
@@ -346,7 +346,7 @@ const ContractManagementPage = () => {
             </button>
             <button
               onClick={handleDelete}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50 pointer-events-none"
@@ -358,7 +358,7 @@ const ContractManagementPage = () => {
             <div className="relative">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}
+                className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}
               >
                 <IoFilterSharp />
                 Filter
