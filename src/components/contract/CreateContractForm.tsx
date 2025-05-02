@@ -9,6 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { addDays } from "date-fns";
 import { useState } from "react";
 import SelectBuyerSeller from "./SelectBuyerSeller";
+import SelectContractType from "./SelectContractType";
 
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
@@ -275,14 +276,7 @@ const CreateContractForm = () => {
             />
           </div>
           <div className="row-start-8">
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              CONTRACT TYPE
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-            />
+            <SelectContractType />
           </div>
           <div className="row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">
