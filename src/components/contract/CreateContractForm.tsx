@@ -55,13 +55,11 @@ const CreateContractForm = () => {
               placeholderText="Select date range"
               className="mt-1 block w-full xl:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               calendarClassName="w-full sm:w-auto" // Makes calendar responsive
-              monthsShown={window.innerWidth < 640 ? 1 : 2} // Shows 1 month on mobile, 2 on desktop
               dateFormat="MMM d, yyyy"
               minDate={new Date()}
               maxDate={addDays(new Date(), 365)}
               shouldCloseOnSelect={false}
               selectsDisabledDaysInRange
-              withPortal={window.innerWidth < 640} // Uses portal on mobile for better UX
             />
           </div>
           <div>
