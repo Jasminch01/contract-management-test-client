@@ -30,8 +30,8 @@ const CreateContractForm = () => {
   };
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
-      <form className="space-y-6 mt-6 md:mt-10">
-        <div className="grid grid-cols-4 grid-rows-8 gap-x-5">
+      <form className="space-y-6 mt-7 md:mt-10">
+        <div className="grid grid-cols-1 xl:grid-cols-4 xl:grid-rows-8 gap-5">
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               Contract Number
@@ -42,11 +42,10 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               DELIVERY PERIOD
             </label>
-
             <DatePicker
               selectsRange={true}
               startDate={startDate}
@@ -54,13 +53,15 @@ const CreateContractForm = () => {
               onChange={handleDateChange}
               isClearable={true}
               placeholderText="Select date range"
-              className="mt-1 block w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              monthsShown={2}
+              className="mt-1 block w-full xl:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              calendarClassName="w-full sm:w-auto" // Makes calendar responsive
+              monthsShown={window.innerWidth < 640 ? 1 : 2} // Shows 1 month on mobile, 2 on desktop
               dateFormat="MMM d, yyyy"
               minDate={new Date()}
               maxDate={addDays(new Date(), 365)}
               shouldCloseOnSelect={false}
               selectsDisabledDaysInRange
+              withPortal={window.innerWidth < 640} // Uses portal on mobile for better UX
             />
           </div>
           <div>
@@ -112,7 +113,7 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-span-2">
+          <div className="xl:row-span-2">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SPECIAL CONDITION
             </label>
@@ -152,7 +153,7 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-start-4">
+          <div className="md:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               GRADE
             </label>
@@ -163,7 +164,7 @@ const CreateContractForm = () => {
             />
           </div>
 
-          <div className="row-start-4">
+          <div className="md:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               WEIGHTS
             </label>
@@ -173,10 +174,10 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-start-4">
+          <div className="md:row-start-4">
             <SelectBuyerSeller />
           </div>
-          <div className="row-span-2 row-start-4">
+          <div className="md:row-span-2 md:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               TERMS & CONDITIONS
             </label>
@@ -210,10 +211,10 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-start-6">
+          <div className="md:row-start-6">
             <SellerSelect />
           </div>
-          <div className="row-start-6">
+          <div className="md:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               CONVEYANCE
             </label>
@@ -224,7 +225,7 @@ const CreateContractForm = () => {
             />
           </div>
 
-          <div className="row-start-6">
+          <div className="md:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               CERTIFICATION SCHEME
             </label>
@@ -234,7 +235,7 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-span-2 row-start-6">
+          <div className="md:row-span-2 md:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               NOTES
             </label>
@@ -275,10 +276,10 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="row-start-8">
+          <div className="md:row-start-8">
             <SelectContractType />
           </div>
-          <div className="row-start-8">
+          <div className="md:row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               NGR NUMBER
             </label>
