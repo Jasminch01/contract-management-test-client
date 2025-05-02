@@ -157,7 +157,7 @@ const HistoricalPricesPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Button */}
         <div className="w-full md:w-auto">
-          <Link href="/historical-prices/add">
+          <Link href="/historical-prices/add-historical-price">
             <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
               Add New Price
               <IoIosAdd className="text-lg" />
