@@ -173,7 +173,7 @@ const CreateContractForm = () => {
             />
           </div>
           <div className="row-start-4">
-           <SelectBuyerSeller/>
+            <SelectBuyerSeller />
           </div>
           <div className="row-span-2 row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
@@ -191,22 +191,22 @@ const CreateContractForm = () => {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              ATTACH BUYERS CONTRACT
-            </label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Broker"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
               PRICE (EX-GST)
             </label>
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Price"
+              placeholder=""
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              ATTACH BUYERS CONTRACT
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder=""
             />
           </div>
           <div className="row-start-6">
@@ -219,7 +219,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Conveyance"
+              placeholder=""
             />
           </div>
 
@@ -230,7 +230,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="CERTIFICATION SCHEME"
+              placeholder=""
             />
           </div>
           <div className="row-span-2 row-start-6">
@@ -261,7 +261,7 @@ const CreateContractForm = () => {
             <input
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Buyers Contract (PDF/XLSX etc)"
+              placeholder=""
             />
           </div>
           <div>

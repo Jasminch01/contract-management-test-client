@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState } from "react";
 interface Buyer {
   id: number;
   name: string;
@@ -8,6 +8,7 @@ const SelectBuyerSeller = () => {
     { id: 1, name: "Seller" },
     { id: 2, name: "Buyer" },
     { id: 3, name: "Buyer & Seller" },
+    { id: 4, name: "No Brokerage Payable" },
   ];
 
   // State management with proper types
