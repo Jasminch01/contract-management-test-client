@@ -42,7 +42,10 @@ const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to manage sidebar visibility
 
   const handleLogout = () => {
+    // This only works for non-HttpOnly cookies
+    document.cookie = 'auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
     console.log("User logged out");
+    window.location.href = '/login';
   };
 
   const toggleSidebar = () => {
