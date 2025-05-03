@@ -1,4 +1,7 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import "./globals.css";
 import localFont from "next/font/local";
 import Sidebar from "@/components/Sidebar";
@@ -28,29 +31,41 @@ const satoshiFont = localFont({
   ],
 });
 
-export const metadata: Metadata = {
-  title: "Contract management",
-  description: "Contract management app",
-};
-
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Check auth status from cookies
+    const authToken = document.cookie.includes("auth-token");
+    setIsAuthenticated(authToken);
+
+    // Redirect logic
+    if (!authToken && !pathname.startsWith("/login")) {
+      router.push("/login");
+    } else if (authToken && pathname.startsWith("/login")) {
+      router.push("/dashboard");
+    }
+  }, [pathname, router]);
+
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/Favicon.png" sizes="any" />
-        <meta name="description" content={`${metadata.description}`} />
-        <meta name="keywords" content={`${metadata.keywords}`} />
-      </head>
-      <body className={`${satoshiFont.className}`}>
-        <div className="md:flex h-full bg-gray-50">
-          <Sidebar />
-          <div className="md:flex-1 h-full w-full xl:w-[30rem]">{children}</div>
-        </div>
-        {/* {children} */}
+      <body className={satoshiFont.className}>
+        {isAuthenticated ? (
+          <div className="md:flex h-full bg-gray-50">
+            <Sidebar />
+            <div className="md:flex-1 h-full w-full xl:w-[30rem]">
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div className="min-h-screen bg-gray-50">{children}</div>
+        )}
       </body>
     </html>
   );
