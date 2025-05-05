@@ -40,6 +40,7 @@ export interface Seller {
   sellerContactName: string;
   sellerEmail: string;
   sellerPhoneNumber: string;
+  isDeleted : boolean;
 }
 
 export interface ContractAttachments {

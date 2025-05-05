@@ -1,279 +1,209 @@
 "use client";
+import { Seller } from "@/types/types";
+import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { MdOutlineEdit, MdSave, MdCancel } from "react-icons/md";
+import { MdSave, MdCancel } from "react-icons/md";
+import toast from "react-hot-toast";
+import { sellers } from "@/data/data";
 
 const SellerInformationEditPage = () => {
-  // Initial seller data
-  const initialSellerData = {
-    companyName: "Commex International",
-    legalName: "William Hanry",
-    abn: "75674",
-    additionalNGRs: "75674",
-    email: "outlook.mail",
-    farmAddress: "$234",
-    mainNGR: "Conveyance",
-    contactName: "scheme",
-    phoneNumber: "0357634"
-  };
+  const { sellerId } = useParams();
+  const router = useRouter();
 
-  const [sellerData, setSellerData] = useState(initialSellerData);
-  const [isEditing, setIsEditing] = useState(false);
-  const [originalData, setOriginalData] = useState(initialSellerData);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const foundSeller = sellers.find(
+    (seller) => seller.id.toString() === sellerId
+  );
 
-  // Handle input changes
+  const [sellerData, setSellerData] = useState<Seller | null>(
+    foundSeller || null
+  );
+  const [originalSellerData] = useState<Seller | null>(foundSeller || null);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+
+  const [hasChanges, setHasChanges] = useState(false);
+
+  if (!sellerData) {
+    toast.error(`Seller with ID ${sellerId} not found`);
+    router.push("/seller-management");
+    return null;
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setSellerData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setSellerData((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, [name]: value };
+      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
+        setHasChanges(true);
+      }
+      return updated;
+    });
   };
 
-  // Enable editing mode
-  const handleEdit = () => {
-    setOriginalData(sellerData);
-    setIsEditing(true);
+  const handleAdditionalNGRChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setSellerData((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, sellerAdditionalNGRs: value.split(",") };
+      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
+        setHasChanges(true);
+      }
+      return updated;
+    });
   };
 
-  // Save changes
-  const handleSave = async () => {
+  const handleCancel = () => {
+    if (originalSellerData) {
+      setSellerData({ ...originalSellerData });
+    }
+    setHasChanges(false);
+    setSaveStatus("idle");
+  };
+
+  const handleSave = () => {
+    if (!sellerData) return;
+
     setSaveStatus("saving");
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would make an actual API call here
-      // await fetch('/api/seller', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(sellerData)
-      // });
+      const index = sellers.findIndex((s) => s.id === sellerData.id);
+      if (index !== -1) {
+        sellers[index] = { ...sellerData };
+      }
 
-      setIsEditing(false);
+      setHasChanges(false);
       setSaveStatus("success");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch (error) {
-      console.error("Error saving seller data:", error);
+      toast.success("Seller updated successfully!");
+      router.push("/seller-management");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (err) {
+      console.error("Error saving seller:", err);
       setSaveStatus("error");
+      toast.error("Failed to update seller");
     }
-  };
-
-  // Cancel editing
-  const handleCancel = () => {
-    setSellerData(originalData);
-    setIsEditing(false);
-    setSaveStatus("idle");
   };
 
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
         <div className="mx-auto max-w-6xl">
-          <p className="text-xl font-semibold">Seller information</p>
+          <p className="text-xl font-semibold">Seller Information</p>
         </div>
       </div>
-      
-      <div>
-        <div className="my-10 text-center">
-          {isEditing ? (
-            <input
-              type="text"
-              name="companyName"
-              value={sellerData.companyName}
+
+      <div className="mx-auto max-w-6xl mt-10">
+        <div className="flex flex-col items-center mx-auto max-w-6xl w-full mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 w-full border border-gray-300 rounded-md p-6 gap-5 bg-white">
+            <Field
+              label="Seller Legal Name"
+              name="sellerLegalName"
+              value={sellerData.sellerLegalName}
               onChange={handleInputChange}
-              className="text-lg text-center border-b border-gray-300 focus:outline-none focus:border-[#2A5D36]"
             />
-          ) : (
-            <p className="text-lg">{sellerData.companyName}</p>
-          )}
-        </div>
+            <Field
+              label="Office Address"
+              name="sellerOfficeAddress"
+              value={sellerData.sellerOfficeAddress}
+              onChange={handleInputChange}
+            />
+            <Field
+              label="ABN"
+              name="sellerABN"
+              value={sellerData.sellerABN}
+              onChange={handleInputChange}
+            />
+            <Field
+              label="Main NGR"
+              name="sellerMainNGR"
+              value={sellerData.sellerMainNGR}
+              onChange={handleInputChange}
+            />
+            <Field
+              label="Contact Name"
+              name="sellerContactName"
+              value={sellerData.sellerContactName}
+              onChange={handleInputChange}
+            />
+            <Field
+              label="Email"
+              name="sellerEmail"
+              value={sellerData.sellerEmail}
+              onChange={handleInputChange}
+            />
+            <Field
+              label="Phone Number"
+              name="sellerPhoneNumber"
+              value={sellerData.sellerPhoneNumber}
+              onChange={handleInputChange}
+            />
 
-        <div className="flex flex-col items-center mx-auto max-w-6xl">
-          <div className="flex items-center gap-3 w-full">
-            {/* Left Data Column */}
-            <div className="flex flex-col border border-gray-300 rounded-md flex-1">
-              <div className="flex border-b border-gray-300 w-full">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Legal Name</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="legalName"
-                      value={sellerData.legalName}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.legalName
-                  )}
-                </div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller ABN</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="abn"
-                      value={sellerData.abn}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.abn
-                  )}
-                </div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Additional NGR&apos;s</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="additionalNGRs"
-                      value={sellerData.additionalNGRs}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.additionalNGRs
-                  )}
-                </div>
-              </div>
-              <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Email</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      name="email"
-                      value={sellerData.email}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.email
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Data Column */}
-            <div className="flex flex-col border border-gray-300 rounded-md flex-1">
-              <div className="flex border-b border-gray-300 w-full">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Farm or PO Address</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="farmAddress"
-                      value={sellerData.farmAddress}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.farmAddress
-                  )}
-                </div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Main NGR</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="mainNGR"
-                      value={sellerData.mainNGR}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.mainNGR
-                  )}
-                </div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Contact Name</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="contactName"
-                      value={sellerData.contactName}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.contactName
-                  )}
-                </div>
-              </div>
-              <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Seller Phone Number</div>
-                <div className="w-1/2 p-3">
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={sellerData.phoneNumber}
-                      onChange={handleInputChange}
-                      className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:border-[#2A5D36]"
-                    />
-                  ) : (
-                    sellerData.phoneNumber
-                  )}
-                </div>
-              </div>
+            {/* Additional NGRs */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Additional NGRs
+              </label>
+              <input
+                type="text"
+                value={sellerData.sellerAdditionalNGRs.join(",")}
+                onChange={handleAdditionalNGRChange}
+                className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+                placeholder="Enter NGRs separated by commas"
+              />
             </div>
           </div>
-
-          {/* Status Messages */}
-          {saveStatus === "success" && (
-            <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
-              Seller information saved successfully!
-            </div>
-          )}
-          {saveStatus === "error" && (
-            <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">
-              Error saving seller information. Please try again.
-            </div>
-          )}
 
           {/* Action Buttons */}
-          <div className="mt-10 flex gap-3">
-            {!isEditing ? (
+          {hasChanges && (
+            <div className="mt-10 flex gap-3">
               <button
-                onClick={handleEdit}
-                className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors"
+                onClick={handleCancel}
+                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
               >
-                <MdOutlineEdit className="text-lg" />
-                Edit
+                <MdCancel className="text-lg" />
+                Cancel
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
-                >
-                  <MdCancel className="text-lg" />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saveStatus === "saving"}
-                  className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  <MdSave className="text-lg" />
-                  {saveStatus === "saving" ? "Saving..." : "Save"}
-                </button>
-              </>
-            )}
-          </div>
+              <button
+                onClick={handleSave}
+                disabled={saveStatus === "saving"}
+                className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <MdSave className="text-lg" />
+                {saveStatus === "saving" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+const Field = ({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) => (
+  <div>
+    <label className="text-sm font-medium text-gray-700 mb-1 block">
+      {label}
+    </label>
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+    />
+  </div>
+);
 
 export default SellerInformationEditPage;

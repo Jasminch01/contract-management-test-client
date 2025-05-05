@@ -10,6 +10,7 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { Seller } from "@/types/types";
 import toast, { Toaster } from "react-hot-toast";
+import { sellers } from "@/data/data";
 
 const columns = [
   {
@@ -71,22 +72,15 @@ const customStyles = {
 };
 
 const SellerManagementPage = () => {
-  const [data, setData] = useState<Seller[]>([]);
+  const [data, setData] = useState<Seller[]>(
+    sellers.filter((s) => !s.isDeleted)
+  );
   const [filteredData, setFilteredData] = useState<Seller[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Seller[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    fetch("/seller.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setFilteredData(data);
-      });
-  }, []);
 
   useEffect(() => {
     const result = data.filter((seller) => {
@@ -153,7 +147,7 @@ const SellerManagementPage = () => {
 
   const handleFilter = () => {
     setSearchTerm("");
-  // toast("Advanced filter functionality can be added here");
+    // toast("Advanced filter functionality can be added here");
   };
 
   return (
@@ -255,7 +249,8 @@ const SellerManagementPage = () => {
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
-                Are you sure you want to delete {selectedRows.length} selected seller(s)? This action cannot be undone.
+                Are you sure you want to delete {selectedRows.length} selected
+                seller(s)? This action cannot be undone.
               </p>
               <div className="flex justify-center gap-3">
                 <button
