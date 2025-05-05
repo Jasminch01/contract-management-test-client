@@ -1,5 +1,7 @@
 "use client";
+import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { MdOutlineEdit } from "react-icons/md";
@@ -11,28 +13,21 @@ const BuyerInformationPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBuyerData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/buyer.json");
-        const buyers: Buyer[] = await response.json();
+    const fetchBuyerData = () => {
+      setLoading(true);
 
-        // Find the buyer with matching ID
-        const foundBuyer = buyers.find(
-          (buyer) => buyer.id.toString() === buyerId
-        );
+      const foundBuyer = initialBuyers.find(
+        (buyer) => buyer.id.toString() === buyerId
+      );
 
-        if (foundBuyer) {
-          setBuyerData(foundBuyer);
-        } else {
-          setError(`Buyer with ID ${buyerId} not found`);
-        }
-      } catch (err) {
-        setError("Failed to load buyer data");
-        console.error("Error fetching buyer:", err);
-      } finally {
-        setLoading(false);
+      if (foundBuyer) {
+        setBuyerData(foundBuyer);
+        setError(null);
+      } else {
+        setError(`Buyer with ID ${buyerId} not found`);
       }
+
+      setLoading(false);
     };
 
     fetchBuyerData();
@@ -51,65 +46,78 @@ const BuyerInformationPage = () => {
   if (!buyerData) {
     return <div className="text-center py-10">No buyer data found</div>;
   }
+
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
-        <div className=" mx-auto max-w-6xl">
-          <p className="text-xl font-semibold">Buyer information </p>
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xl font-semibold">Buyer Information</p>
         </div>
       </div>
       <div>
         <div className="my-10 text-center">
-          <p className="text-lg">Commex International</p>
+          <p className="text-lg">{buyerData.name}</p>
         </div>
 
-        <div className="flex flex-col items-center mx-auto max-w-6xl">
-          <div className="flex items-center gap-3 w-full">
-            <div className="flex flex-col border border-gray-300 rounded-md flex-1">
-              {/* Left Data Rows */}
-              <div className="flex border-b border-gray-300 w-full">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Legal Name</div>
-                <div className="w-1/2 p-3">{buyerData.name}</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer ABN</div>
-                <div className="w-1/2 p-3">{buyerData.abn}</div>
-              </div>
-              <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Email</div>
-                <div className="w-1/2 p-3">{buyerData.email}</div>
-              </div>
+        <div className="flex flex-col items-center mx-auto max-w-6xl w-full">
+          <div className="grid grid-cols-2 w-full border border-gray-300 rounded-md">
+            {/* Row 1 */}
+            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer Legal Name
+            </div>
+            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+              {buyerData.name}
             </div>
 
-            <div className="flex flex-col border border-gray-300 rounded-md flex-1">
-              {/* Right Data Rows */}
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Buyer Office Address
-                </div>
-                <div className="w-1/2 p-3">{buyerData.officeAddress}</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Buyer Contact Name:
-                </div>
-                <div className="w-1/2 p-3">{buyerData.contactName}</div>
-              </div>
-              <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">
-                  Buyer Phone Number:
-                </div>
-                <div className="w-1/2 p-3">{buyerData.phone}</div>
-              </div>
+            {/* Row 2 */}
+            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer ABN
+            </div>
+            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+              {buyerData.abn}
+            </div>
+
+            {/* Row 3 */}
+            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer Email
+            </div>
+            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+              {buyerData.email}
+            </div>
+
+            {/* Row 4 */}
+            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer Office Address
+            </div>
+            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+              {buyerData.officeAddress}
+            </div>
+
+            {/* Row 5 */}
+            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer Contact Name
+            </div>
+            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+              {buyerData.contactName}
+            </div>
+
+            {/* Row 6 */}
+            <div className="p-3 border-r border-gray-300 text-[#1A1A1A] flex items-center min-h-[60px]">
+              Buyer Phone Number
+            </div>
+            <div className="p-3 flex items-center min-h-[60px]">
+              {buyerData.phone}
             </div>
           </div>
 
-          {/* Centered Edit Button */}
+          {/* Edit Button */}
           <div className="mt-10">
-            <button className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2">
-              <MdOutlineEdit className="text-lg" />
-              Edit
-            </button>
+            <Link href={`/buyer-management/edit/${buyerId?.toString()}`}>
+              <button className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2">
+                <MdOutlineEdit className="text-lg" />
+                Edit
+              </button>
+            </Link>
           </div>
         </div>
       </div>

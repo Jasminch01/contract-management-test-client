@@ -1,10 +1,78 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { initialBuyers } from "@/data/data";
+
+interface Buyer {
+  id: string;
+  name: string;
+  abn: string;
+  officeAddress: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  accountNumber?: string;
+  isDeleted: boolean;
+}
 
 const CreateBuyerPage = () => {
+  const router = useRouter();
+  const [formData, setFormData] = useState<Omit<Buyer, "id" | "isDeleted">>({
+    name: "",
+    abn: "",
+    officeAddress: "",
+    contactName: "",
+    email: "",
+    phone: "",
+    accountNumber: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (!formData.name || !formData.abn || !formData.contactName) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Generate a new ID (in a real app, this would come from your backend)
+    const newId = (
+      Math.max(...initialBuyers.map((b) => parseInt(b.id))) + 1
+    ).toString();
+
+    // Create new buyer object
+    const newBuyer: Buyer = {
+      id: newId,
+      ...formData,
+      isDeleted: false,
+    };
+    initialBuyers.push(newBuyer);
+    // In a real app, you would send this to your API
+    console.log("New buyer to be added:", newBuyer);
+    console.log(initialBuyers);
+    // For demo purposes, we'll just show a success message
+    toast.success("Buyer created successfully!");
+
+    // Redirect to buyer list page after creation
+    setTimeout(() => {
+      router.push("/buyer-management");
+    }, 1000);
+  };
+
   return (
     <div className="max-w-7xl mx-auto mt-10 md:mt-32 px-4">
       <div className="flex justify-center">
-        <form action="" className="w-full max-w-4xl">
+        <form onSubmit={handleSubmit} className="w-full max-w-4xl">
           {/* Heading Section */}
           <div className="mb-10 text-center md:text-left">
             <h1 className="font-bold text-xl">Create Buyer</h1>
@@ -17,22 +85,30 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER LEGAL NAME
+                  BUYER LEGAL NAME *
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="BUYER LEGAL NAME"
+                  required
                 />
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER OFFICE ADDRESS
+                  BUYER OFFICE ADDRESS *
                 </label>
                 <input
                   type="text"
+                  name="officeAddress"
+                  value={formData.officeAddress}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="48 Pirrama Rd, Pyrmont Sydney NSW 2009"
+                  required
                 />
               </div>
             </div>
@@ -41,22 +117,30 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER ABN
+                  BUYER ABN *
                 </label>
                 <input
                   type="text"
+                  name="abn"
+                  value={formData.abn}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder=""
+                  required
                 />
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER CONTRACT NAME
+                  BUYER CONTRACT NAME *
                 </label>
                 <input
                   type="text"
+                  name="contactName"
+                  value={formData.contactName}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder=""
+                  required
                 />
               </div>
             </div>
@@ -65,22 +149,30 @@ const CreateBuyerPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER EMAIL
+                  BUYER EMAIL *
                 </label>
                 <input
-                  type="text"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder=""
+                  required
                 />
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER PHONE NUMBER
+                  BUYER PHONE NUMBER *
                 </label>
                 <input
-                  type="text"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder=""
+                  required
                 />
               </div>
             </div>
@@ -90,6 +182,9 @@ const CreateBuyerPage = () => {
               </label>
               <input
                 type="text"
+                name="accountNumber"
+                value={formData.accountNumber}
+                onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder=""
               />

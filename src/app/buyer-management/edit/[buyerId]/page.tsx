@@ -1,111 +1,81 @@
 "use client";
 import { Buyer } from "@/types/types";
-import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { MdOutlineEdit, MdSave, MdCancel } from "react-icons/md";
+import toast from "react-hot-toast";
+import { initialBuyers } from "@/data/data";
 
 const BuyerInformationEditPage = () => {
   const { buyerId } = useParams();
-  const [originalBuyerData, setOriginalBuyerData] = useState<Buyer | null>(null);
-  const [buyerData, setBuyerData] = useState<Buyer | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Find the buyer directly from the array
+  const foundBuyer = initialBuyers.find(
+    (buyer) => buyer.id.toString() === buyerId
+  );
+
+  const [buyerData, setBuyerData] = useState<Buyer | null>(foundBuyer || null);
+  const [originalBuyerData] = useState<Buyer | null>(foundBuyer || null);
   const [isEditing, setIsEditing] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
 
-  useEffect(() => {
-    const fetchBuyerData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/buyer.json");
-        const buyers: Buyer[] = await response.json();
-
-        const foundBuyer = buyers.find(
-          (buyer) => buyer.id.toString() === buyerId
-        );
-
-        if (foundBuyer) {
-          setOriginalBuyerData(foundBuyer);
-          setBuyerData({...foundBuyer});
-        } else {
-          setError(`Buyer with ID ${buyerId} not found`);
-        }
-      } catch (err) {
-        setError("Failed to load buyer data");
-        console.error("Error fetching buyer:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBuyerData();
-  }, [buyerId]);
+  if (!buyerData) {
+    toast.error(`Buyer with ID ${buyerId} not found`);
+    router.push("/buyer-management");
+    return null;
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setBuyerData(prev => {
+    setBuyerData((prev) => {
       if (!prev) return null;
       return {
         ...prev,
-        [name]: value
+        [name]: value,
       };
     });
   };
 
   const handleEdit = () => {
-    if (buyerData) {
-      setOriginalBuyerData({...buyerData});
-      setIsEditing(true);
-    }
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!buyerData) return;
-    
-    setSaveStatus("saving");
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would make an actual API call here
-      // await fetch(`/api/buyers/${buyerData.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(buyerData)
-      // });
 
-      setOriginalBuyerData({...buyerData});
+    setSaveStatus("saving");
+
+    try {
+      // Update the buyer in the initialBuyers array
+      const index = initialBuyers.findIndex(
+        (buyer) => buyer.id === buyerData.id
+      );
+      if (index !== -1) {
+        initialBuyers[index] = { ...buyerData };
+      }
+
       setIsEditing(false);
       setSaveStatus("success");
-      
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      toast.success("Buyer updated successfully!");
+      router.push(`/buyer-management`);
+      setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
       console.error("Error saving buyer:", err);
       setSaveStatus("error");
+      toast.error("Failed to update buyer");
     }
   };
 
   const handleCancel = () => {
     if (originalBuyerData) {
-      setBuyerData({...originalBuyerData});
+      setBuyerData({ ...originalBuyerData });
     }
     setIsEditing(false);
     setSaveStatus("idle");
   };
-
-  if (loading) {
-    return (
-      <div className="text-center py-10">Loading buyer information...</div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-center py-10 text-red-500">Error: {error}</div>;
-  }
-
-  if (!buyerData) {
-    return <div className="text-center py-10">No buyer data found</div>;
-  }
 
   return (
     <div>
@@ -114,19 +84,21 @@ const BuyerInformationEditPage = () => {
           <p className="text-xl font-semibold">Buyer information</p>
         </div>
       </div>
-      
+
       <div>
         <div className="my-10 text-center">
           {isEditing ? (
             <input
               type="text"
-              name="companyName"
+              name="name"
               value={buyerData.name || ""}
               onChange={handleInputChange}
               className="text-lg text-center border-b border-gray-300 focus:outline-none focus:border-[#2A5D36]"
             />
           ) : (
-            <p className="text-lg">{buyerData.name || "Commex International"}</p>
+            <p className="text-lg">
+              {buyerData.name || "Commex International"}
+            </p>
           )}
         </div>
 
@@ -187,7 +159,9 @@ const BuyerInformationEditPage = () => {
             {/* Right Data Column */}
             <div className="flex flex-col border border-gray-300 rounded-md flex-1">
               <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Office Address</div>
+                <div className="w-1/2 p-3 text-[#1A1A1A]">
+                  Buyer Office Address
+                </div>
                 <div className="w-1/2 p-3">
                   {isEditing ? (
                     <input
@@ -203,7 +177,9 @@ const BuyerInformationEditPage = () => {
                 </div>
               </div>
               <div className="flex border-b border-gray-300">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Contact Name</div>
+                <div className="w-1/2 p-3 text-[#1A1A1A]">
+                  Buyer Contact Name
+                </div>
                 <div className="w-1/2 p-3">
                   {isEditing ? (
                     <input
@@ -219,7 +195,9 @@ const BuyerInformationEditPage = () => {
                 </div>
               </div>
               <div className="flex">
-                <div className="w-1/2 p-3 text-[#1A1A1A]">Buyer Phone Number</div>
+                <div className="w-1/2 p-3 text-[#1A1A1A]">
+                  Buyer Phone Number
+                </div>
                 <div className="w-1/2 p-3">
                   {isEditing ? (
                     <input

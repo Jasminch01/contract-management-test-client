@@ -27,6 +27,7 @@ export interface Buyer {
   contactName: string;
   email: string;
   phone: string;
+  isDeleted : boolean;
 }
 
 export interface Seller {

@@ -1,8 +1,9 @@
 "use client";
+import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -70,35 +71,32 @@ const customStyles = {
 };
 
 const BuyerManagementPage = () => {
-  const [data, setData] = useState<Buyer[]>([]);
-  const [filteredData, setFilteredData] = useState<Buyer[]>([]);
+  const [data, setData] = useState<Buyer[]>(
+    initialBuyers.filter((b) => !b.isDeleted)
+  );
+  const [filteredData, setFilteredData] = useState<Buyer[]>(
+    initialBuyers.filter((b) => !b.isDeleted)
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    fetch("/buyer.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setFilteredData(data);
-      });
-  }, []);
-
-  useEffect(() => {
+  // Filter data based on search term
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
     const result = data.filter((item) => {
       return (
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.phone.toLowerCase().includes(searchTerm.toLowerCase())
+        item.name.toLowerCase().includes(term.toLowerCase()) ||
+        item.abn.toLowerCase().includes(term.toLowerCase()) ||
+        item.contactName.toLowerCase().includes(term.toLowerCase()) ||
+        item.email.toLowerCase().includes(term.toLowerCase()) ||
+        item.phone.toLowerCase().includes(term.toLowerCase())
       );
     });
     setFilteredData(result);
-  }, [searchTerm, data]);
+  };
 
   const handleRowClicked = (row: Buyer) => {
     router.push(`/buyer-management/${row.id}`);
@@ -114,34 +112,47 @@ const BuyerManagementPage = () => {
 
   const handleEdit = () => {
     if (selectedRows.length === 0) {
+      toast.error("Please select a buyer to edit");
       return;
     }
     if (selectedRows.length > 1) {
+      toast.error("Please select only one buyer to edit");
       return;
     }
     router.push(`/buyer-management/edit/${selectedRows[0].id}`);
   };
+
   const handleDelete = () => {
     if (selectedRows.length === 0) {
+      toast.error("Please select at least one buyer to delete");
       return;
     }
     setIsDeleteConfirmOpen(true);
   };
+
   const confirmDelete = () => {
-    const newData = data.filter(
-      (item) => !selectedRows.some((row) => row.id === item.id)
+    // Soft delete by setting isDeleted to true
+    const updatedData = data.map((buyer) =>
+      selectedRows.some((row) => row.id === buyer.id)
+        ? { ...buyer, isDeleted: true }
+        : buyer
     );
-    setData(newData);
-    setFilteredData(newData);
+
+    setData(updatedData.filter((b) => !b.isDeleted));
+    setFilteredData(updatedData.filter((b) => !b.isDeleted));
     setSelectedRows([]);
     setToggleCleared(!toggleCleared);
     setIsDeleteConfirmOpen(false);
-    toast.success(`${selectedRows.length} seller(s) deleted successfully`);
+    toast.success(`${selectedRows.length} buyer(s) deleted successfully`);
   };
 
   const handleFilter = () => {
-    // This could be expanded with a more complex filter modal/dialog
-    // toast("Filter functionality can be expanded here");
+    // Example filter - you can expand this with more options
+    const filtered = data.filter(
+      (buyer) => buyer.name.toLowerCase().includes("international") // Example filter condition
+    );
+    setFilteredData(filtered);
+    toast.success("Filter applied: Showing international buyers");
   };
 
   return (
@@ -166,7 +177,7 @@ const BuyerManagementPage = () => {
             placeholder="Search Buyer"
             className="w-full focus:outline-none bg-transparent"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
           <LuSearch className="text-gray-500" />
         </div>
@@ -241,18 +252,18 @@ const BuyerManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+        <div className="fixed inset-0z bg-opacity-20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Delete selected sellers?
+                Delete selected buyers?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
                 Are you sure you want to delete {selectedRows.length} selected
-                seller(s)? This action cannot be undone.
+                buyer(s)? This action cannot be undone.
               </p>
               <div className="flex justify-center gap-3">
                 <button
