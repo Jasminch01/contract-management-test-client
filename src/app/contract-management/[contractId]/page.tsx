@@ -1,5 +1,6 @@
 "use client";
 import Contract from "@/components/contract/Contract";
+import { contracts } from "@/data/data";
 import { Contract as TContract } from "@/types/types";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -16,8 +17,8 @@ const ContractDetailsPage = () => {
     const fetchContractData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/contracts.json");
-        const contracts: TContract[] = await response.json();
+        // const response = await fetch("/contracts.json");
+        // const contracts: TContract[] = await response.json();
 
         // Find the contract with matching ID
         const foundContract = contracts.find(

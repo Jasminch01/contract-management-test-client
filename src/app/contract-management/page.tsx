@@ -1,6 +1,7 @@
 "use client";
 import ExportCsv from "@/components/contract/ExportCsv";
 import PdfExportButton from "@/components/contract/PdfExportButton";
+import { contracts } from "@/data/data";
 import { Contract } from "@/types/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -116,8 +117,12 @@ const statusOptions = [
 
 const ContractManagementPage = () => {
   const router = useRouter();
-  const [data, setData] = useState<Contract[]>([]);
-  const [originalData, setOriginalData] = useState<Contract[]>([]);
+  const [data, setData] = useState<Contract[]>(
+    contracts.filter((b) => !b.isDeleted)
+  );
+  const [originalData, setOriginalData] = useState<Contract[]>(
+    contracts.filter((b) => !b.isDeleted)
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
@@ -138,17 +143,6 @@ const ContractManagementPage = () => {
   }) => {
     setSelectedRows(selected.selectedRows);
   };
-
-  // Load data
-  useEffect(() => {
-    fetch("/contracts.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setOriginalData(data);
-      });
-  }, []);
-
   // Filter data based on search term and status
   useEffect(() => {
     let filteredData = originalData;

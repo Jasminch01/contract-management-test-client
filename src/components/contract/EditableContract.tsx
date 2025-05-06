@@ -1,13 +1,62 @@
+import { contracts } from "@/data/data";
 import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useState } from "react";
-import { MdOutlineEdit } from "react-icons/md";
+import { MdCancel, MdSave } from "react-icons/md";
+
 interface ContractProps {
   contract: Tcontract;
 }
-const Contract: React.FC<ContractProps> = ({ contract }) => {
+
+const EditableContract: React.FC<ContractProps> = ({
+  contract: initialContract,
+}) => {
   const [preview, setPreview] = useState(false);
+  const [contract, setContract] = useState(initialContract);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    field: string,
+    nestedObject?: string
+  ) => {
+    const { value } = e.target;
+    setContract((prev) => {
+      const newContract = { ...prev };
+      if (nestedObject) {
+        newContract[nestedObject] = {
+          ...newContract[nestedObject],
+          [field]: value,
+        };
+      } else {
+        newContract[field] = value;
+      }
+      return newContract;
+    });
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    try {
+      const index = contracts.findIndex(
+        (contract) => contract.id === contract.id
+      );
+      if (index !== -1) {
+        contracts[index] = { ...contract };
+      }
+    } catch (err) {
+      console.error("Error saving buyer:", err);
+    }
+    console.log("Saving changes:", contract);
+    setHasChanges(false);
+    // You might want to update the initialContract here if save is successful
+  };
+
+  const handleCancel = () => {
+    setContract(initialContract);
+    setHasChanges(false);
+  };
+
   if (preview) {
     return (
       <div className="max-w-3xl mx-auto mt-5">
@@ -155,6 +204,14 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
           </div>
         </div>
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setPreview(false)}
+            className="py-2 px-5 bg-[#2A5D36] text-white rounded"
+          >
+            Back to Edit
+          </button>
+        </div>
       </div>
     );
   }
@@ -177,46 +234,98 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contract Number
               </div>
               <div className="w-1/2 p-3">
-                {contract.contractNumber || "N/A"}
+                <input
+                  type="text"
+                  value={contract.contractNumber || ""}
+                  onChange={(e) => handleChange(e, "contractNumber")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Contract Date
               </div>
-              <div className="w-1/2 p-3">{contract.contractDate || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.contractDate || ""}
+                  onChange={(e) => handleChange(e, "contractDate")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Commodity
               </div>
-              <div className="w-1/2 p-3">{contract.commodity || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.commodity || ""}
+                  onChange={(e) => handleChange(e, "commodity")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Season</div>
               <div className="w-1/2 p-3">
-                {contract.commoditySeason || "N/A"}
+                <input
+                  type="text"
+                  value={contract.commoditySeason || ""}
+                  onChange={(e) => handleChange(e, "commoditySeason")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tonnes</div>
-              <div className="w-1/2 p-3">{contract.tonnes || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.tonnes || ""}
+                  onChange={(e) => handleChange(e, "tonnes")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Grade</div>
-              <div className="w-1/2 p-3">{contract.grade || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.grade || ""}
+                  onChange={(e) => handleChange(e, "grade")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Weights
               </div>
-              <div className="w-1/2 p-3">{contract.weights || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.weights || ""}
+                  onChange={(e) => handleChange(e, "weights")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Price (ex GST)
               </div>
-              <div className="w-1/2 p-3">{contract.priceExGst || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.priceExGst || ""}
+                  onChange={(e) => handleChange(e, "priceExGst")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
           </div>
 
@@ -227,7 +336,12 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Delivery Period
               </div>
               <div className="w-1/2 p-3">
-                {contract.deliveryPeriod || "N/A"}
+                <input
+                  type="text"
+                  value={contract.deliveryPeriod || ""}
+                  onChange={(e) => handleChange(e, "deliveryPeriod")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -235,42 +349,87 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Delivery Option
               </div>
               <div className="w-1/2 p-3">
-                {contract.deliveryOption || "N/A"}
+                <input
+                  type="text"
+                  value={contract.deliveryOption || ""}
+                  onChange={(e) => handleChange(e, "deliveryOption")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Payment Terms
               </div>
-              <div className="w-1/2 p-3">{contract.paymentTerms || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.paymentTerms || ""}
+                  onChange={(e) => handleChange(e, "paymentTerms")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Freight
               </div>
-              <div className="w-1/2 p-3">{contract.freight || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.freight || ""}
+                  onChange={(e) => handleChange(e, "freight")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Certification
               </div>
               <div className="w-1/2 p-3">
-                {contract.certificationScheme || "N/A"}
+                <input
+                  type="text"
+                  value={contract.certificationScheme || ""}
+                  onChange={(e) => handleChange(e, "certificationScheme")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Broker</div>
-              <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.broker || ""}
+                  onChange={(e) => handleChange(e, "broker")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Broker Rate
               </div>
-              <div className="w-1/2 p-3">{contract.brokerRate || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.brokerRate || ""}
+                  onChange={(e) => handleChange(e, "brokerRate")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Status</div>
-              <div className="w-1/2 p-3">{contract.status || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.status || ""}
+                  onChange={(e) => handleChange(e, "status")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -285,18 +444,37 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Buyer Name
               </div>
-              <div className="w-1/2 p-3">{contract.buyer?.name || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.buyer?.name || ""}
+                  onChange={(e) => handleChange(e, "name", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">ABN</div>
-              <div className="w-1/2 p-3">{contract.buyer?.abn || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.buyer?.abn || ""}
+                  onChange={(e) => handleChange(e, "abn", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Office Address
               </div>
               <div className="w-1/2 p-3">
-                {contract.buyer?.officeAddress || "N/A"}
+                <input
+                  type="text"
+                  value={contract.buyer?.officeAddress || ""}
+                  onChange={(e) => handleChange(e, "officeAddress", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -304,16 +482,35 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.buyer?.contactName || "N/A"}
+                <input
+                  type="text"
+                  value={contract.buyer?.contactName || ""}
+                  onChange={(e) => handleChange(e, "contactName", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
-              <div className="w-1/2 p-3">{contract.buyer?.email || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.buyer?.email || ""}
+                  onChange={(e) => handleChange(e, "email", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
-              <div className="w-1/2 p-3">{contract.buyer?.phone || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.buyer?.phone || ""}
+                  onChange={(e) => handleChange(e, "phone", "buyer")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -329,7 +526,12 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Legal Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerLegalName || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerLegalName || ""}
+                  onChange={(e) => handleChange(e, "sellerLegalName", "seller")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -337,13 +539,25 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Office Address
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerOfficeAddress || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerOfficeAddress || ""}
+                  onChange={(e) =>
+                    handleChange(e, "sellerOfficeAddress", "seller")
+                  }
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">ABN</div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerABN || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerABN || ""}
+                  onChange={(e) => handleChange(e, "sellerABN", "seller")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -351,7 +565,12 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Main NGR
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerMainNGR || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerMainNGR || ""}
+                  onChange={(e) => handleChange(e, "sellerMainNGR", "seller")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -359,19 +578,38 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerContactName || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerContactName || ""}
+                  onChange={(e) =>
+                    handleChange(e, "sellerContactName", "seller")
+                  }
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerEmail || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerEmail || ""}
+                  onChange={(e) => handleChange(e, "sellerEmail", "seller")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerPhoneNumber || "N/A"}
+                <input
+                  type="text"
+                  value={contract.seller?.sellerPhoneNumber || ""}
+                  onChange={(e) =>
+                    handleChange(e, "sellerPhoneNumber", "seller")
+                  }
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
           </div>
@@ -388,7 +626,12 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Special Conditions
               </div>
               <div className="w-1/2 p-3">
-                {contract.specialCondition || "N/A"}
+                <textarea
+                  value={contract.specialCondition || ""}
+                  onChange={(e) => handleChange(e, "specialCondition")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                  rows={3}
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -396,12 +639,24 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Terms & Conditions
               </div>
               <div className="w-1/2 p-3">
-                {contract.termsAndConditions || "N/A"}
+                <textarea
+                  value={contract.termsAndConditions || ""}
+                  onChange={(e) => handleChange(e, "termsAndConditions")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                  rows={3}
+                />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Notes</div>
-              <div className="w-1/2 p-3">{contract.notes || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                <textarea
+                  value={contract.notes || ""}
+                  onChange={(e) => handleChange(e, "notes")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                  rows={3}
+                />
+              </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -431,14 +686,9 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
           </div>
         </div>
 
-        {/* Edit Button */}
-        <div className="mt-10 w-full flex justify-center gap-5">
-          <Link href={`/contract-management/edit/${contract.id}`}>
-            <button className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2">
-              <MdOutlineEdit className="text-lg" />
-              Edit Contract
-            </button>
-          </Link>
+        {/* Action Buttons - Only show when there are changes */}
+        <div className="mt-10 w-full flex justify-center gap-5 sticky bottom-0 bg-white py-4">
+          {/* Always show Preview button */}
           <button
             type="button"
             onClick={() => setPreview(true)}
@@ -446,10 +696,30 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
           >
             Preview Contract
           </button>
+
+          {/* Only show Save and Cancel when there are changes */}
+          {hasChanges && (
+            <>
+              <button
+                onClick={handleSave}
+                className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <MdSave className="text-lg" />
+                Save Changes
+              </button>
+              <button
+                onClick={handleCancel}
+                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
+              >
+                <MdCancel className="text-lg" />
+                Cancel
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Contract;
+export default EditableContract;

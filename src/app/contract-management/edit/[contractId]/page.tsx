@@ -1,5 +1,7 @@
 "use client";
-import Contract from "@/components/contract/Contract";
+// import Contract from "@/components/contract/Contract";
+import EditableContract from "@/components/contract/EditableContract";
+import { contracts } from "@/data/data";
 import { Contract as TContract } from "@/types/types";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -9,13 +11,13 @@ const ContractEditpage = () => {
   const { contractId } = useParams<{ contractId: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  console.log(contractId);
+
   useEffect(() => {
     const fetchContractData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/contracts.json");
-        const contracts: TContract[] = await response.json();
+        // const response = await fetch("/contracts.json");
+        // const contracts: TContract[] = await response.json();
         const foundContract = contracts.find(
           (contract) =>
             contract.id === contractId || contract.contractNumber === contractId
@@ -51,7 +53,8 @@ const ContractEditpage = () => {
 
   return (
     <div>
-      <Contract contract={contractData} />
+      {/* <Contract contract={contractData} /> */}
+      <EditableContract contract={contractData} />
     </div>
   );
 };
