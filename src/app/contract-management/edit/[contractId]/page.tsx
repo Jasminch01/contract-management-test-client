@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 
 const ContractEditpage = () => {
   const [contractData, setContractData] = useState<TContract | null>(null);
-  const { contractId } = useParams<{ contractId: string }>();
+  const { contractId } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,8 +19,7 @@ const ContractEditpage = () => {
         // const response = await fetch("/contracts.json");
         // const contracts: TContract[] = await response.json();
         const foundContract = contracts.find(
-          (contract) =>
-            contract.id === contractId || contract.contractNumber === contractId
+          (contract) => contract.id.toString() === contractId
         );
 
         if (foundContract) {
