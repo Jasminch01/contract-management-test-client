@@ -11,7 +11,8 @@ const ContractDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Get the ID from the URL parameters
-  const { contractId } = useParams<{ contractId: string }>();
+  const { contractId } = useParams();
+  console.log(contractId);
 
   useEffect(() => {
     const fetchContractData = async () => {
@@ -22,8 +23,7 @@ const ContractDetailsPage = () => {
 
         // Find the contract with matching ID
         const foundContract = contracts.find(
-          (contract) =>
-            contract.id === contractId || contract.contractNumber === contractId
+          (contract) => contract.id.toString() === contractId
         );
 
         if (foundContract) {
