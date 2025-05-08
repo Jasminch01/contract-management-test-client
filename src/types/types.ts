@@ -55,7 +55,7 @@ export interface Contract {
   destination: string;
   grower: string;
   season: string;
-  id: string;
+  id: number;
   contractNumber: string;
   tonnes: string;
   certificationScheme: string;

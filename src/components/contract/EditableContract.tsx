@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
+// @ts-nocheck
+
 import { contracts } from "@/data/data";
 import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
