@@ -55,6 +55,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
       <body className={satoshiFont.className}>
         {isAuthenticated ? (
           <div className="md:flex h-screen bg-gray-50">
