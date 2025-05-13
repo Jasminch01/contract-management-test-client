@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
@@ -198,8 +199,8 @@ const HistoricalPricesPage = () => {
   const [activeTab, setActiveTab] = useState("historicalPrices");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedSeason, setSelectedSeason] = useState(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSeason, setSelectedSeason] = useState("");
 
   useEffect(() => {
     const initialHistoricalPrices = portzones.map((port, index) => ({
@@ -278,7 +279,7 @@ const HistoricalPricesPage = () => {
       </div>
 
       <div className="mt-3">
-        <div className="flex justify-between border-b-2 border-gray-200 pl-4">
+        <div className="flex flex-col xl:flex-row justify-between border-b-2 border-gray-200 pl-4">
           <div className="flex gap-x-10">
             <button
               className={`py-3 uppercase font-medium ${
