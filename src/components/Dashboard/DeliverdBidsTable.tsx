@@ -1,29 +1,18 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useEffect, useState } from "react";
+ 
+"use client";
+
+import { useState } from "react";
 import DataTable from "react-data-table-component";
 
-// Common constants
 interface DeliveredBid {
-  id: string;
   location: string;
-  [key: string]: string; // Allow dynamic properties for months
 }
 
-const deliveredBids = [
-  "Delivered Murray Bridge BAR1",
-  "Delivered Murray Bridge Canola",
-  "Delivered Waslays SFW1",
-  "Delivered Waslays Bar1",
-  "Delivered Waslaysd Canola",
-  "Delivered Laucke Davesyton SFW1",
-  "Delivered Laucke Davesyton BAR1",
-  "Delivered Laucke Davesyton Canola",
-  "Delivered Southern Cross Feedlot SFW1",
-  "Delivered Dublin NIP/HAL",
-  "Delivered Dublin Canola",
-  "Delivered Sempahore Containers NIP/HAL1",
-  "Delivered Sempahore Containers APW1",
-];
+interface DeliveredBids {
+  id: string;
+  locations: DeliveredBid[];
+  [key: string]: string | DeliveredBid[];
+}
 
 const months = [
   "January",
@@ -40,7 +29,6 @@ const months = [
   "December",
 ];
 
-// Custom styles for both tables
 const customStyles = {
   headRow: {
     style: {
@@ -49,7 +37,6 @@ const customStyles = {
   },
   headCells: {
     style: {
-      borderRight: "",
       fontWeight: "bold",
       color: "gray",
     },
@@ -68,34 +55,29 @@ const customStyles = {
     },
   },
 };
+
 const DeliveredBidsTable = ({
+  data,
+  onDataChange,
   onSave,
 }: {
-  onSave: (data: DeliveredBid[]) => void;
+  data: DeliveredBids[];
+  onDataChange: (data: DeliveredBids[]) => void;
+  onSave: (data: DeliveredBids[]) => void;
 }) => {
-  const [data, setData] = useState<DeliveredBid[]>([]);
   const [dataModified, setDataModified] = useState(false);
-
-  useEffect(() => {
-    // Initialize with default data
-    const initialData = deliveredBids.map((location, index) => ({
-      id: `db-${index}`,
-      location,
-      ...months.reduce(
-        (acc, month) => ({ ...acc, [month.toLowerCase()]: "" }),
-        {}
-      ),
-    }));
-    setData(initialData);
-  }, []);
+  const [editing, setEditing] = useState<{
+    rowId: string;
+    columnKey: string;
+  } | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const handleCellEdit = (rowId: string, columnKey: string, value: string) => {
     setDataModified(true);
-    setData(
-      data.map((item) =>
-        item.id === rowId ? { ...item, [columnKey]: value } : item
-      )
+    const newData = data.map((item) =>
+      item.id === rowId ? { ...item, [columnKey]: value } : item
     );
+    onDataChange(newData);
   };
 
   const handleSave = () => {
@@ -106,12 +88,12 @@ const DeliveredBidsTable = ({
   const columns = [
     {
       name: "Delivered Bids",
-      selector: (row: DeliveredBid) => row.location,
+      selector: (row: DeliveredBids) => row.locations?.[0]?.location || "",
       sortable: true,
-      width: "250px",
-      cell: (row: DeliveredBid) => (
+      width: "20rem",
+      cell: (row: DeliveredBids) => (
         <div className="w-full h-full flex items-center px-5">
-          {row.location}
+          {row.locations?.[0]?.location || "—"}
         </div>
       ),
     },
@@ -120,13 +102,15 @@ const DeliveredBidsTable = ({
       return {
         name: month,
         width: "120px",
-        cell: (row: DeliveredBid) => {
-          const [isEditing, setIsEditing] = useState(false);
-          const [value, setValue] = useState(row[monthKey] || "");
+        cell: (row: DeliveredBids) => {
+          const isEditing =
+            editing?.rowId === row.id && editing?.columnKey === monthKey;
+          const value =
+            typeof row[monthKey] === "string" ? (row[monthKey] as string) : "";
 
           const handleBlur = () => {
-            setIsEditing(false);
-            handleCellEdit(row.id, monthKey, value);
+            setEditing(null);
+            handleCellEdit(row.id, monthKey, editValue);
           };
 
           const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -136,19 +120,22 @@ const DeliveredBidsTable = ({
           return isEditing ? (
             <input
               type="text"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="w-full h-full p-2 border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full h-full px-2 focus:outline-none"
             />
           ) : (
             <div
-              onClick={() => setIsEditing(true)}
-              className="w-full h-full p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => {
+                setEditing({ rowId: row.id, columnKey: monthKey });
+                setEditValue(value);
+              }}
+              className="w-full h-full px-2 hover:bg-gray-100 cursor-pointer"
             >
-              {value}
+              {value || "—"}
             </div>
           );
         },

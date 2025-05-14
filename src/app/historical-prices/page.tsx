@@ -1,7 +1,8 @@
 "use client";
+import ExportCSVPrice from "@/components/contract/ExportCSVPrice";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
 import PortZoneBidsTable from "@/components/Dashboard/PortZoneBidsTable";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
@@ -9,16 +10,82 @@ interface PortZone {
   port: string;
 }
 
-interface HistoricalPrice {
+interface DeliverdBid {
+  location: string;
+}
+
+// For Port Zone Bids (previously HistoricalPrice)
+interface PortZoneBids {
   id: string;
   portZones: PortZone[];
-  [key: string]: string | PortZone[]; // Allow dynamic properties for grain types
+  [key: string]: string | PortZone[];
 }
-interface DeliveredBid {
+
+// For Delivered Bids
+interface DeliverdBids {
   id: string;
-  location: string;
-  [key: string]: string;
+  locations: DeliverdBid[];
+  [key: string]: string | DeliverdBid[];
 }
+
+const portzones = [
+  "Outer Harbor",
+  "Port Lincoln",
+  "Port Giles",
+  "Wallaroo",
+  "Lucky Bay",
+  "Thevenard",
+  "Wallaroo Tports",
+];
+
+const grainTypes = [
+  "apw1",
+  "h1",
+  "h2",
+  "auh2",
+  "asw1",
+  "agp1",
+  "sfw1",
+  "bar1",
+  "ma1",
+  "cm1",
+  "comd",
+  "cans",
+  "cang",
+  "fiev",
+  "nip/hal",
+];
+
+const deliveredBids = [
+  "Delivered Murray Bridge BAR1",
+  "Delivered Murray Bridge Canola",
+  "Delivered Waslays SFW1",
+  "Delivered Waslays Bar1",
+  "Delivered Waslaysd Canola",
+  "Delivered Laucke Davesyton SFW1",
+  "Delivered Laucke Davesyton BAR1",
+  "Delivered Laucke Davesyton Canola",
+  "Delivered Southern Cross Feedlot SFW1",
+  "Delivered Dublin NIP/HAL",
+  "Delivered Dublin Canola",
+  "Delivered Sempahore Containers NIP/HAL1",
+  "Delivered Sempahore Containers APW1",
+];
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const getFormattedDates = () => {
   const today = new Date();
@@ -47,15 +114,50 @@ const HistoricalPricesPage = () => {
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSeason, setSelectedSeason] = useState("");
+  const [portZoneData, setPortZoneData] = useState<PortZoneBids[]>([]);
+  const [deliveredBidsData, setDeliveredBidsData] = useState<DeliverdBids[]>(
+    []
+  );
 
-  const handleSavePortZones = (data: HistoricalPrice[]) => {
+  // Initialize data
+  useEffect(() => {
+    // Initialize Port Zone Data
+    const initialPortZoneData = portzones.map((port, index) => ({
+      id: `hp-${index}`,
+      portZones: [{ port }],
+      ...grainTypes.reduce((acc, grain) => ({ ...acc, [grain]: "" }), {}),
+    }));
+    setPortZoneData(initialPortZoneData);
+    // Initialize Delivered Bids Data
+    const initialDeliveredBidsData = deliveredBids.map((location, index) => ({
+      id: `db-${index}`,
+      locations: [{ location }],
+      ...months.reduce(
+        (acc, month) => ({ ...acc, [month.toLowerCase()]: "" }),
+        {}
+      ),
+    }));
+    setDeliveredBidsData(initialDeliveredBidsData);
+  }, []);
+
+  const handleSavePortZones = (data: PortZoneBids[]) => {
+    setPortZoneData(data);
     toast.success("Historical prices saved successfully");
     console.log("Saved historical prices:", data);
   };
 
-  const handleSaveDeliveredBids = (data: DeliveredBid[]) => {
+  const handleSaveDeliveredBids = (data: DeliverdBids[]) => {
+    setDeliveredBidsData(data);
     toast.success("Delivered bids saved successfully");
     console.log("Saved delivered bids:", data);
+  };
+
+  const handlePortZoneDataChange = (data: PortZoneBids[]) => {
+    setPortZoneData(data);
+  };
+
+  const handleDeliveredBidsDataChange = (data: DeliverdBids[]) => {
+    setDeliveredBidsData(data);
   };
 
   const tabButtonClass = "py-3 uppercase w-44 text-center relative";
@@ -68,14 +170,14 @@ const HistoricalPricesPage = () => {
         <p className="text-xl">Historical Daily Prices</p>
       </div>
 
-      <div className="mt-3">
-        <div className="flex flex-col xl:flex-row justify-between border-b-2 border-gray-200 pl-4">
+      <div className="">
+        <div className="flex flex-col xl:flex-row justify-between  border-gray-200">
           <div className="flex gap-x-10">
             <button
               className={tabButtonClass}
               onClick={() => setActiveTab("historicalPrices")}
             >
-              <span className={tabTextClass}>Historical Prices</span>
+              <span className={tabTextClass}>Port Zone Bids</span>
               {activeTab === "historicalPrices" && (
                 <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#108A2B]"></div>
               )}
@@ -92,10 +194,14 @@ const HistoricalPricesPage = () => {
           </div>
 
           <div className="flex gap-4 items-center pr-5 my-5">
-            <button className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700">
-              Export as CSV
-            </button>
-
+            <ExportCSVPrice
+              data={portZoneData}
+              keys={months}
+              filename={`delivered-bids-${
+                selectedDate || getFormattedDates()[0]
+              }.csv`}
+              disabled={portZoneData.length === 0}
+            />
             {/* Date Dropdown */}
             <div className="relative">
               <button
@@ -155,29 +261,21 @@ const HistoricalPricesPage = () => {
                 </div>
               )}
             </div>
-
-            {/* Sort by Button */}
-            <button className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700">
-              Sort by
-            </button>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4 mt-4">
-          <div className="w-full md:w-auto">
-            <h2 className="text-lg font-semibold text-gray-800">
-              {activeTab === "historicalPrices"
-                ? "Historical Prices"
-                : "Delivered Bids"}
-            </h2>
-          </div>
-        </div>
-
-        {/* Render the active table based on tab selection */}
         {activeTab === "historicalPrices" ? (
-          <PortZoneBidsTable onSave={handleSavePortZones} />
+          <PortZoneBidsTable
+            data={portZoneData}
+            onDataChange={handlePortZoneDataChange}
+            onSave={handleSavePortZones}
+          />
         ) : (
-          <DeliveredBidsTable onSave={handleSaveDeliveredBids} />
+          <DeliveredBidsTable
+            data={deliveredBidsData}
+            onDataChange={handleDeliveredBidsDataChange}
+            onSave={handleSaveDeliveredBids}
+          />
         )}
       </div>
     </div>

@@ -1,27 +1,18 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DataTable from "react-data-table-component";
 
 interface PortZone {
   port: string;
 }
+
 interface HistoricalPrice {
   id: string;
   portZones: PortZone[];
-  [key: string]: string | PortZone[]; // Allow dynamic properties for grain types
+  [key: string]: string | PortZone[];
 }
 
-const portzones = [
-  "Outer Harbor",
-  "Port Lincoln",
-  "Port Giles",
-  "Wallaroo",
-  "Lucky Bay",
-  "Thevenard",
-  "Wallaroo Tports",
-];
 const grainTypes = [
   "apw1",
   "h1",
@@ -69,30 +60,22 @@ const customStyles = {
 };
 
 const PortZoneBidsTable = ({
+  data,
+  onDataChange,
   onSave,
 }: {
+  data: HistoricalPrice[];
+  onDataChange: (data: HistoricalPrice[]) => void;
   onSave: (data: HistoricalPrice[]) => void;
 }) => {
-  const [data, setData] = useState<HistoricalPrice[]>([]);
   const [dataModified, setDataModified] = useState(false);
-
-  useEffect(() => {
-    // Initialize with default data
-    const initialData = portzones.map((port, index) => ({
-      id: `hp-${index}`,
-      portZones: [{ port }],
-      ...grainTypes.reduce((acc, grain) => ({ ...acc, [grain]: "" }), {}),
-    }));
-    setData(initialData);
-  }, []);
 
   const handleCellEdit = (rowId: string, columnKey: string, value: string) => {
     setDataModified(true);
-    setData(
-      data.map((item) =>
-        item.id === rowId ? { ...item, [columnKey]: value } : item
-      )
+    const newData = data.map((item) =>
+      item.id === rowId ? { ...item, [columnKey]: value } : item
     );
+    onDataChange(newData);
   };
 
   const handleSave = () => {
@@ -106,7 +89,7 @@ const PortZoneBidsTable = ({
       selector: (row: HistoricalPrice) =>
         row.portZones.map((zone) => zone.port).join(", "),
       sortable: true,
-      width: "250px",
+      width: "10rem",
       cell: (row: HistoricalPrice) => (
         <div className="w-full h-full flex items-center px-5">
           {row.portZones.map((zone) => zone.port).join(", ")}
@@ -137,7 +120,7 @@ const PortZoneBidsTable = ({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             autoFocus
-            className="w-full h-full p-2 border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-full p-2 focus:outline-none"
           />
         ) : (
           <div

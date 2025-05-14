@@ -1,29 +1,40 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import React from "react";
 import { CSVLink } from "react-csv";
 
-// Define types
+// Types
 interface CSVHeader {
   label: string;
   key: string;
+}
+interface DeliverdBid {
+  location: string;
 }
 
 interface PortZone {
   port: string;
 }
 
-interface DataRow {
+interface HistoricalPrice {
   id: string;
   portZones: PortZone[];
-  [key: string]: string | PortZone[]; // Allow dynamic properties
+  [key: string]: string | PortZone[];
 }
 
+interface DeliverdBids {
+  id: string;
+  locations: DeliverdBid[];
+  [key: string]: string | DeliverdBid[];
+}
+
+type ExportData = HistoricalPrice | DeliverdBids;
+
 interface ExportCSVButtonProps {
-  data: DataRow[];
+  data: ExportData[] | ExportData[][];
   keys: string[];
   filename: string;
   disabled: boolean;
+  isPortZoneData?: boolean;
 }
 
 const ExportCSVPrice: React.FC<ExportCSVButtonProps> = ({
@@ -31,31 +42,60 @@ const ExportCSVPrice: React.FC<ExportCSVButtonProps> = ({
   keys,
   filename,
   disabled,
+  isPortZoneData = true,
 }) => {
-  // Prepare CSV headers
-  const headers: CSVHeader[] = [
-    { label: "Port Zone", key: "portzone" },
-    ...keys.map((key) => ({
-      label: key.toUpperCase(),
-      key,
-    })),
-  ];
+  // Headers
+  const headers: CSVHeader[] = isPortZoneData
+    ? [
+        { label: "Port Zone", key: "portzone" },
+        ...keys.map((key) => ({
+          label: key.toUpperCase(),
+          key,
+        })),
+      ]
+    : [
+        { label: "Location", key: "location" },
+        ...keys.map((key) => ({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          key,
+        })),
+      ];
 
-  // Prepare CSV data
-  const csvData = React.useMemo(() => {
-    if (!data || data.length === 0) return [];
+  // Flatten nested data arrays
+  const flatData: ExportData[] = Array.isArray(data[0])
+    ? (data as ExportData[][]).flat()
+    : (data as ExportData[]);
 
-    return data.map((row) => {
-      const portZone = row.portZones.map((zone) => zone.port).join(", ");
-      const rowData: Record<string, string> = { portzone: portZone };
+  // Construct CSV data
+  const csvData: Record<string, string>[] = React.useMemo(() => {
+    if (!flatData || flatData.length === 0) return [];
 
-      keys.forEach((key) => {
-        rowData[key] = (row[key] as string) || "";
-      });
-
-      return rowData;
+    return flatData.map((row) => {
+      if (isPortZoneData) {
+        const historical = row as HistoricalPrice;
+        const portZone = historical.portZones
+          .map((zone) => zone.port)
+          .join(", ");
+        const rowData: Record<string, string> = { portzone: portZone };
+        keys.forEach((key) => {
+          rowData[key] = (historical[key] as string) || "";
+        });
+        return rowData;
+      } else {
+        const delivered = row as DeliverdBids;
+        const locations = delivered.locations
+          .map((loc) => loc.location)
+          .join(", ");
+        const rowData: Record<string, string> = {
+          location: locations,
+        };
+        keys.forEach((key) => {
+          rowData[key] = (delivered[key] as string) || "";
+        });
+        return rowData;
+      }
     });
-  }, [data, keys]);
+  }, [flatData, keys, isPortZoneData]);
 
   return (
     // @ts-expect-error
