@@ -113,21 +113,27 @@ const PortZoneBidsTable = ({
         };
 
         return isEditing ? (
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="w-full h-full p-2 focus:outline-none"
-          />
+          <div className="w-full h-full flex items-center justify-center">
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                setValue(numericValue);
+              }}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              className="w-full h-full p-2 focus:outline-none text-center"
+              inputMode="numeric" // Shows numeric keyboard on mobile
+            />
+          </div>
         ) : (
           <div
             onClick={() => setIsEditing(true)}
-            className="w-full h-full p-2 hover:bg-gray-100 cursor-pointer"
+            className="w-full h-full flex items-center justify-center p-2 hover:bg-gray-100 cursor-pointer"
           >
-            {value}
+            <p className="text-center w-full">{value ? `${value} $` : " "}</p>
           </div>
         );
       },

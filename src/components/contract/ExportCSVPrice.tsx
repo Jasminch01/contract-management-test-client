@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { CSVLink } from "react-csv";
 
 // Types
@@ -7,6 +7,7 @@ interface CSVHeader {
   label: string;
   key: string;
 }
+
 interface DeliverdBid {
   location: string;
 }
@@ -30,10 +31,10 @@ interface DeliverdBids {
 type ExportData = HistoricalPrice | DeliverdBids;
 
 interface ExportCSVButtonProps {
-  data: ExportData[] | ExportData[][];
+  data: ExportData[];
   keys: string[];
   filename: string;
-  disabled: boolean;
+  disabled?: boolean;
   isPortZoneData?: boolean;
 }
 
@@ -41,9 +42,41 @@ const ExportCSVPrice: React.FC<ExportCSVButtonProps> = ({
   data,
   keys,
   filename,
-  disabled,
+  disabled: externalDisabled,
   isPortZoneData = true,
 }) => {
+  const [isDisabled, setIsDisabled] = useState(true);
+  const [hasData, setHasData] = useState(false);
+
+  // Check if data is valid and not empty
+  useEffect(() => {
+    if (!data || data.length === 0) {
+      setHasData(false);
+      setIsDisabled(true);
+      return;
+    }
+
+    // Check if any row has actual data
+    const hasValidData = data.some((row) => {
+      // For port zone data, check if any grain type key has a value
+      if (isPortZoneData) {
+        return keys.some(
+          (key) =>
+            typeof row[key] === "string" && (row[key] as string).trim() !== ""
+        );
+      }
+      // For delivered bids, check if any month key has a value
+      else {
+        return keys.some(
+          (key) =>
+            typeof row[key] === "string" && (row[key] as string).trim() !== ""
+        );
+      }
+    });
+
+    setHasData(hasValidData);
+    setIsDisabled(externalDisabled || !hasValidData);
+  }, [data, keys, externalDisabled, isPortZoneData]);
   // Headers
   const headers: CSVHeader[] = isPortZoneData
     ? [
@@ -61,58 +94,81 @@ const ExportCSVPrice: React.FC<ExportCSVButtonProps> = ({
         })),
       ];
 
-  // Flatten nested data arrays
-  const flatData: ExportData[] = Array.isArray(data[0])
-    ? (data as ExportData[][]).flat()
-    : (data as ExportData[]);
-
   // Construct CSV data
   const csvData: Record<string, string>[] = React.useMemo(() => {
-    if (!flatData || flatData.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
-    return flatData.map((row) => {
-      if (isPortZoneData) {
-        const historical = row as HistoricalPrice;
-        const portZone = historical.portZones
-          .map((zone) => zone.port)
-          .join(", ");
-        const rowData: Record<string, string> = { portzone: portZone };
-        keys.forEach((key) => {
-          rowData[key] = (historical[key] as string) || "";
-        });
-        return rowData;
-      } else {
-        const delivered = row as DeliverdBids;
-        const locations = delivered.locations
-          .map((loc) => loc.location)
-          .join(", ");
-        const rowData: Record<string, string> = {
-          location: locations,
-        };
-        keys.forEach((key) => {
-          rowData[key] = (delivered[key] as string) || "";
-        });
-        return rowData;
+    return data.map((row) => {
+      try {
+        if (isPortZoneData) {
+          const historical = row as HistoricalPrice;
+          // Check if portZones exists and is an array before mapping
+          const portZone =
+            historical.portZones && Array.isArray(historical.portZones)
+              ? historical.portZones.map((zone) => zone.port).join(", ")
+              : "";
+
+          const rowData: Record<string, string> = { portzone: portZone };
+          keys.forEach((key) => {
+            rowData[key] =
+              typeof historical[key] === "string"
+                ? (historical[key] as string)
+                : "";
+          });
+          return rowData;
+        } else {
+          const delivered = row as DeliverdBids;
+          // Check if locations exists and is an array before mapping
+          const locations =
+            delivered.locations && Array.isArray(delivered.locations)
+              ? delivered.locations.map((loc) => loc.location).join(", ")
+              : "";
+
+          const rowData: Record<string, string> = {
+            location: locations,
+          };
+          keys.forEach((key) => {
+            rowData[key] =
+              typeof delivered[key] === "string"
+                ? (delivered[key] as string)
+                : "";
+          });
+          return rowData;
+        }
+      } catch (error) {
+        console.error("Error processing row:", row, error);
+        return { error: "Error processing data" };
       }
     });
-  }, [flatData, keys, isPortZoneData]);
+  }, [data, keys, isPortZoneData]);
 
   return (
-    // @ts-expect-error
-    <CSVLink
-      data={csvData}
-      headers={headers}
-      filename={filename}
-      className={`flex items-center gap-2 px-2 py-1 border border-gray-300 rounded-md text-gray-700 ${
-        disabled
-          ? "bg-gray-100 cursor-not-allowed opacity-50"
-          : "bg-white hover:bg-gray-50 cursor-pointer"
-      }`}
-      target="_blank"
-      style={disabled ? { pointerEvents: "none" } : undefined}
-    >
-      Export as CSV
-    </CSVLink>
+    <>
+      {hasData ? (
+        // @ts-expect-error
+        <CSVLink
+          data={csvData}
+          headers={headers}
+          filename={filename}
+          className={`flex items-center gap-2 px-2 py-1 border border-gray-300 rounded-md text-gray-700 ${
+            isDisabled
+              ? "bg-gray-100 cursor-not-allowed opacity-50"
+              : "bg-white hover:bg-gray-50 cursor-pointer"
+          }`}
+          target="_blank"
+          style={isDisabled ? { pointerEvents: "none" } : undefined}
+        >
+          Export as CSV
+        </CSVLink>
+      ) : (
+        <button
+          disabled
+          className="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded-md text-gray-700 bg-gray-100 cursor-not-allowed opacity-50"
+        >
+          Export as CSV
+        </button>
+      )}
+    </>
   );
 };
 

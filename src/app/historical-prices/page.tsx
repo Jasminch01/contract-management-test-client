@@ -2,10 +2,12 @@
 import ExportCSVPrice from "@/components/contract/ExportCSVPrice";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
 import PortZoneBidsTable from "@/components/Dashboard/PortZoneBidsTable";
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useState, useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
+// Types from original file
 interface PortZone {
   port: string;
 }
@@ -28,6 +30,7 @@ interface DeliverdBids {
   [key: string]: string | DeliverdBid[];
 }
 
+// Sample data
 const portzones = [
   "Outer Harbor",
   "Port Lincoln",
@@ -118,6 +121,8 @@ const HistoricalPricesPage = () => {
   const [deliveredBidsData, setDeliveredBidsData] = useState<DeliverdBids[]>(
     []
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [hasDataToExport, setHasDataToExport] = useState(false);
 
   // Initialize data
   useEffect(() => {
@@ -128,6 +133,7 @@ const HistoricalPricesPage = () => {
       ...grainTypes.reduce((acc, grain) => ({ ...acc, [grain]: "" }), {}),
     }));
     setPortZoneData(initialPortZoneData);
+
     // Initialize Delivered Bids Data
     const initialDeliveredBidsData = deliveredBids.map((location, index) => ({
       id: `db-${index}`,
@@ -140,10 +146,31 @@ const HistoricalPricesPage = () => {
     setDeliveredBidsData(initialDeliveredBidsData);
   }, []);
 
+  // Check if there is data to export
+  useEffect(() => {
+    const currentData =
+      activeTab === "historicalPrices" ? portZoneData : deliveredBidsData;
+    const keysToCheck =
+      activeTab === "historicalPrices"
+        ? grainTypes
+        : months.map((m) => m.toLowerCase());
+
+    // Check if any data exists
+    const hasData = currentData.some((row) => {
+      return keysToCheck.some((key) => {
+        return (
+          typeof row[key] === "string" && (row[key] as string).trim() !== ""
+        );
+      });
+    });
+
+    setHasDataToExport(hasData);
+  }, [activeTab, portZoneData, deliveredBidsData]);
+
   const handleSavePortZones = (data: PortZoneBids[]) => {
     setPortZoneData(data);
-    toast.success("Historical prices saved successfully");
-    console.log("Saved historical prices:", data);
+    toast.success("Port zone prices saved successfully");
+    console.log("Saved port zone prices:", data);
   };
 
   const handleSaveDeliveredBids = (data: DeliverdBids[]) => {
@@ -171,7 +198,7 @@ const HistoricalPricesPage = () => {
       </div>
 
       <div className="">
-        <div className="flex flex-col xl:flex-row justify-between  border-gray-200">
+        <div className="flex flex-col xl:flex-row justify-between border-gray-200">
           <div className="flex gap-x-10">
             <button
               className={tabButtonClass}
@@ -195,13 +222,24 @@ const HistoricalPricesPage = () => {
 
           <div className="flex gap-4 items-center pr-5 my-5">
             <ExportCSVPrice
-              data={portZoneData}
-              keys={months}
-              filename={`delivered-bids-${
-                selectedDate || getFormattedDates()[0]
-              }.csv`}
-              disabled={portZoneData.length === 0}
+              data={
+                activeTab === "historicalPrices"
+                  ? portZoneData
+                  : deliveredBidsData
+              }
+              keys={
+                activeTab === "historicalPrices"
+                  ? grainTypes
+                  : months.map((m) => m.toLowerCase())
+              }
+              filename={`${
+                activeTab === "historicalPrices"
+                  ? "port-zone-bids"
+                  : "delivered-bids"
+              }-${selectedDate || getFormattedDates()[0]}.csv`}
+              isPortZoneData={activeTab === "historicalPrices"}
             />
+
             {/* Date Dropdown */}
             <div className="relative">
               <button

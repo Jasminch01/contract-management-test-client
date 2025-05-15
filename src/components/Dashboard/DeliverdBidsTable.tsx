@@ -1,4 +1,3 @@
- 
 "use client";
 
 import { useState } from "react";
@@ -93,7 +92,7 @@ const DeliveredBidsTable = ({
       width: "20rem",
       cell: (row: DeliveredBids) => (
         <div className="w-full h-full flex items-center px-5">
-          {row.locations?.[0]?.location || "—"}
+          {row.locations?.[0]?.location || " "}
         </div>
       ),
     },
@@ -118,24 +117,26 @@ const DeliveredBidsTable = ({
           };
 
           return isEditing ? (
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              className="w-full h-full px-2 focus:outline-none"
-            />
+            <div className="w-full h-full flex items-center justify-center hover:bg-gray-100 cursor-pointer">
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                autoFocus
+                className="w-full h-full px-2 focus:outline-none text-center"
+              />
+            </div>
           ) : (
             <div
               onClick={() => {
                 setEditing({ rowId: row.id, columnKey: monthKey });
                 setEditValue(value);
               }}
-              className="w-full h-full px-2 hover:bg-gray-100 cursor-pointer"
+              className="w-full h-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
             >
-              {value || "—"}
+              <p className="text-center w-full">{value ? `${value} $` : " "}</p>
             </div>
           );
         },
