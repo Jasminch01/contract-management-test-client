@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "noteName": "Shopping List",
+    "notes": "Milk, Eggs, Bread, Apples",
+    "br": "Important",
+    "date": "2023-05-15",
+    "time": "10:30",
+    "isDeleted" : true
+  },
+  {
+    "id": "2",
+    "noteName": "Meeting Notes",
+    "notes": "Discuss project timeline\nReview budget\nAssign tasks",
+    "br": "Work",
+    "date": "2023-05-16",
+    "time": "14:00",
+    "isDeleted" : false
+  },
+  {
+    "id": "3",
+    "noteName": "Ideas",
+    "notes": "New app feature: dark mode\nBlog post about TypeScript\nLearn new framework",
+    "br": "Personal",
+    "date": "2023-05-14",
+    "time": "18:45",
+    "isDeleted" : false
+  },
+  {
+    "id": "4",
+    "noteName": "Books to Read",
+    "notes": "Atomic Habits\nDeep Work\nThe Pragmatic Programmer",
+    "br": "Recommendations",
+    "date": "2023-05-13",
+    "time": "09:15",
+    "isDeleted" : false
+  },
+  {
+    "id": "5",
+    "noteName": "Reminders",
+    "notes": "Call mom\nPay electricity bill\nDentist appointment",
+    "br": "Urgent",
+    "date": "2023-05-17",
+    "time": "08:00",
+    "isDeleted" : true
+  }
+]
