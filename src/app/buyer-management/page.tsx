@@ -230,7 +230,7 @@ const BuyerManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-auto rounded-lg border border-gray-200">
+        <div className="overflow-auto border border-gray-200">
           <DataTable
             columns={columns}
             data={filteredData}

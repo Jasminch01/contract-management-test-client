@@ -217,7 +217,7 @@ const SellerManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
+        <div className="overflow-auto border border-gray-200 shadow-sm">
           <DataTable
             columns={columns}
             data={filteredData}
