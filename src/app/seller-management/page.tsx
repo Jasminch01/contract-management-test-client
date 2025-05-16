@@ -151,7 +151,7 @@ const SellerManagementPage = () => {
   };
 
   return (
-    <div className="mt-20">
+    <div className="mt-20 bg-green-50">
       <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">

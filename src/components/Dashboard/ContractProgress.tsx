@@ -18,19 +18,19 @@ const ContractProgress = () => {
   const COLORS = ["#9D8EE4", "#EDB348"]; // Purple for Done, Yellow for Not Done
 
   return (
-    <div className="w-full 2xl:h-[400px] h-[20rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4">
-      <h2 className="text-lg font-bold text-center text-gray-700 mb-4">
+    <div className="w-full 2xl:h-[30rem] h-[15rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4">
+      <h2 className="text-lg text-center mb-4">
         Contract Progress
       </h2>
-      <div className="relative h-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="relative">
+        <ResponsiveContainer width="100%" height="50%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={80}
+              outerRadius="50%"
               fill="#EDB348"
               dataKey="value"
             >
