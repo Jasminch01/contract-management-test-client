@@ -9,7 +9,7 @@ const Dashboard = () => {
     <div className="mt-20 pl-10 pr-3">
       <div className="">
         <p className="font-bold mb-10">Dashboard</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-3 2xl:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-5">
           {/* Card 1 */}
           <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Commission</p>
@@ -69,7 +69,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 2xl:gap-10 gap-x-5 2xl:mt-20 mt-5">
+        <div className="grid grid-cols-1 lg:grid-cols-4 2xl:gap-10 gap-5 2xl:mt-36 mt-5">
           <HistoricalDailyCommision />
           <HistoycalNotebooks />
           <HistoricalPrices />
