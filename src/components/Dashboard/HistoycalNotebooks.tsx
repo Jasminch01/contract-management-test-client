@@ -3,7 +3,7 @@ import React from "react";
 const HistoycalNotebooks = () => {
   return (
     <div>
-      <div className=" 2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm 2xl:h-[25rem] flex flex-col h-[18rem] w-full">
+      <div className=" 2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm flex flex-col h-[22rem] w-full min-2xl:h-[25rem]">
         {/* Fixed Heading */}
         <div className="2xl:pb-4">
           <p className="text-lg">Historical Daily Notebook</p>
