@@ -22,7 +22,7 @@ const ContractProgress = () => {
       <h2 className="text-lg font-bold text-center text-gray-700 mb-4">
         Contract Progress
       </h2>
-      <div className="relative h-[80%]">
+      <div className="relative h-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

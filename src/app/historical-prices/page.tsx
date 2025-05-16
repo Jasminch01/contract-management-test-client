@@ -191,7 +191,7 @@ const HistoricalPricesPage = () => {
   const tabTextClass = "font-medium";
 
   return (
-    <div className="mt-20">
+    <div className="">
       <Toaster />
       <div className="text-center mb-10">
         <p className="text-xl">Historical Daily Prices</p>

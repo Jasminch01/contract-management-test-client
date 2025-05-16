@@ -6,7 +6,7 @@ import HistoycalNotebooks from "./Dashboard/HistoycalNotebooks";
 
 const Dashboard = () => {
   return (
-    <div className="mt-20 px-10">
+    <div className="mt-20 pl-10 pr-3">
       <div className="2xl:pb-10">
         <p className="font-bold mb-10">Dashboard</p>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-3 2xl:gap-10">
@@ -69,8 +69,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row 2xl:gap-10 gap-5 2xl:mt-20 mt-5">
-          <HistoricalDailyCommision/>
+        <div className="grid grid-cols-1 lg:grid-cols-4 2xl:gap-10 gap-5 2xl:mt-20 mt-5">
+          <HistoricalDailyCommision />
           <HistoycalNotebooks />
           <HistoricalPrices />
           <ContractProgress />
