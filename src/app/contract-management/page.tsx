@@ -425,7 +425,7 @@ const ContractManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-x-auto border border-gray-300 max-w-full">
+        <div className="overflow-x-auto border border-gray-300">
           <DataTable
             columns={columns}
             data={data}

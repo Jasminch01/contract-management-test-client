@@ -9,7 +9,7 @@ const Dashboard = () => {
     <div className="mt-20 px-10">
       <div className="2xl:pb-10">
         <p className="font-bold mb-10">Dashboard</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-7 gap-3 2xl:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-3 2xl:gap-10">
           {/* Card 1 */}
           <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Commission</p>
