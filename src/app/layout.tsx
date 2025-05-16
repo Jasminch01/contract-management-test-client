@@ -60,7 +60,7 @@ export default function RootLayout({
         {isAuthenticated ? (
           <div className="md:flex bg-gray-50">
             <Sidebar />
-            <div className="md:flex-1">
+            <div className="md:flex-1 h-full lg:w-[20rem] w-full">
               {children}
             </div>
           </div>
