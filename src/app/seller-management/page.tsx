@@ -151,7 +151,7 @@ const SellerManagementPage = () => {
   };
 
   return (
-    <div className="mt-20 bg-green-50">
+    <div className="mt-20">
       <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
@@ -217,7 +217,7 @@ const SellerManagementPage = () => {
         </div>
 
         {/* DataTable */}
-        <div className="overflow-auto rounded-lg border border-gray-200 shadow-sm">
+        <div className="overflow-auto border border-gray-200 shadow-sm">
           <DataTable
             columns={columns}
             data={filteredData}
