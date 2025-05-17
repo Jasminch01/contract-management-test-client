@@ -7,7 +7,11 @@ interface Buyer {
   name: string;
 }
 
-const SellerSelect = () => {
+interface BuyerSelectProps {
+  onSelect: (buyer: Buyer) => void;
+}
+
+const SellerSelect = ({ onSelect }: BuyerSelectProps) => {
   // Sample initial buyers data with proper typing
   const initialBuyers: Buyer[] = [
     { id: 1, name: "John Doe" },
@@ -30,14 +34,13 @@ const SellerSelect = () => {
     setSelectedBuyer(buyer);
     setSearchTerm(buyer.name);
     setIsDropdownOpen(false);
+    onSelect(buyer); // Pass the selected buyer back to parent
   };
-
-  // Handle adding a new buyer
 
   return (
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 uppercase">
-        SELLER
+        BUYER
       </label>
 
       {/* Search input and dropdown toggle */}
@@ -45,7 +48,7 @@ const SellerSelect = () => {
         <input
           type="text"
           className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-          placeholder="Search seller..."
+          placeholder="Search buyer..."
           value={searchTerm}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setSearchTerm(e.target.value);
@@ -63,6 +66,7 @@ const SellerSelect = () => {
             onClick={() => {
               setSelectedBuyer(null);
               setSearchTerm("");
+              onSelect({ id: 0, name: "" }); // Reset the selection in parent
             }}
           >
             ×
@@ -105,7 +109,7 @@ const SellerSelect = () => {
                 </div>
               ))
             ) : (
-              <div className="px-4 py-2 text-gray-500">No sellers found</div>
+              <div className="px-4 py-2 text-gray-500">No buyers found</div>
             )}
           </div>
 

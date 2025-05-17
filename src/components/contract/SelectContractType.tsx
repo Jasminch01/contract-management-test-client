@@ -1,9 +1,15 @@
 import React, { useState } from "react";
+
 interface Buyer {
   id: number;
   name: string;
 }
-const SelectContractType = () => {
+
+interface SelectContractTypeProps {
+  onSelect: (buyer: Buyer) => void;
+}
+
+const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
   const initialBuyers: Buyer[] = [
     { id: 1, name: "Grower" },
     { id: 2, name: "Trade" },
@@ -24,7 +30,11 @@ const SelectContractType = () => {
     setSelectedBuyer(buyer);
     setSearchTerm(buyer.name);
     setIsDropdownOpen(false);
+
+    // Pass the selected option to the parent component
+    onSelect(buyer);
   };
+
   return (
     <div>
       <div className="relative">
@@ -44,6 +54,7 @@ const SelectContractType = () => {
               setIsDropdownOpen(true);
             }}
             onFocus={() => setIsDropdownOpen(true)}
+            placeholder="Select contract type"
           />
 
           {/* Clear selection or show dropdown icon */}
@@ -54,6 +65,8 @@ const SelectContractType = () => {
               onClick={() => {
                 setSelectedBuyer(null);
                 setSearchTerm("");
+                // Notify parent about deselection
+                onSelect({ id: 0, name: "" });
               }}
             >
               ×
@@ -83,7 +96,7 @@ const SelectContractType = () => {
         {/* Dropdown menu */}
         {isDropdownOpen && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-            {/* Buyer suggestions */}
+            {/* Contract type suggestions */}
             <div className="max-h-60 overflow-y-auto">
               {filteredBuyers.length > 0 ? (
                 filteredBuyers.map((buyer: Buyer) => (
@@ -96,7 +109,9 @@ const SelectContractType = () => {
                   </div>
                 ))
               ) : (
-                <div className="px-4 py-2 text-gray-500">No sellers found</div>
+                <div className="px-4 py-2 text-gray-500">
+                  No contract types found
+                </div>
               )}
             </div>
           </div>

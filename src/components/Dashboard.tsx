@@ -69,7 +69,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 2xl:gap-10 gap-5 2xl:mt-36 mt-5">
+        <div className="grid grid-cols-1 lg:grid-cols-4 2xl:gap-10 gap-5 max-2xl:mt-10 mt-5 2xl:mt-40">
           <HistoricalDailyCommision />
           <HistoycalNotebooks />
           <HistoricalPrices />
