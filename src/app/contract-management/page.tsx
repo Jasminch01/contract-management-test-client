@@ -1,19 +1,20 @@
 "use client";
-import ExportCsv from "@/components/contract/ExportCsv";
-import PdfExportButton from "@/components/contract/PdfExportButton";
-import { contracts } from "@/data/data";
-import { Contract } from "@/types/types";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoFilterSharp, IoWarning } from "react-icons/io5";
-import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
+
+import { contracts } from "@/data/data";
+import { Contract } from "@/types/types";
+import ExportCsv from "@/components/contract/ExportCsv";
+import PdfExportButton from "@/components/contract/PdfExportButton";
+import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
 
 const columns = [
   {
@@ -123,12 +124,11 @@ const ContractManagementPage = () => {
   const [originalData, setOriginalData] = useState<Contract[]>(
     contracts.filter((b) => !b.isDeleted)
   );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
@@ -143,40 +143,34 @@ const ContractManagementPage = () => {
   }) => {
     setSelectedRows(selected.selectedRows);
   };
-  // Filter data based on search term and status
-  useEffect(() => {
-    let filteredData = originalData;
 
-    if (searchTerm) {
-      filteredData = filteredData.filter((contract) =>
-        Object.values(contract).some(
-          (value) =>
-            value &&
-            value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-
-    if (selectedStatus !== "all") {
-      filteredData = filteredData.filter(
-        (contract) => contract.status === selectedStatus
-      );
-    }
-
+  // Handle filter change from search filter bar
+  const handleFilterChange = (filteredData: Contract[]) => {
     setData(filteredData);
-  }, [searchTerm, selectedStatus, originalData]);
+  };
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
     setIsFilterActive(value !== "all");
     setIsFilterOpen(false);
+
+    if (value === "all") {
+      setData(originalData);
+    } else {
+      const filtered = originalData.filter(
+        (contract) => contract.status === value
+      );
+      setData(filtered);
+    }
   };
 
   const clearFilter = () => {
     setSelectedStatus("all");
     setIsFilterActive(false);
     setIsFilterOpen(false);
+    setData(originalData);
   };
+
   // Handle delete selected contracts
   const handleDelete = () => {
     if (selectedRows.length === 0) {
@@ -191,6 +185,7 @@ const ContractManagementPage = () => {
       (contract) => !selectedRows.some((row) => row.id === contract.id)
     );
     setOriginalData(newData);
+    setData(newData);
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
     toast.success(`${selectedRows.length} contract(s) deleted successfully`);
@@ -259,7 +254,7 @@ const ContractManagementPage = () => {
       <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
-        {/* Create New Contract Button */}
+        {/* Create New Contract Button and Search Bar in the same row */}
         <div className="w-full md:w-auto">
           <Link href="/contract-management/create-contract">
             <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors rounded">
@@ -269,16 +264,12 @@ const ContractManagementPage = () => {
           </Link>
         </div>
 
-        {/* Search Input */}
-        <div className="w-full md:w-auto px-4 py-2 rounded border border-gray-400 flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search Contract"
-            className="w-full focus:outline-none"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        {/* Search Filter Bar Component */}
+        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 relative">
+          <AdvanceSearchFilter
+            data={originalData}
+            onFilterChange={handleFilterChange}
           />
-          <LuSearch className="text-gray-400" />
         </div>
       </div>
 
@@ -446,12 +437,12 @@ const ContractManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Move “Contract” to Rubbish bin ?
+                Move Contract to Rubbish bin ?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
