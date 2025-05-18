@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from "react";
 import { Contract } from "@/types/types";
 import { IoIosClose } from "react-icons/io";
@@ -116,7 +117,7 @@ export default function SearchFilterBar({
     }
 
     onFilterChange(filteredData);
-  }, [searchTerm, selectedFilters, data, onFilterChange]);
+  }, [searchTerm, selectedFilters, data, onFilterChange, filterOptions]);
 
   const toggleFilter = (filterId: string) => {
     setSelectedFilters((prev) =>

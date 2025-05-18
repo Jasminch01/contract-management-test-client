@@ -9,7 +9,6 @@ import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoFilterSharp, IoWarning } from "react-icons/io5";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
-
 import { contracts } from "@/data/data";
 import { Contract } from "@/types/types";
 import ExportCsv from "@/components/contract/ExportCsv";
@@ -70,9 +69,11 @@ const columns = [
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status.toLowerCase() !== "completed"
-              ? "text-[#FAD957]"
-              : "text-[#B1B1B1]"
+            row.status.toLowerCase() === "completed"
+              ? "text-[#B1B1B1]" // Gray for completed
+              : row.status.toLowerCase() === "invoiced"
+              ? "text-[#3B82F6]" // Blue for invoiced
+              : "text-[#FAD957]" // Yellow for incomplete (default)
           }`}
         />
         {row.status}
@@ -111,17 +112,17 @@ const customStyles = {
 };
 
 const statusOptions = [
-  { value: "recent", label: "Recent" },
-  { value: "Completed", label: "Completed" },
-  { value: "Not Done", label: "Not Done" },
+  { value: "completed", label: "Completed" },
+  { value: "incomplete", label: "Incomplete" },
+  { value: "invoiced", label: "Invoiced" },
 ];
 
 const ContractManagementPage = () => {
   const router = useRouter();
-  const [data, setData] = useState<Contract[]>(
+  const [masterData] = useState<Contract[]>(
     contracts.filter((b) => !b.isDeleted)
   );
-  const [originalData, setOriginalData] = useState<Contract[]>(
+  const [data, setData] = useState<Contract[]>(
     contracts.filter((b) => !b.isDeleted)
   );
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
@@ -129,6 +130,9 @@ const ContractManagementPage = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchFilteredData, setSearchFilteredData] = useState<Contract[]>(
+    contracts.filter((b) => !b.isDeleted)
+  );
 
   // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
@@ -146,7 +150,18 @@ const ContractManagementPage = () => {
 
   // Handle filter change from search filter bar
   const handleFilterChange = (filteredData: Contract[]) => {
-    setData(filteredData);
+    setSearchFilteredData(filteredData);
+
+    // Apply status filter to the search filtered data
+    if (selectedStatus !== "all") {
+      const statusFiltered = filteredData.filter(
+        (contract) =>
+          contract.status.toLowerCase() === selectedStatus.toLowerCase()
+      );
+      setData(statusFiltered);
+    } else {
+      setData(filteredData);
+    }
   };
 
   const handleStatusChange = (value: string) => {
@@ -155,10 +170,12 @@ const ContractManagementPage = () => {
     setIsFilterOpen(false);
 
     if (value === "all") {
-      setData(originalData);
+      // Show all the data that matches current search criteria
+      setData(searchFilteredData);
     } else {
-      const filtered = originalData.filter(
-        (contract) => contract.status === value
+      // Apply status filter on top of search filter
+      const filtered = searchFilteredData.filter(
+        (contract) => contract.status.toLowerCase() === value.toLowerCase()
       );
       setData(filtered);
     }
@@ -168,7 +185,7 @@ const ContractManagementPage = () => {
     setSelectedStatus("all");
     setIsFilterActive(false);
     setIsFilterOpen(false);
-    setData(originalData);
+    setData(searchFilteredData);
   };
 
   // Handle delete selected contracts
@@ -181,11 +198,20 @@ const ContractManagementPage = () => {
   };
 
   const confirmDelete = () => {
-    const newData = originalData.filter(
+    // Update search filtered data
+    const updatedSearchFiltered = searchFilteredData.filter(
       (contract) => !selectedRows.some((row) => row.id === contract.id)
     );
-    setOriginalData(newData);
-    setData(newData);
+
+    // Update displayed data
+    const updatedDisplayData = data.filter(
+      (contract) => !selectedRows.some((row) => row.id === contract.id)
+    );
+
+    // Update all state variables
+    setData(updatedDisplayData);
+    setSearchFilteredData(updatedSearchFiltered);
+
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
     toast.success(`${selectedRows.length} contract(s) deleted successfully`);
@@ -267,7 +293,7 @@ const ContractManagementPage = () => {
         {/* Search Filter Bar Component */}
         <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 relative">
           <AdvanceSearchFilter
-            data={originalData}
+            data={masterData}
             onFilterChange={handleFilterChange}
           />
         </div>
@@ -358,6 +384,30 @@ const ContractManagementPage = () => {
                   </div>
 
                   <div className="max-h-60 overflow-y-auto">
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
+                        selectedStatus === "all"
+                          ? "bg-blue-50 text-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => handleStatusChange("all")}
+                    >
+                      <span className="flex-grow">All</span>
+                      {selectedStatus === "all" && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 text-blue-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
                     {statusOptions.map((option) => (
                       <div
                         key={option.value}
@@ -431,6 +481,11 @@ const ContractManagementPage = () => {
             responsive
             pagination
             pointerOnHover
+            noDataComponent={
+              <div className="p-10 text-center text-gray-500">
+                No contracts found matching your filters
+              </div>
+            }
           />
         </div>
       </div>
