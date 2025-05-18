@@ -40,7 +40,7 @@ export interface Seller {
   sellerContactName: string;
   sellerEmail: string;
   sellerPhoneNumber: string;
-  isDeleted : boolean;
+  isDeleted: boolean;
 }
 
 export interface ContractAttachments {
@@ -48,7 +48,7 @@ export interface ContractAttachments {
   buyersContract: string;
 }
 
-export type ContractStatus = "not done" | "completed";
+export type ContractStatus = "incompleted" | "completed" | "invoiced";
 
 export interface Contract {
   contractPrice: string;
@@ -86,8 +86,6 @@ export interface Contract {
   createdAt: string; // ISO datetime format
   updatedAt: string; // ISO datetime format
 }
-
-
 
 // For the array of contracts
 export type Contracts = Contract[];

@@ -1,19 +1,19 @@
 "use client";
-import ExportCsv from "@/components/contract/ExportCsv";
-import PdfExportButton from "@/components/contract/PdfExportButton";
-import { contracts } from "@/data/data";
-import { Contract } from "@/types/types";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoFilterSharp, IoWarning } from "react-icons/io5";
-import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
+import { contracts } from "@/data/data";
+import { Contract } from "@/types/types";
+import ExportCsv from "@/components/contract/ExportCsv";
+import PdfExportButton from "@/components/contract/PdfExportButton";
+import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
 
 const columns = [
   {
@@ -69,9 +69,11 @@ const columns = [
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status.toLowerCase() !== "completed"
-              ? "text-[#FAD957]"
-              : "text-[#B1B1B1]"
+            row.status.toLowerCase() === "completed"
+              ? "text-[#B1B1B1]" // Gray for completed
+              : row.status.toLowerCase() === "invoiced"
+              ? "text-[#3B82F6]" // Blue for invoiced
+              : "text-[#FAD957]" // Yellow for incomplete (default)
           }`}
         />
         {row.status}
@@ -110,25 +112,27 @@ const customStyles = {
 };
 
 const statusOptions = [
-  { value: "recent", label: "Recent" },
-  { value: "Completed", label: "Completed" },
-  { value: "Not Done", label: "Not Done" },
+  { value: "completed", label: "Completed" },
+  { value: "incomplete", label: "Incomplete" },
+  { value: "invoiced", label: "Invoiced" },
 ];
 
 const ContractManagementPage = () => {
   const router = useRouter();
+  const [masterData] = useState<Contract[]>(
+    contracts.filter((b) => !b.isDeleted)
+  );
   const [data, setData] = useState<Contract[]>(
     contracts.filter((b) => !b.isDeleted)
   );
-  const [originalData, setOriginalData] = useState<Contract[]>(
-    contracts.filter((b) => !b.isDeleted)
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchFilteredData, setSearchFilteredData] = useState<Contract[]>(
+    contracts.filter((b) => !b.isDeleted)
+  );
 
   // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
@@ -143,40 +147,47 @@ const ContractManagementPage = () => {
   }) => {
     setSelectedRows(selected.selectedRows);
   };
-  // Filter data based on search term and status
-  useEffect(() => {
-    let filteredData = originalData;
 
-    if (searchTerm) {
-      filteredData = filteredData.filter((contract) =>
-        Object.values(contract).some(
-          (value) =>
-            value &&
-            value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
+  // Handle filter change from search filter bar
+  const handleFilterChange = (filteredData: Contract[]) => {
+    setSearchFilteredData(filteredData);
 
+    // Apply status filter to the search filtered data
     if (selectedStatus !== "all") {
-      filteredData = filteredData.filter(
-        (contract) => contract.status === selectedStatus
+      const statusFiltered = filteredData.filter(
+        (contract) =>
+          contract.status.toLowerCase() === selectedStatus.toLowerCase()
       );
+      setData(statusFiltered);
+    } else {
+      setData(filteredData);
     }
-
-    setData(filteredData);
-  }, [searchTerm, selectedStatus, originalData]);
+  };
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
     setIsFilterActive(value !== "all");
     setIsFilterOpen(false);
+
+    if (value === "all") {
+      // Show all the data that matches current search criteria
+      setData(searchFilteredData);
+    } else {
+      // Apply status filter on top of search filter
+      const filtered = searchFilteredData.filter(
+        (contract) => contract.status.toLowerCase() === value.toLowerCase()
+      );
+      setData(filtered);
+    }
   };
 
   const clearFilter = () => {
     setSelectedStatus("all");
     setIsFilterActive(false);
     setIsFilterOpen(false);
+    setData(searchFilteredData);
   };
+
   // Handle delete selected contracts
   const handleDelete = () => {
     if (selectedRows.length === 0) {
@@ -187,10 +198,20 @@ const ContractManagementPage = () => {
   };
 
   const confirmDelete = () => {
-    const newData = originalData.filter(
+    // Update search filtered data
+    const updatedSearchFiltered = searchFilteredData.filter(
       (contract) => !selectedRows.some((row) => row.id === contract.id)
     );
-    setOriginalData(newData);
+
+    // Update displayed data
+    const updatedDisplayData = data.filter(
+      (contract) => !selectedRows.some((row) => row.id === contract.id)
+    );
+
+    // Update all state variables
+    setData(updatedDisplayData);
+    setSearchFilteredData(updatedSearchFiltered);
+
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
     toast.success(`${selectedRows.length} contract(s) deleted successfully`);
@@ -259,7 +280,7 @@ const ContractManagementPage = () => {
       <Toaster />
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
-        {/* Create New Contract Button */}
+        {/* Create New Contract Button and Search Bar in the same row */}
         <div className="w-full md:w-auto">
           <Link href="/contract-management/create-contract">
             <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors rounded">
@@ -269,16 +290,12 @@ const ContractManagementPage = () => {
           </Link>
         </div>
 
-        {/* Search Input */}
-        <div className="w-full md:w-auto px-4 py-2 rounded border border-gray-400 flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search Contract"
-            className="w-full focus:outline-none"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        {/* Search Filter Bar Component */}
+        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 relative">
+          <AdvanceSearchFilter
+            data={masterData}
+            onFilterChange={handleFilterChange}
           />
-          <LuSearch className="text-gray-400" />
         </div>
       </div>
 
@@ -367,6 +384,30 @@ const ContractManagementPage = () => {
                   </div>
 
                   <div className="max-h-60 overflow-y-auto">
+                    <div
+                      className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
+                        selectedStatus === "all"
+                          ? "bg-blue-50 text-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => handleStatusChange("all")}
+                    >
+                      <span className="flex-grow">All</span>
+                      {selectedStatus === "all" && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 text-blue-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
                     {statusOptions.map((option) => (
                       <div
                         key={option.value}
@@ -440,18 +481,23 @@ const ContractManagementPage = () => {
             responsive
             pagination
             pointerOnHover
+            noDataComponent={
+              <div className="p-10 text-center text-gray-500">
+                No contracts found matching your filters
+              </div>
+            }
           />
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Move “Contract” to Rubbish bin ?
+                Move Contract to Rubbish bin ?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
