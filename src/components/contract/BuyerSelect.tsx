@@ -7,7 +7,11 @@ interface Buyer {
   name: string;
 }
 
-const BuyerSelect = () => {
+interface BuyerSelectProps {
+  onSelect: (buyer: Buyer) => void;
+}
+
+const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
   // Sample initial buyers data with proper typing
   const initialBuyers: Buyer[] = [
     { id: 1, name: "John Doe" },
@@ -16,7 +20,6 @@ const BuyerSelect = () => {
   ];
 
   // State management with proper types
-
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -31,6 +34,7 @@ const BuyerSelect = () => {
     setSelectedBuyer(buyer);
     setSearchTerm(buyer.name);
     setIsDropdownOpen(false);
+    onSelect(buyer); // Pass the selected buyer back to parent
   };
 
   return (
@@ -62,6 +66,7 @@ const BuyerSelect = () => {
             onClick={() => {
               setSelectedBuyer(null);
               setSearchTerm("");
+              onSelect({ id: 0, name: "" }); // Reset the selection in parent
             }}
           >
             ×

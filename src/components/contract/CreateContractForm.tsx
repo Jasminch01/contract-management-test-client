@@ -1,5 +1,6 @@
-"use client";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+"use client";
 import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
@@ -8,7 +9,7 @@ import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { addDays } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SelectBuyerSeller from "./SelectBuyerSeller";
 import SelectContractType from "./SelectContractType";
 import { Contract } from "@/types/types";
@@ -76,9 +77,18 @@ const CreateContractForm = () => {
     status: "not done",
     createdAt: "",
     updatedAt: "",
+    contractType: "", // Added for contract type
+    brokeragePayableBy: "", // Added for brokerage payable by
   });
+
+  const [isGrowerContract, setIsGrowerContract] = useState(false);
   const [startDate, endDate] = dateRange;
   const router = useRouter();
+
+  // Update isGrowerContract when contractType changes
+  useEffect(() => {
+    setIsGrowerContract(formData.contractType === "Grower");
+  }, [formData.contractType]);
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -87,15 +97,70 @@ const CreateContractForm = () => {
 
   const handleDateChange = (update: [Date | null, Date | null]) => {
     setDateRange(update);
-    // You can add additional logic here to handle the dates in your form state
+
+    // Convert date range to string for storage in formData
+    if (update[0] && update[1]) {
+      const formattedDateRange = `${update[0].toLocaleDateString()} - ${update[1].toLocaleDateString()}`;
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: formattedDateRange,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: "",
+      }));
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  // For updating buyer information
+  const handleBuyerSelect = (buyer) => {
+    setFormData((prev) => ({
+      ...prev,
+      buyer: {
+        ...prev.buyer,
+        id: buyer.id,
+        name: buyer.name,
+      },
+    }));
+  };
+
+  // For updating seller information
+  const handleSellerSelect = (seller) => {
+    setFormData((prev) => ({
+      ...prev,
+      seller: {
+        ...prev.seller,
+        id: seller.id,
+        sellerLegalName: seller.name,
+      },
+    }));
+  };
+
+  // For updating contract type
+  const handleContractTypeSelect = (type) => {
+    setFormData((prev) => ({
+      ...prev,
+      contractType: type.name,
+    }));
+  };
+
+  // For updating brokerage payable by
+  const handleBrokerageSelect = (option) => {
+    setFormData((prev) => ({
+      ...prev,
+      brokeragePayableBy: option.name,
     }));
   };
 
@@ -112,8 +177,10 @@ const CreateContractForm = () => {
     console.log(newContract);
 
     contracts.push(newContract);
-    toast.success("Seller created successfully!");
+    toast.success("Contract created successfully!");
+    // router.push("/contract-management");
   };
+
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
       <form className="space-y-6 mt-7 md:mt-10" onSubmit={handleSubmit}>
@@ -171,13 +238,14 @@ const CreateContractForm = () => {
             <input
               type="text"
               name="destination"
+              value={formData.destination}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
           </div>
           <div>
-            <SelectContractType />
+            <SelectContractType onSelect={handleContractTypeSelect} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
@@ -210,7 +278,9 @@ const CreateContractForm = () => {
               SPECIAL CONDITION
             </label>
             <textarea
-              name="spcialCondition"
+              name="specialCondition"
+              value={formData.specialCondition}
+              onChange={handleChange}
               className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               rows={4}
@@ -222,7 +292,8 @@ const CreateContractForm = () => {
             </label>
             <input
               type="text"
-              name="sellerContractReferance"
+              name="sellerContractReference"
+              value={formData.sellerContractReference}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -247,7 +318,8 @@ const CreateContractForm = () => {
             </label>
             <input
               onChange={handleChange}
-              name="buyerContractReferance"
+              name="buyerContractReference"
+              value={formData.buyerContractReference}
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -260,6 +332,7 @@ const CreateContractForm = () => {
             <input
               onChange={handleChange}
               name="grade"
+              value={formData.grade}
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -273,27 +346,30 @@ const CreateContractForm = () => {
             <input
               onChange={handleChange}
               name="weights"
+              value={formData.weights}
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
           </div>
           <div className="md:row-start-4">
-            <SelectBuyerSeller />
+            <SelectBuyerSeller onSelect={handleBrokerageSelect} />
           </div>
           <div className="md:row-span-2 md:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               TERMS & CONDITIONS
             </label>
             <textarea
-              readOnly
+              name="termsAndConditions"
+              value={formData.termsAndConditions}
+              onChange={handleChange}
               className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               rows={4}
             />
           </div>
           <div>
-            <BuyerSelect />
+            <BuyerSelect onSelect={handleBuyerSelect} />
           </div>
 
           <div>
@@ -315,13 +391,23 @@ const CreateContractForm = () => {
             </label>
             <input
               type="text"
-              readOnly
+              name="attachments.buyersContract"
+              value={formData.attachments.buyersContract}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  attachments: {
+                    ...prev.attachments,
+                    buyersContract: e.target.value,
+                  },
+                }))
+              }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
           </div>
           <div className="md:row-start-6">
-            <SellerSelect />
+            <SellerSelect onSelect={handleSellerSelect} />
           </div>
           <div className="md:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
@@ -355,7 +441,9 @@ const CreateContractForm = () => {
               NOTES
             </label>
             <textarea
-              readOnly
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
               className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               rows={5}
@@ -367,7 +455,17 @@ const CreateContractForm = () => {
             </label>
             <input
               type="text"
-              readOnly
+              name="attachments.sellersContract"
+              value={formData.attachments.sellersContract}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  attachments: {
+                    ...prev.attachments,
+                    sellersContract: e.target.value,
+                  },
+                }))
+              }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder="Seller Contract Reference"
             />
@@ -399,17 +497,29 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="md:row-start-8">
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              NGR NUMBER
-            </label>
-            <input
-              readOnly
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-            />
-          </div>
+          {isGrowerContract && (
+            <div className="md:row-start-8">
+              <label className="block text-xs font-medium text-gray-700 uppercase">
+                NGR NUMBER
+              </label>
+              <input
+                type="text"
+                name="seller.sellerMainNGR"
+                value={formData.seller.sellerMainNGR}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    seller: {
+                      ...prev.seller,
+                      sellerMainNGR: e.target.value,
+                    },
+                  }))
+                }
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                placeholder=""
+              />
+            </div>
+          )}
         </div>
 
         {/* Submit Buttons */}
@@ -428,7 +538,10 @@ const CreateContractForm = () => {
             Preview Contract
             <CiExport />
           </button>
-          <button className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
             Create Contract
           </button>
         </div>

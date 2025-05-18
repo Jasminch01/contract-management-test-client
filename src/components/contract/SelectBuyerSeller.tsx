@@ -1,9 +1,15 @@
 import React, { useState } from "react";
+
 interface Buyer {
   id: number;
   name: string;
 }
-const SelectBuyerSeller = () => {
+
+interface SelectBuyerSellerProps {
+  onSelect: (buyer: Buyer) => void;
+}
+
+const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
   const initialBuyers: Buyer[] = [
     { id: 1, name: "Seller" },
     { id: 2, name: "Buyer" },
@@ -26,7 +32,11 @@ const SelectBuyerSeller = () => {
     setSelectedBuyer(buyer);
     setSearchTerm(buyer.name);
     setIsDropdownOpen(false);
+
+    // Call the onSelect prop to pass data to parent component
+    onSelect(buyer);
   };
+
   return (
     <div>
       <div className="relative">
@@ -46,6 +56,7 @@ const SelectBuyerSeller = () => {
               setIsDropdownOpen(true);
             }}
             onFocus={() => setIsDropdownOpen(true)}
+            placeholder="Select option"
           />
 
           {/* Clear selection or show dropdown icon */}
@@ -56,6 +67,8 @@ const SelectBuyerSeller = () => {
               onClick={() => {
                 setSelectedBuyer(null);
                 setSearchTerm("");
+                // Notify parent about deselection
+                onSelect({ id: 0, name: "" });
               }}
             >
               ×
@@ -98,7 +111,7 @@ const SelectBuyerSeller = () => {
                   </div>
                 ))
               ) : (
-                <div className="px-4 py-2 text-gray-500">No sellers found</div>
+                <div className="px-4 py-2 text-gray-500">No options found</div>
               )}
             </div>
           </div>
