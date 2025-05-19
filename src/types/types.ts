@@ -28,6 +28,8 @@ export interface Buyer {
   email: string;
   phone: string;
   isDeleted: boolean;
+  createdAt: string; // ISO datetime format
+  updatedAt: string; // ISO datetime format
 }
 
 export interface Seller {
@@ -41,6 +43,8 @@ export interface Seller {
   sellerEmail: string;
   sellerPhoneNumber: string;
   isDeleted: boolean;
+  createdAt: string; // ISO datetime format
+  updatedAt: string; // ISO datetime format
 }
 
 export interface ContractAttachments {

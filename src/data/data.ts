@@ -115,6 +115,8 @@ export const sellers = [
     sellerEmail: "john.p@auscommodities.com",
     sellerPhoneNumber: "+61 2 9956 7890",
     isDeleted: true,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 2,
@@ -127,6 +129,8 @@ export const sellers = [
     sellerEmail: "sarah.w@scagri.com",
     sellerPhoneNumber: "+61 3 8675 4321",
     isDeleted: true,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 3,
@@ -139,6 +143,8 @@ export const sellers = [
     sellerEmail: "michael.b@outbackproduce.com",
     sellerPhoneNumber: "+61 7 3456 7890",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 4,
@@ -151,6 +157,8 @@ export const sellers = [
     sellerEmail: "emma.j@wfarmerscoop.com",
     sellerPhoneNumber: "+61 8 9456 1234",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 5,
@@ -163,6 +171,8 @@ export const sellers = [
     sellerEmail: "david.w@adelaidegrains.com",
     sellerPhoneNumber: "+61 8 8234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 6,
@@ -175,6 +185,8 @@ export const sellers = [
     sellerEmail: "olivia.g@taspremium.com",
     sellerPhoneNumber: "+61 3 6234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 7,
@@ -187,6 +199,8 @@ export const sellers = [
     sellerEmail: "james.t@topendproduce.com",
     sellerPhoneNumber: "+61 8 8945 6789",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 8,
@@ -199,6 +213,8 @@ export const sellers = [
     sellerEmail: "sophie.m@canberraagri.com",
     sellerPhoneNumber: "+61 2 6123 4567",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 9,
@@ -211,6 +227,8 @@ export const sellers = [
     sellerEmail: "robert.c@murraytrade.com",
     sellerPhoneNumber: "+61 3 9234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: 10,
@@ -223,6 +241,8 @@ export const sellers = [
     sellerEmail: "jennifer.l@bluemountainsorganic.com",
     sellerPhoneNumber: "+61 2 9345 6789",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
 ];
 
@@ -259,6 +279,8 @@ export const contracts = [
       email: "william.hanry@example.com",
       phone: "+61 3 9123 4567",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     seller: {
       id: 1,
@@ -271,6 +293,8 @@ export const contracts = [
       sellerEmail: "laura.thompson@sunrisegrains.com.au",
       sellerPhoneNumber: "+61 2 8765 4321",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     priceExGst: "227.27",
     broker: "AgriBroker Pty Ltd",
@@ -318,6 +342,8 @@ export const contracts = [
       email: "emily.chen@agroworld.com",
       phone: "+61 2 9988 7766",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     seller: {
       id: 2,
@@ -330,6 +356,8 @@ export const contracts = [
       sellerEmail: "mark.evans@harvestpro.com.au",
       sellerPhoneNumber: "+61 2 9987 2233",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     priceExGst: "272.72",
     broker: "FarmConnect Brokers",
@@ -377,6 +405,8 @@ export const contracts = [
       email: "sophia.blake@exportgrain.com.au",
       phone: "+61 8 8123 4455",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     seller: {
       id: 3,
@@ -389,6 +419,8 @@ export const contracts = [
       sellerEmail: "daniel.green@outbackharvest.com.au",
       sellerPhoneNumber: "+61 3 8234 5678",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     priceExGst: "250.00",
     broker: "AgLink Services",
@@ -436,6 +468,8 @@ export const contracts = [
       email: "sophia.blake@exportgrain.com.au",
       phone: "+61 8 8123 4455",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     seller: {
       id: 4,
@@ -448,6 +482,8 @@ export const contracts = [
       sellerEmail: "daniel.green@outbackharvest.com.au",
       sellerPhoneNumber: "+61 3 8234 5678",
       isDeleted: false,
+      createdAt: "2025-04-01T10:30:00Z",
+      updatedAt: "2025-04-10T16:45:00Z",
     },
     priceExGst: "250.00",
     broker: "AgLink Services",
