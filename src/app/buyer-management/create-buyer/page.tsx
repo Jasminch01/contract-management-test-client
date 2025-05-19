@@ -92,7 +92,7 @@ const CreateBuyerPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder="BUYER LEGAL NAME"
                   required
                 />
@@ -106,7 +106,7 @@ const CreateBuyerPage = () => {
                   name="officeAddress"
                   value={formData.officeAddress}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder="48 Pirrama Rd, Pyrmont Sydney NSW 2009"
                   required
                 />
@@ -124,7 +124,7 @@ const CreateBuyerPage = () => {
                   name="abn"
                   value={formData.abn}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder=""
                   required
                 />
@@ -138,7 +138,7 @@ const CreateBuyerPage = () => {
                   name="contactName"
                   value={formData.contactName}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder=""
                   required
                 />
@@ -156,7 +156,7 @@ const CreateBuyerPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder=""
                   required
                 />
@@ -170,7 +170,7 @@ const CreateBuyerPage = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder=""
                   required
                 />
@@ -185,7 +185,7 @@ const CreateBuyerPage = () => {
                 name="accountNumber"
                 value={formData.accountNumber}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder=""
               />
             </div>

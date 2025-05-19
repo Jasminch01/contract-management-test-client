@@ -390,7 +390,8 @@ const CreateContractForm = () => {
               ATTACH BUYERS CONTRACT
             </label>
             <input
-              type="text"
+              type="file"
+              accept="application/pdf"
               name="attachments.buyersContract"
               value={formData.attachments.buyersContract}
               onChange={(e) =>
@@ -454,7 +455,8 @@ const CreateContractForm = () => {
               ATTACH SELLERS CONTRACT
             </label>
             <input
-              type="text"
+              type="file"
+              accept="application/pdf"
               name="attachments.sellersContract"
               value={formData.attachments.sellersContract}
               onChange={(e) =>
