@@ -243,14 +243,15 @@ const HistoricalPricesPage = () => {
             {/* Date Dropdown */}
             <div className="relative">
               <button
-                onClick={() => {
-                  setShowDateDropdown(!showDateDropdown);
-                  setShowSeasonDropdown(false);
-                }}
+                // onClick={() => {
+                //   setShowDateDropdown(!showDateDropdown);
+                //   setShowSeasonDropdown(false);
+                // }}
                 className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
               >
-                {selectedDate || getFormattedDates()[0]}
-                <RiArrowDropDownLine className={"text-2xl"} />
+                {/* {selectedDate || getFormattedDates()[0]}
+                <RiArrowDropDownLine className={"text-2xl"} /> */}
+                <input type="date" />
               </button>
               {showDateDropdown && (
                 <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">

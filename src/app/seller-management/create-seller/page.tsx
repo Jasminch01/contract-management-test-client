@@ -18,7 +18,10 @@ const CreateSellerPage = () => {
     loremIpsum: "",
   });
   const [formData, setFormData] = useState<
-    Omit<Seller, "id" | "isDeleted" | "createdAt" | "updatedAt">
+    Omit<Seller, "id" | "isDeleted" | "createdAt" | "updatedAt"> & {
+      sellerLocationZone: string;
+      accountNumber: string;
+    }
   >({
     sellerLegalName: "",
     sellerOfficeAddress: "",
@@ -28,9 +31,13 @@ const CreateSellerPage = () => {
     sellerContactName: "",
     sellerEmail: "",
     sellerPhoneNumber: "",
+    sellerLocationZone: "",
+    accountNumber: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
 
     if (name === "sellerAdditionalNGRs") {
@@ -77,7 +84,10 @@ const CreateSellerPage = () => {
     const currentTimestamp = new Date().toISOString();
     const newId = Math.max(...sellers.map((s) => s.id), 0) + 1;
 
-    const newSeller: Seller = {
+    const newSeller: Seller & {
+      sellerLocationZone: string;
+      accountNumber: string;
+    } = {
       id: newId,
       ...formData,
       isDeleted: false,
@@ -140,7 +150,7 @@ const CreateSellerPage = () => {
                     value={formData.sellerOfficeAddress}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:border-gray-300"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>
               </div>
@@ -170,7 +180,7 @@ const CreateSellerPage = () => {
                     value={formData.sellerContactName}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>
               </div>
@@ -217,7 +227,7 @@ const CreateSellerPage = () => {
                     value={formData.sellerMainNGR}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>
                 <div className="w-full md:w-1/2">
@@ -228,11 +238,50 @@ const CreateSellerPage = () => {
                     type="text"
                     name="sellerAdditionalNGRs"
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                     placeholder="NGR1, NGR2, NGR3"
                   />
                 </div>
               </div>
+
+              {/* Row 5 - Location Zone and Account Number */}
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    SELLER LOCATION ZONE
+                  </label>
+                  <select
+                    name="sellerLocationZone"
+                    value={formData.sellerLocationZone}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                  >
+                    <option value="">Select a zone</option>
+                    <option value="Eyre Peninsula">Eyre Peninsula</option>
+                    <option value="Northern Adelaide">Northern Adelaide</option>
+                    <option value="Yorke Peninsular">Yorke Peninsular</option>
+                    <option value="Southern Adelaide">Southern Adelaide</option>
+                    <option value="Riverland/Mallee">Riverland/Mallee</option>
+                    <option value="Victoria">Victoria</option>
+                    <option value="TRADE">TRADE</option>
+                  </select>
+                </div>
+                <div className="w-full md:w-1/2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    ACCOUNT NUMBER
+                  </label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={formData.accountNumber}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    placeholder=""
+                  />
+                </div>
+              </div>
+
+              {/* Row 6 - Authority to Act Form */}
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-medium text-gray-700">
@@ -241,14 +290,10 @@ const CreateSellerPage = () => {
                   <input
                     type="file"
                     accept="application/pdf"
-                    // name="sellerAdditionalNGRs"
-                    // onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
-                    placeholder="NGR1, NGR2, NGR3"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>
-                <div className="w-full md:w-1/2">
-                </div>
+                <div className="w-full md:w-1/2"></div>
               </div>
             </div>
 
@@ -265,6 +310,7 @@ const CreateSellerPage = () => {
         </div>
       </div>
 
+      {/* Bulk Password Handler Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 my-8 max-h-[90vh] flex flex-col">

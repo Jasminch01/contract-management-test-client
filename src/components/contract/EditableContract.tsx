@@ -2,11 +2,17 @@
 
 // @ts-nocheck
 
-import { contracts } from "@/data/data";
+import { contracts, initialBuyers, sellers } from "@/data/data";
 import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { MdCancel, MdSave } from "react-icons/md";
+import {
+  MdArrowDropDown,
+  MdCancel,
+  MdKeyboardBackspace,
+  MdSave,
+} from "react-icons/md";
 
 interface ContractProps {
   contract: Tcontract;
@@ -18,7 +24,47 @@ const EditableContract: React.FC<ContractProps> = ({
   const [preview, setPreview] = useState(false);
   const [contract, setContract] = useState(initialContract);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
+  const [showSellerDropdown, setShowSellerDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const router = useRouter();
+  const statusOptions: ContractStatus[] = [
+    "incompleted",
+    "completed",
+    "invoiced",
+  ];
 
+  const handleBuyerSelect = (selectedBuyer) => {
+    setContract((prev) => ({
+      ...prev,
+      buyer: selectedBuyer,
+    }));
+    setShowBuyerDropdown(false);
+    setHasChanges(true);
+  };
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/contract-management");
+  };
+  // Update seller information when a new seller is selected
+  const handleSellerSelect = (selectedSeller) => {
+    setContract((prev) => ({
+      ...prev,
+      seller: selectedSeller,
+    }));
+    setShowSellerDropdown(false);
+    setHasChanges(true);
+  };
+
+  // Update status when a new status is selected
+  const handleStatusSelect = (selectedStatus) => {
+    setContract((prev) => ({
+      ...prev,
+      status: selectedStatus,
+    }));
+    setShowStatusDropdown(false);
+    setHasChanges(true);
+  };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: string,
@@ -53,7 +99,7 @@ const EditableContract: React.FC<ContractProps> = ({
     }
     console.log("Saving changes:", contract);
     setHasChanges(false);
-    // You might want to update the initialContract here if save is successful
+    router.push("/contract-management");
   };
 
   const handleCancel = () => {
@@ -222,10 +268,18 @@ const EditableContract: React.FC<ContractProps> = ({
 
   return (
     <div>
-      <div className="my-10 text-center">
-        <p className="text-lg">
+      <div className="my-10 grid grid-cols-3 items-center">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center justify-start ml-20 cursor-pointer"
+        >
+          <MdKeyboardBackspace size={24} />
+        </button>
+        <p className="text-lg text-center col-span-1">
           {contract.commodity} - {contract.commoditySeason}
         </p>
+        <div></div> {/* Empty div to balance the grid */}
       </div>
 
       <div className="flex flex-col items-center mx-auto max-w-6xl gap-6 xl:overflow-y-scroll xl:h-[40rem]">
@@ -426,13 +480,33 @@ const EditableContract: React.FC<ContractProps> = ({
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Status</div>
-              <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.status || ""}
-                  onChange={(e) => handleChange(e, "status")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full border border-gray-300 p-1 rounded flex justify-between items-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowStatusDropdown(!showStatusDropdown);
+                  }}
+                >
+                  <span className="capitalize">{contract.status || ""}</span>
+                  <MdArrowDropDown className="text-xl" />
+                </div>
+                {showStatusDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+                    {statusOptions.map((status) => (
+                      <div
+                        key={status}
+                        className="p-2 hover:bg-gray-100 cursor-pointer capitalize"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusSelect(status);
+                        }}
+                      >
+                        {status}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -448,24 +522,41 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Buyer Name
               </div>
-              <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.name || ""}
-                  onChange={(e) => handleChange(e, "name", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full border border-gray-300 p-1 rounded flex justify-between items-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBuyerDropdown(!showBuyerDropdown);
+                  }}
+                >
+                  <span>{contract.buyer?.name || "Select Buyer"}</span>
+                  <MdArrowDropDown className="text-xl" />
+                </div>
+                {showBuyerDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                    {initialBuyers.map((buyer) => (
+                      <div
+                        key={buyer.id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBuyerSelect(buyer);
+                        }}
+                      >
+                        {buyer.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">ABN</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.abn || ""}
-                  onChange={(e) => handleChange(e, "abn", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.buyer?.abn || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -473,12 +564,9 @@ const EditableContract: React.FC<ContractProps> = ({
                 Office Address
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.officeAddress || ""}
-                  onChange={(e) => handleChange(e, "officeAddress", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.buyer?.officeAddress || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -486,34 +574,25 @@ const EditableContract: React.FC<ContractProps> = ({
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.contactName || ""}
-                  onChange={(e) => handleChange(e, "contactName", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.buyer?.contactName || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.email || ""}
-                  onChange={(e) => handleChange(e, "email", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.buyer?.email || ""}
+                </div>
               </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.buyer?.phone || ""}
-                  onChange={(e) => handleChange(e, "phone", "buyer")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.buyer?.phone || ""}
+                </div>
               </div>
             </div>
           </div>
@@ -529,13 +608,35 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Legal Name
               </div>
-              <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerLegalName || ""}
-                  onChange={(e) => handleChange(e, "sellerLegalName", "seller")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full border border-gray-300 p-1 rounded flex justify-between items-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSellerDropdown(!showSellerDropdown);
+                  }}
+                >
+                  <span>
+                    {contract.seller?.sellerLegalName || "Select Seller"}
+                  </span>
+                  <MdArrowDropDown className="text-xl" />
+                </div>
+                {showSellerDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                    {sellers.map((seller) => (
+                      <div
+                        key={seller.id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSellerSelect(seller);
+                        }}
+                      >
+                        {seller.sellerLegalName}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -543,25 +644,17 @@ const EditableContract: React.FC<ContractProps> = ({
                 Office Address
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerOfficeAddress || ""}
-                  onChange={(e) =>
-                    handleChange(e, "sellerOfficeAddress", "seller")
-                  }
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerOfficeAddress || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">ABN</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerABN || ""}
-                  onChange={(e) => handleChange(e, "sellerABN", "seller")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerABN || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -569,12 +662,9 @@ const EditableContract: React.FC<ContractProps> = ({
                 Main NGR
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerMainNGR || ""}
-                  onChange={(e) => handleChange(e, "sellerMainNGR", "seller")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerMainNGR || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -582,38 +672,25 @@ const EditableContract: React.FC<ContractProps> = ({
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerContactName || ""}
-                  onChange={(e) =>
-                    handleChange(e, "sellerContactName", "seller")
-                  }
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerContactName || ""}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerEmail || ""}
-                  onChange={(e) => handleChange(e, "sellerEmail", "seller")}
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerEmail || ""}
+                </div>
               </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.seller?.sellerPhoneNumber || ""}
-                  onChange={(e) =>
-                    handleChange(e, "sellerPhoneNumber", "seller")
-                  }
-                  className="w-full border border-gray-300 p-1 rounded"
-                />
+                <div className="w-full p-1 rounded bg-gray-50">
+                  {contract.seller?.sellerPhoneNumber || ""}
+                </div>
               </div>
             </div>
           </div>

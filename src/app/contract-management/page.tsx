@@ -72,7 +72,7 @@ const columns = [
         <RiCircleFill
           className={`${
             row.status.toLowerCase() === "completed"
-              ? "text-[#B1B1B1]" // Gray for completed
+              ? "text-[#108A2B]" // Gray for completed
               : row.status.toLowerCase() === "invoiced"
               ? "text-[#3B82F6]" // Blue for invoiced
               : "text-[#FAD957]" // Yellow for incomplete (default)
