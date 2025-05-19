@@ -18,7 +18,7 @@ import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
 const columns = [
   {
     name: "DATE",
-    selector: (row: Contract) => row.contractDate,
+    selector: (row: Contract) => row.createdAt,
     sortable: true,
   },
   {

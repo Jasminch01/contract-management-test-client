@@ -21,11 +21,11 @@ const CreateContractForm = () => {
     null,
     null,
   ]);
+  const currentTimestamp = new Date().toISOString();
   const [formData, setFormData] = useState<Omit<Contract, "id" | "isDeleted">>({
     contractPrice: "",
     destination: "",
     grower: "",
-    season: "",
     contractNumber: "",
     tonnes: "",
     certificationScheme: "",
@@ -74,9 +74,9 @@ const CreateContractForm = () => {
       sellersContract: "",
       buyersContract: "",
     },
-    status: "not done",
-    createdAt: "",
-    updatedAt: "",
+    status: "incompleted",
+    createdAt: currentTimestamp,
+    updatedAt: currentTimestamp,
     contractType: "", // Added for contract type
     brokeragePayableBy: "", // Added for brokerage payable by
   });
@@ -85,10 +85,33 @@ const CreateContractForm = () => {
   const [startDate, endDate] = dateRange;
   const router = useRouter();
 
+  // Generate a contract number when the component mounts
+  useEffect(() => {
+    generateContractNumber();
+  }, []);
+
   // Update isGrowerContract when contractType changes
   useEffect(() => {
     setIsGrowerContract(formData.contractType === "Grower");
   }, [formData.contractType]);
+
+  // Function to generate a unique contract number
+  const generateContractNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
+
+    const contractNumber = `CNT-${year}${month}${day}-${random}`;
+
+    setFormData((prev) => ({
+      ...prev,
+      contractNumber: contractNumber,
+    }));
+  };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -114,7 +137,9 @@ const CreateContractForm = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -178,7 +203,7 @@ const CreateContractForm = () => {
 
     contracts.push(newContract);
     toast.success("Contract created successfully!");
-    // router.push("/contract-management");
+    router.push("/contract-management");
   };
 
   return (
@@ -194,8 +219,9 @@ const CreateContractForm = () => {
               name="contractNumber"
               value={formData.contractNumber}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-gray-100"
               placeholder=""
+              readOnly
             />
           </div>
           <div className="w-full">
@@ -216,6 +242,7 @@ const CreateContractForm = () => {
               maxDate={addDays(new Date(), 365)}
               shouldCloseOnSelect={false}
               selectsDisabledDaysInRange
+              required
             />
           </div>
           <div>
@@ -229,6 +256,7 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div>
@@ -242,6 +270,7 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div>
@@ -258,6 +287,7 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div>
@@ -405,6 +435,7 @@ const CreateContractForm = () => {
               }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div className="md:row-start-6">
@@ -421,6 +452,7 @@ const CreateContractForm = () => {
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
 
@@ -435,6 +467,7 @@ const CreateContractForm = () => {
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div className="md:row-span-2 md:row-start-6">
@@ -448,6 +481,7 @@ const CreateContractForm = () => {
               className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               rows={5}
+              required
             />
           </div>
           <div>
@@ -469,7 +503,8 @@ const CreateContractForm = () => {
                 }))
               }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder="Seller Contract Reference"
+              placeholder=""
+              required
             />
           </div>
 
@@ -484,6 +519,7 @@ const CreateContractForm = () => {
               value={formData.commodity}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div>
@@ -497,6 +533,7 @@ const CreateContractForm = () => {
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           {isGrowerContract && (
@@ -519,9 +556,30 @@ const CreateContractForm = () => {
                 }
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                 placeholder=""
+                required
               />
             </div>
           )}
+
+          {/* Added Season Dropdown */}
+          <div className="md:row-start-8">
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              SEASON
+            </label>
+            <select
+              name="commoditySeason"
+              value={formData.season}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              required
+            >
+              <option value="">Select Season</option>
+              <option value="2023/2024">2023/2024</option>
+              <option value="2024/2025">2024/2025</option>
+              <option value="2025/2026">2025/2026</option>
+              <option value="2026/2027">2026/2027</option>
+            </select>
+          </div>
         </div>
 
         {/* Submit Buttons */}

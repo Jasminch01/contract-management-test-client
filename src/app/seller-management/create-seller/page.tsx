@@ -17,7 +17,9 @@ const CreateSellerPage = () => {
     company: "",
     loremIpsum: "",
   });
-  const [formData, setFormData] = useState<Omit<Seller, "id" | "isDeleted">>({
+  const [formData, setFormData] = useState<
+    Omit<Seller, "id" | "isDeleted" | "createdAt" | "updatedAt">
+  >({
     sellerLegalName: "",
     sellerOfficeAddress: "",
     sellerABN: "",
@@ -72,12 +74,15 @@ const CreateSellerPage = () => {
       return;
     }
 
+    const currentTimestamp = new Date().toISOString();
     const newId = Math.max(...sellers.map((s) => s.id), 0) + 1;
 
     const newSeller: Seller = {
       id: newId,
       ...formData,
       isDeleted: false,
+      createdAt: currentTimestamp,
+      updatedAt: currentTimestamp,
     };
 
     sellers.push(newSeller);
@@ -226,6 +231,23 @@ const CreateSellerPage = () => {
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
                     placeholder="NGR1, NGR2, NGR3"
                   />
+                </div>
+              </div>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    AUTHORITY TO ACT (FORM)
+                  </label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    // name="sellerAdditionalNGRs"
+                    // onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none"
+                    placeholder="NGR1, NGR2, NGR3"
+                  />
+                </div>
+                <div className="w-full md:w-1/2">
                 </div>
               </div>
             </div>

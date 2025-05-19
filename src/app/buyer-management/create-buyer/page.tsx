@@ -3,29 +3,19 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { initialBuyers } from "@/data/data";
-
-interface Buyer {
-  id: string;
-  name: string;
-  abn: string;
-  officeAddress: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  accountNumber?: string;
-  isDeleted: boolean;
-}
+import { Buyer } from "@/types/types"; // Import from types
 
 const CreateBuyerPage = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState<Omit<Buyer, "id" | "isDeleted">>({
+  const [formData, setFormData] = useState<
+    Omit<Buyer, "id" | "isDeleted" | "createdAt" | "updatedAt">
+  >({
     name: "",
     abn: "",
     officeAddress: "",
     contactName: "",
     email: "",
-    phone: "",
-    accountNumber: "",
+    phone: "", // Keep this field even though it's optional in the interface
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,21 +35,28 @@ const CreateBuyerPage = () => {
       return;
     }
 
+    const currentTimestamp = new Date().toISOString();
+
     // Generate a new ID (in a real app, this would come from your backend)
     const newId = (
       Math.max(...initialBuyers.map((b) => parseInt(b.id))) + 1
     ).toString();
 
-    // Create new buyer object
+    // Create new buyer object with required timestamp fields
     const newBuyer: Buyer = {
       id: newId,
       ...formData,
       isDeleted: false,
+      createdAt: currentTimestamp,
+      updatedAt: currentTimestamp,
     };
+
     initialBuyers.push(newBuyer);
+
     // In a real app, you would send this to your API
     console.log("New buyer to be added:", newBuyer);
     console.log(initialBuyers);
+
     // For demo purposes, we'll just show a success message
     toast.success("Buyer created successfully!");
 
@@ -183,7 +180,6 @@ const CreateBuyerPage = () => {
               <input
                 type="text"
                 name="accountNumber"
-                value={formData.accountNumber}
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder=""
