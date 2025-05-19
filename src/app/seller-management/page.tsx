@@ -217,10 +217,10 @@ const SellerManagementPage = () => {
         </div>
 
         {/* Search Input */}
-        <div className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
+        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80  px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
-            placeholder="Search by Company Name or ABN"
+            placeholder="Search Seller by Name, ABN"
             className="w-full focus:outline-none bg-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -249,9 +249,6 @@ const SellerManagementPage = () => {
               )}
             </p>
           </div>
-
-          {/* Date Filter Buttons - Removed from here */}
-
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex gap-2">
             <button

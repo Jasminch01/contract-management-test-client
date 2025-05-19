@@ -10,6 +10,8 @@ export const initialBuyers = [
     email: "william@commex.com",
     phone: "+61 3 9123 4567",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "2",
@@ -20,6 +22,8 @@ export const initialBuyers = [
     email: "sarah@globaltrade.com",
     phone: "+61 2 9234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "3",
@@ -30,6 +34,8 @@ export const initialBuyers = [
     email: "michael@pacificimports.com",
     phone: "+61 7 3456 7890",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "4",
@@ -40,6 +46,8 @@ export const initialBuyers = [
     email: "emma@southerncross.com",
     phone: "+61 8 9456 1234",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "5",
@@ -50,6 +58,8 @@ export const initialBuyers = [
     email: "david@aussietrade.com",
     phone: "+61 8 8234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "6",
@@ -60,6 +70,8 @@ export const initialBuyers = [
     email: "olivia@outbackcom.com",
     phone: "+61 3 6234 5678",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "7",
@@ -70,6 +82,8 @@ export const initialBuyers = [
     email: "james@kangarootrade.com",
     phone: "+61 8 8945 6789",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "8",
@@ -80,6 +94,8 @@ export const initialBuyers = [
     email: "sophie@boomerang.com",
     phone: "+61 2 6123 4567",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "9",
@@ -90,6 +106,8 @@ export const initialBuyers = [
     email: "robert@koalaexport.com",
     phone: "+61 3 9234 5678",
     isDeleted: true,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
   {
     id: "10",
@@ -100,6 +118,8 @@ export const initialBuyers = [
     email: "jennifer@wattletrade.com",
     phone: "+61 2 9345 6789",
     isDeleted: false,
+    createdAt: "2025-04-01T10:30:00Z",
+    updatedAt: "2025-04-10T16:45:00Z",
   },
 ];
 

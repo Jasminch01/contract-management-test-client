@@ -3,7 +3,7 @@ import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd } from "react-icons/io";
@@ -36,6 +36,12 @@ const columns = [
   {
     name: "PHONE",
     selector: (row: Buyer) => row.phone,
+    sortable: true,
+  },
+  {
+    name: "CREATED DATE",
+    selector: (row: Buyer) =>
+      row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
     sortable: true,
   },
 ];
@@ -71,32 +77,71 @@ const customStyles = {
 };
 
 const BuyerManagementPage = () => {
-  const [data, setData] = useState<Buyer[]>(
-    initialBuyers.filter((b) => !b.isDeleted)
-  );
-  const [filteredData, setFilteredData] = useState<Buyer[]>(
-    initialBuyers.filter((b) => !b.isDeleted)
-  );
+  // Adding createdAt field to initial buyers for demo purposes
+  const buyersWithDates = initialBuyers
+    .filter((b) => !b.isDeleted)
+    .map((buyer) => ({
+      ...buyer,
+      createdAt:
+        buyer.createdAt ||
+        new Date(
+          Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
+        ).toISOString(),
+    }));
+
+  const [data, setData] = useState<Buyer[]>(buyersWithDates);
+  const [filteredData, setFilteredData] = useState<Buyer[]>(buyersWithDates);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "lastWeek"
   const router = useRouter();
 
-  // Filter data based on search term
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    const result = data.filter((item) => {
-      return (
-        item.name.toLowerCase().includes(term.toLowerCase()) ||
-        item.abn.toLowerCase().includes(term.toLowerCase()) ||
-        item.contactName.toLowerCase().includes(term.toLowerCase()) ||
-        item.email.toLowerCase().includes(term.toLowerCase()) ||
-        item.phone.toLowerCase().includes(term.toLowerCase())
-      );
-    });
+  // Filter options for date filter dropdown
+  const dateFilterOptions = [
+    { value: "all", label: "All Time" },
+    { value: "today", label: "Recent" },
+    { value: "lastWeek", label: "Last Week" },
+  ];
+
+  useEffect(() => {
+    // Apply both search and date filters
+    let result = data;
+
+    // Apply date filter
+    if (dateFilter === "today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      result = result.filter((buyer) => {
+        const createdDate = new Date(buyer.createdAt);
+        return createdDate >= today;
+      });
+    } else if (dateFilter === "lastWeek") {
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      result = result.filter((buyer) => {
+        const createdDate = new Date(buyer.createdAt);
+        return createdDate >= lastWeek;
+      });
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      result = result.filter((buyer) => {
+        return (
+          buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.phone.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    }
+
     setFilteredData(result);
-  };
+  }, [searchTerm, dateFilter, data]);
 
   const handleRowClicked = (row: Buyer) => {
     router.push(`/buyer-management/${row.id}`);
@@ -147,12 +192,17 @@ const BuyerManagementPage = () => {
   };
 
   const handleFilter = () => {
-    // Example filter - you can expand this with more options
-    const filtered = data.filter(
-      (buyer) => buyer.name.toLowerCase().includes("international") // Example filter condition
-    );
-    setFilteredData(filtered);
-    toast.success("Filter applied: Showing international buyers");
+    setIsFilterOpen(!isFilterOpen);
+  };
+
+  const handleDateFilterChange = (value: string) => {
+    setDateFilter(value);
+    setIsFilterOpen(false);
+  };
+
+  const clearDateFilter = () => {
+    setDateFilter("all");
+    setIsFilterOpen(false);
   };
 
   return (
@@ -171,13 +221,14 @@ const BuyerManagementPage = () => {
         </div>
 
         {/* Search Input */}
-        <div className="w-full md:w-auto px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
+
+        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
-            placeholder="Search Buyer"
+            placeholder="Search Buyer by Name, ABN"
             className="w-full focus:outline-none bg-transparent"
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <LuSearch className="text-gray-500" />
         </div>
@@ -191,7 +242,16 @@ const BuyerManagementPage = () => {
               List of Buyers
             </h2>
             <p className="text-sm text-gray-500">
-              {filteredData.length} buyers found
+              {filteredData.length} buyer(s) found
+              {dateFilter !== "all" && (
+                <span>
+                  {" "}
+                  •{" "}
+                  {dateFilter === "today"
+                    ? "Created today"
+                    : "Created last week"}
+                </span>
+              )}
             </p>
           </div>
 
@@ -199,38 +259,107 @@ const BuyerManagementPage = () => {
           <div className="w-full md:w-auto flex gap-2">
             <button
               onClick={handleEdit}
-              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
-                selectedRows.length > 0
+              className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
+                selectedRows.length === 1
                   ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50 pointer-events-none"
+                  : "cursor-not-allowed opacity-50"
               }`}
+              disabled={selectedRows.length !== 1}
             >
               <MdOutlineEdit />
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
                 selectedRows.length > 0
                   ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50 pointer-events-none"
+                  : "cursor-not-allowed opacity-50"
               }`}
+              disabled={selectedRows.length === 0}
             >
               <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
-            <button
-              onClick={handleFilter}
-              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <IoFilterSharp />
-              Filter
-            </button>
+
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={handleFilter}
+                className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                <IoFilterSharp />
+                Filter
+              </button>
+
+              {isFilterOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
+                  <div className="border-b border-gray-200 p-3">
+                    <p className="font-medium text-gray-700">
+                      Filter by Creation Date
+                    </p>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto">
+                    {dateFilterOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
+                          dateFilter === option.value
+                            ? "bg-blue-50 text-blue-600"
+                            : "hover:bg-gray-50"
+                        }`}
+                        onClick={() => handleDateFilterChange(option.value)}
+                      >
+                        <span className="flex-grow">{option.label}</span>
+                        {dateFilter === option.value && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-blue-500"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {dateFilter !== "all" && (
+                    <div
+                      className="border-t border-gray-200 px-4 py-2 text-sm cursor-pointer text-red-500 hover:bg-red-50 flex items-center justify-between"
+                      onClick={clearDateFilter}
+                    >
+                      <span>Clear filter</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* DataTable */}
-        <div className="overflow-auto border border-gray-200">
+        <div className="overflow-auto border border-gray-200 shadow-sm">
           <DataTable
             columns={columns}
             data={filteredData}
@@ -252,7 +381,7 @@ const BuyerManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
