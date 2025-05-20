@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 "use client";
-import { CiExport } from "react-icons/ci";
+// import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
 import SellerSelect from "./SellerSelect";
@@ -587,20 +587,20 @@ const CreateContractForm = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
+            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer"
           >
             <IoArrowBack /> Back
           </button>
-          <button
+          {/* <button
             type="button"
             className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
           >
             Preview Contract
             <CiExport />
-          </button>
+          </button> */}
           <button
             type="submit"
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
           >
             Create Contract
           </button>
