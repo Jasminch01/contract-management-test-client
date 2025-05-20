@@ -158,7 +158,7 @@ const PortZoneBidsTable = ({
       <div className="mt-4 flex justify-center px-4">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-600 transition-colors"
+          className="px-6 py-2 bg-[#2A5D36] hover:bg-[#1e4728]  text-white rounded transition-colors"
           disabled={!dataModified}
         >
           Save Changes

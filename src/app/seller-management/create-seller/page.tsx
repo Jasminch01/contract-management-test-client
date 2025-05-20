@@ -117,7 +117,7 @@ const CreateSellerPage = () => {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition-colors"
+              className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition- cursor-pointer"
             >
               Bulk Handle Password
             </button>
@@ -318,7 +318,7 @@ const CreateSellerPage = () => {
             <div className="sticky top-0 bg-white p-4 flex justify-end items-center rounded-t-lg">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-xl focus:outline-none"
+                className="text-xl focus:outline-none cursor-pointer"
               >
                 ✕
               </button>
@@ -384,7 +384,7 @@ const CreateSellerPage = () => {
             <div className="sticky bottom-0 bg-white p-4 flex justify-center rounded-b-lg">
               <button
                 onClick={handleProcessPassword}
-                className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition-colors focus:outline-none focus:ring-2 focus:ring-green-700"
+                className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-700 hover:bg-[#1e4728]"
               >
                 Save Changes
               </button>

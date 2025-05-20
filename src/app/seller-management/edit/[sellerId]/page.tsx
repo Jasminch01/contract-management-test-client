@@ -168,7 +168,7 @@ const SellerInformationEditPage = () => {
               <button
                 onClick={handleSave}
                 disabled={saveStatus === "saving"}
-                className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 <MdSave className="text-lg" />
                 {saveStatus === "saving" ? "Saving..." : "Save"}

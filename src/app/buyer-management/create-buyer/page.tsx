@@ -191,7 +191,7 @@ const CreateBuyerPage = () => {
           <div className="mt-10 text-center md:text-left">
             <button
               type="submit"
-              className="bg-[#2A5D36] py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors"
+              className="bg-[#2A5D36] cursor-pointer py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors"
             >
               Create
             </button>

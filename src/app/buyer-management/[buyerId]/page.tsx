@@ -113,7 +113,7 @@ const BuyerInformationPage = () => {
           {/* Edit Button */}
           <div className="mt-10">
             <Link href={`/buyer-management/edit/${buyerId?.toString()}`}>
-              <button className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2">
+              <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] hover:bg-[#1e4728]  text-white rounded flex items-center gap-2">
                 <MdOutlineEdit className="text-lg" />
                 Edit
               </button>
