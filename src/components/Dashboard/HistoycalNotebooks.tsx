@@ -6,7 +6,7 @@ const HistoycalNotebooks = () => {
       <div className=" 2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm flex flex-col h-[22rem] w-full min-2xl:h-[25rem]">
         {/* Fixed Heading */}
         <div className="2xl:pb-4">
-          <p className="text-lg">Historical Daily Notebook</p>
+          <p className="text-lg">Historical Daily Contracts</p>
         </div>
 
         {/* Scrollable Content with bottom padding */}
@@ -20,11 +20,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>
@@ -38,11 +38,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>
@@ -55,11 +55,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>
@@ -72,11 +72,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>
@@ -89,11 +89,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract k </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>
@@ -106,11 +106,11 @@ const HistoycalNotebooks = () => {
                 </div>
                 <div className="pl-10">
                   <div className="flex items-center space-x-8">
-                    <p>Notebook </p>
+                    <p>Contract </p>
                     <p>#123456</p>
                   </div>
                   <div className="flex items-center space-x-8">
-                    <p className="text-xs">Notebook name</p>
+                    <p className="text-xs">Contract name</p>
                     <p className="text-sm">10:12 AM</p>
                   </div>
                 </div>

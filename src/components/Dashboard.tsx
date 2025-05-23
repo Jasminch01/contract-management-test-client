@@ -9,7 +9,7 @@ const Dashboard = () => {
     <div className="mt-20 pl-10 pr-3">
       <div className="">
         <p className="font-bold mb-10">Dashboard</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-5">
           {/* Card 1 */}
           <div className="shadow-lg border-t-4 border-purple-500 rounded-lg p-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Commission</p>
@@ -29,12 +29,12 @@ const Dashboard = () => {
           </div>
 
           {/* Card 3 */}
-          <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
+          {/* <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
             <p className="text-base mb-5">Daily Notebook</p>
             <div className="mt-auto">
               <p className="text-xl font-bold">08</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Card 4 */}
           <div className="shadow-lg border-t-4 border-purple-500 rounded-lg px-2 py-4 flex flex-col h-full">
