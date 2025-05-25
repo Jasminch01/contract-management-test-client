@@ -40,7 +40,7 @@ const SellerSelect = ({ onSelect }: BuyerSelectProps) => {
   return (
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 uppercase">
-        BUYER
+        SELLER
       </label>
 
       {/* Search input and dropdown toggle */}
