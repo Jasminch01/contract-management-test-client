@@ -48,7 +48,7 @@ const SellerSelect = ({ onSelect }: BuyerSelectProps) => {
         <input
           type="text"
           className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-          placeholder="Search buyer..."
+          placeholder="Search seller..."
           value={searchTerm}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setSearchTerm(e.target.value);
@@ -74,7 +74,7 @@ const SellerSelect = ({ onSelect }: BuyerSelectProps) => {
         ) : (
           <button
             type="button"
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <svg
