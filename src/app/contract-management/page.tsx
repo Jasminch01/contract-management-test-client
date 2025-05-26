@@ -39,8 +39,13 @@ const columns = [
     sortable: true,
   },
   {
-    name: "GROWER",
+    name: "SELLER",
     selector: (row: Contract) => row.seller.sellerLegalName,
+    sortable: true,
+  },
+  {
+    name: "GRADE",
+    selector: (row: Contract) => row.grade,
     sortable: true,
   },
   {

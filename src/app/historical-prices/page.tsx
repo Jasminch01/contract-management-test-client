@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import ExportCSVPrice from "@/components/contract/ExportCSVPrice";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
@@ -111,6 +112,14 @@ const getFormattedSeasons = () => {
   });
 };
 
+const getCurrentDateInputValue = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const HistoricalPricesPage = () => {
   const [activeTab, setActiveTab] = useState("historicalPrices");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
@@ -121,8 +130,10 @@ const HistoricalPricesPage = () => {
   const [deliveredBidsData, setDeliveredBidsData] = useState<DeliverdBids[]>(
     []
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasDataToExport, setHasDataToExport] = useState(false);
+  const [currentDateInputValue, setCurrentDateInputValue] = useState(
+    getCurrentDateInputValue()
+  );
 
   // Initialize data
   useEffect(() => {
@@ -240,35 +251,14 @@ const HistoricalPricesPage = () => {
               isPortZoneData={activeTab === "historicalPrices"}
             />
 
-            {/* Date Dropdown */}
+            {/* Date Input */}
             <div className="relative">
-              <button
-                // onClick={() => {
-                //   setShowDateDropdown(!showDateDropdown);
-                //   setShowSeasonDropdown(false);
-                // }}
-                className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
-              >
-                {/* {selectedDate || getFormattedDates()[0]}
-                <RiArrowDropDownLine className={"text-2xl"} /> */}
-                <input type="date" />
-              </button>
-              {showDateDropdown && (
-                <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  {getFormattedDates().map((date, index) => (
-                    <div
-                      key={index}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                      onClick={() => {
-                        setSelectedDate(date);
-                        setShowDateDropdown(false);
-                      }}
-                    >
-                      {date}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <input
+                type="date"
+                value={currentDateInputValue}
+                onChange={(e) => setCurrentDateInputValue(e.target.value)}
+                className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+              />
             </div>
 
             {/* Season Dropdown */}
