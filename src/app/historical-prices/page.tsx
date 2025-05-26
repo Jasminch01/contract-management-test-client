@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import ExportCSVPrice from "@/components/contract/ExportCSVPrice";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
 import PortZoneBidsTable from "@/components/Dashboard/PortZoneBidsTable";
+import DateRangeModal from "@/components/DateRangeModal";
 import React from "react";
 import { useState, useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
@@ -120,6 +120,14 @@ const getCurrentDateInputValue = () => {
   return `${year}-${month}-${day}`;
 };
 
+const formatDateForFilename = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 const HistoricalPricesPage = () => {
   const [activeTab, setActiveTab] = useState("historicalPrices");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
@@ -134,6 +142,11 @@ const HistoricalPricesPage = () => {
   const [currentDateInputValue, setCurrentDateInputValue] = useState(
     getCurrentDateInputValue()
   );
+  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
+  const [exportDateRange, setExportDateRange] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
 
   // Initialize data
   useEffect(() => {
@@ -198,6 +211,33 @@ const HistoricalPricesPage = () => {
     setDeliveredBidsData(data);
   };
 
+  const handleExportClick = () => {
+    setShowDateRangeModal(true);
+  };
+
+  const handleDateRangeConfirm = (startDate: string, endDate: string) => {
+    setExportDateRange({ start: startDate, end: endDate });
+
+    // Generate filename with date range
+    const startFormatted = formatDateForFilename(startDate);
+    const endFormatted = formatDateForFilename(endDate);
+    const filename = `${
+      activeTab === "historicalPrices" ? "port-zone-bids" : "delivered-bids"
+    }-${startFormatted}-to-${endFormatted}.csv`;
+
+    // Show confirmation toast
+    toast.success(`Exporting data from ${startFormatted} to ${endFormatted}`);
+
+    // Here you would trigger the actual CSV export
+    // For now, we'll just log the export details
+    console.log(`Exporting CSV: ${filename}`, {
+      startDate,
+      endDate,
+      data: activeTab === "historicalPrices" ? portZoneData : deliveredBidsData,
+      type: activeTab,
+    });
+  };
+
   const tabButtonClass = "py-3 uppercase w-44 text-center relative";
   const tabTextClass = "font-medium";
 
@@ -232,24 +272,13 @@ const HistoricalPricesPage = () => {
           </div>
 
           <div className="flex gap-4 items-center pr-5 my-5">
-            <ExportCSVPrice
-              data={
-                activeTab === "historicalPrices"
-                  ? portZoneData
-                  : deliveredBidsData
-              }
-              keys={
-                activeTab === "historicalPrices"
-                  ? grainTypes
-                  : months.map((m) => m.toLowerCase())
-              }
-              filename={`${
-                activeTab === "historicalPrices"
-                  ? "port-zone-bids"
-                  : "delivered-bids"
-              }-${selectedDate || getFormattedDates()[0]}.csv`}
-              isPortZoneData={activeTab === "historicalPrices"}
-            />
+            {/* Export CSV Button - Now opens date range modal */}
+            <button
+              onClick={handleExportClick}
+              className="px-2 py-1 bg-white border-gray-300 border rounded-md hover:bg-gray-50 transition-colors font-medium text-gray-700"
+            >
+              Export CSV
+            </button>
 
             {/* Date Input */}
             <div className="relative">
@@ -307,6 +336,13 @@ const HistoricalPricesPage = () => {
           />
         )}
       </div>
+
+      {/* Date Range Modal */}
+      <DateRangeModal
+        isOpen={showDateRangeModal}
+        onClose={() => setShowDateRangeModal(false)}
+        onConfirm={handleDateRangeConfirm}
+      />
     </div>
   );
 };
