@@ -63,7 +63,7 @@ const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
