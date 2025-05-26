@@ -243,49 +243,56 @@ const ContractManagementPage = () => {
     }
     router.push(`/contract-management/edit/${selectedRows[0].id}`);
   };
-
-  // Handle duplicate contracts
   const handleDuplicate = () => {
-    if (selectedRows.length === 0) {
-      toast.error("Please select at least one contract to duplicate");
+    if (selectedRows.length !== 1) {
+      toast.error("Please select exactly one contract to duplicate");
       return;
     }
-
-    // Create duplicated contracts with new contract numbers
-    const duplicatedContracts = selectedRows.map((contract) => {
-      // Generate a new unique ID
-      const newId = `dup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-      // Generate new contract number by appending "-DUP" and current timestamp
-      const newContractNumber = `${contract.contractNumber}-DUP-${Date.now()
-        .toString()
-        .slice(-6)}`;
-
-      // Create duplicate with new ID and contract number
-      return {
-        ...contract,
-        id: newId,
-        contractNumber: newContractNumber,
-        createdAt: new Date().toISOString().split("T")[0], // Today's date
-        status: "Incomplete", // Reset status to incomplete
-        notes: contract.notes
-          ? `${contract.notes} (Duplicated from ${contract.contractNumber})`
-          : `Duplicated from ${contract.contractNumber}`,
-      };
-    });
-
-    // Update all state variables with the new duplicated contracts
-    setMasterData([...duplicatedContracts, ...masterData]);
-    setData([...duplicatedContracts, ...data]);
-    setSearchFilteredData([...duplicatedContracts, ...searchFilteredData]);
-
-    // Clear selected rows after duplication
-    setSelectedRows([]);
-
-    toast.success(
-      `${duplicatedContracts.length} contract(s) duplicated successfully`
-    );
+    router.push(`/contract-management/duplicate/${selectedRows[0].id}`);
   };
+
+  // Handle duplicate contracts
+  // const handleDuplicate = () => {
+  //   if (selectedRows.length === 0) {
+  //     toast.error("Please select at least one contract to duplicate");
+  //     return;
+  //   }
+
+  //   // Create duplicated contracts with new contract numbers
+  //   const duplicatedContracts = selectedRows.map((contract) => {
+  //     // Generate a new unique ID
+  //     const newId = `dup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  //     // Generate new contract number by appending "-DUP" and current timestamp
+  //     const newContractNumber = `${contract.contractNumber}-DUP-${Date.now()
+  //       .toString()
+  //       .slice(-6)}`;
+
+  //     // Create duplicate with new ID and contract number
+  //     return {
+  //       ...contract,
+  //       id: newId,
+  //       contractNumber: newContractNumber,
+  //       createdAt: new Date().toISOString().split("T")[0], // Today's date
+  //       status: "Incomplete", // Reset status to incomplete
+  //       notes: contract.notes
+  //         ? `${contract.notes} (Duplicated from ${contract.contractNumber})`
+  //         : `Duplicated from ${contract.contractNumber}`,
+  //     };
+  //   });
+
+  //   // Update all state variables with the new duplicated contracts
+  //   setMasterData([...duplicatedContracts, ...masterData]);
+  //   setData([...duplicatedContracts, ...data]);
+  //   setSearchFilteredData([...duplicatedContracts, ...searchFilteredData]);
+
+  //   // Clear selected rows after duplication
+  //   setSelectedRows([]);
+
+  //   toast.success(
+  //     `${duplicatedContracts.length} contract(s) duplicated successfully`
+  //   );
+  // };
 
   const handleEmail = async (recipientType: "buyer" | "seller") => {
     if (selectedRows.length === 0) {

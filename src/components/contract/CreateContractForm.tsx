@@ -201,7 +201,7 @@ const CreateContractForm = () => {
     };
     console.log(newContract);
 
-    contracts.push(newContract);
+    contracts.unshift(newContract);
     toast.success("Contract created successfully!");
     router.push("/contract-management");
   };
