@@ -27,12 +27,29 @@ const EditableContract: React.FC<ContractProps> = ({
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
   const [showSellerDropdown, setShowSellerDropdown] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
+    useState(false);
   const router = useRouter();
   const statusOptions: ContractStatus[] = [
     "incompleted",
     "completed",
     "invoiced",
   ];
+
+  const brokeragePayableOptions = [
+    { name: "Buyer", value: "Buyer" },
+    { name: "Seller", value: "Seller" },
+    { name: "No Brokerage Payable", value: "No Brokerage Payable" },
+  ];
+
+  const handleBrokeragePayableSelect = (selectedOption) => {
+    setContract((prev) => ({
+      ...prev,
+      brokeragePayableBy: selectedOption.value,
+    }));
+    setShowBrokeragePayableDropdown(false);
+    setHasChanges(true);
+  };
 
   const handleBuyerSelect = (selectedBuyer) => {
     setContract((prev) => ({
@@ -478,6 +495,43 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
+
+            <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Brokerage Payable By
+              </div>
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full border border-gray-300 p-1 rounded flex justify-between items-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBrokeragePayableDropdown(
+                      !showBrokeragePayableDropdown
+                    );
+                  }}
+                >
+                  <span>{contract.brokeragePayableBy || "Select Option"}</span>
+                  <MdArrowDropDown className="text-xl" />
+                </div>
+                {showBrokeragePayableDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+                    {brokeragePayableOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBrokeragePayableSelect(option);
+                        }}
+                      >
+                        {option.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Status</div>
               <div className="w-1/2 p-3 relative">

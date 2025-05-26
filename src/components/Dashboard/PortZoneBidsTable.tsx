@@ -133,7 +133,7 @@ const PortZoneBidsTable = ({
             onClick={() => setIsEditing(true)}
             className="w-full h-full flex items-center justify-center p-2 hover:bg-gray-100 cursor-pointer"
           >
-            <p className="text-center w-full">{value ? `${value} $` : " "}</p>
+            <p className="text-center w-full">{value ? `$ ${value}` : " "}</p>
           </div>
         );
       },
