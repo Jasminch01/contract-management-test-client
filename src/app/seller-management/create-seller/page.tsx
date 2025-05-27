@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Seller } from "@/types/types";
@@ -7,6 +7,7 @@ import { sellers } from "@/data/data";
 
 const CreateSellerPage = () => {
   const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [passwordData, setPasswordData] = useState({
     bulkItemId: "",
@@ -17,9 +18,10 @@ const CreateSellerPage = () => {
     company: "",
     loremIpsum: "",
   });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<
     Omit<Seller, "id" | "isDeleted" | "createdAt" | "updatedAt"> & {
-      sellerLocationZone: string;
+      sellerLocationZone: string[];
       accountNumber: string;
     }
   >({
@@ -31,9 +33,36 @@ const CreateSellerPage = () => {
     sellerContactName: "",
     sellerEmail: "",
     sellerPhoneNumber: "",
-    sellerLocationZone: "",
+    sellerLocationZone: [],
     accountNumber: "",
   });
+
+  const locationZones = [
+    "Eyre Peninsula",
+    "Northern Adelaide",
+    "Yorke Peninsular",
+    "Southern Adelaide",
+    "Riverland/Mallee",
+    "Victoria",
+    "TRADE",
+  ];
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -51,6 +80,24 @@ const CreateSellerPage = () => {
         [name]: value,
       }));
     }
+  };
+
+  const handleLocationZoneChange = (zone: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      sellerLocationZone: prev.sellerLocationZone.includes(zone)
+        ? prev.sellerLocationZone.filter((z) => z !== zone)
+        : [...prev.sellerLocationZone, zone],
+    }));
+  };
+
+  const removeZone = (zoneToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      sellerLocationZone: prev.sellerLocationZone.filter(
+        (z) => z !== zoneToRemove
+      ),
+    }));
   };
 
   const handlePasswordDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +132,7 @@ const CreateSellerPage = () => {
     const newId = Math.max(...sellers.map((s) => s.id), 0) + 1;
 
     const newSeller: Seller & {
-      sellerLocationZone: string;
+      sellerLocationZone: string[];
       accountNumber: string;
     } = {
       id: newId,
@@ -247,24 +294,130 @@ const CreateSellerPage = () => {
               {/* Row 5 - Location Zone and Account Number */}
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    SELLER LOCATION ZONE
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    SELLER LOCATION ZONE (Multiple Select)
                   </label>
-                  <select
-                    name="sellerLocationZone"
-                    value={formData.sellerLocationZone}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  >
-                    <option value="">Select a zone</option>
-                    <option value="Eyre Peninsula">Eyre Peninsula</option>
-                    <option value="Northern Adelaide">Northern Adelaide</option>
-                    <option value="Yorke Peninsular">Yorke Peninsular</option>
-                    <option value="Southern Adelaide">Southern Adelaide</option>
-                    <option value="Riverland/Mallee">Riverland/Mallee</option>
-                    <option value="Victoria">Victoria</option>
-                    <option value="TRADE">TRADE</option>
-                  </select>
+                  <div className="relative" ref={dropdownRef}>
+                    {/* Dropdown Button with Selected Items Inside */}
+                    <div
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] cursor-pointer min-h-[42px] flex items-center justify-between"
+                    >
+                      <div className="flex-1 flex flex-wrap gap-1 mr-2">
+                        {formData.sellerLocationZone.length === 0 ? (
+                          <span className="text-gray-500 text-sm">
+                            Select location zones...
+                          </span>
+                        ) : (
+                          formData.sellerLocationZone.map((zone) => (
+                            <span
+                              key={zone}
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#2A5D36] text-white"
+                            >
+                              <span className="max-w-[100px] truncate">
+                                {zone}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeZone(zone);
+                                }}
+                                className="ml-1 inline-flex items-center justify-center w-3 h-3 rounded-full hover:bg-[#1e4728] focus:outline-none transition-colors text-xs cursor-pointer"
+                                title={`Remove ${zone}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${
+                          isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        <div className="py-1">
+                          {locationZones.map((zone) => (
+                            <label
+                              key={zone}
+                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.sellerLocationZone.includes(
+                                  zone
+                                )}
+                                onChange={() => handleLocationZoneChange(zone)}
+                                className="mr-3 h-4 w-4 text-[#2A5D36] focus:ring-[#2A5D36] border-gray-300 rounded"
+                              />
+                              <span className="text-sm text-gray-700 flex-1">
+                                {zone}
+                              </span>
+                              {formData.sellerLocationZone.includes(zone) && (
+                                <svg
+                                  className="w-4 h-4 text-[#2A5D36]"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </label>
+                          ))}
+                        </div>
+
+                        {/* Clear All & Select All Actions */}
+                        <div className="border-t border-gray-200 px-3 py-2 bg-gray-50">
+                          <div className="flex justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  sellerLocationZone: [],
+                                }));
+                              }}
+                              className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                            >
+                              Clear All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  sellerLocationZone: [...locationZones],
+                                }));
+                              }}
+                              className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
+                            >
+                              Select All
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-medium text-gray-700">

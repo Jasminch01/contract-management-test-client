@@ -33,6 +33,8 @@ export interface Buyer {
 }
 
 export interface Seller {
+  sellerLocationZone: string[];
+  accountNumber: string;
   id: number;
   sellerLegalName: string;
   sellerOfficeAddress: string;

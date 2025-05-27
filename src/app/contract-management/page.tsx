@@ -317,13 +317,26 @@ const ContractManagementPage = () => {
         return;
       }
 
-      // Create subject
-      const subject = `${selectedRows.length} Contract(s) - ${
-        recipientType === "buyer" ? "Buyer" : "Seller"
-      } Documents`;
+      // Create subject based on recipient type
+      let subject;
+      if (recipientType === "seller" && selectedRows.length === 1) {
+        // For single seller email, use the specific format
+        const contract = selectedRows[0];
+        subject = `Broker Note - ${contract.contractNumber} ${
+          contract.tonnes
+        }mt ${contract.grade} ${contract.deliveryOption || "Delivered"} ${
+          contract.destination
+        }`;
+      } else {
+        // For buyer emails, keep the original format
+        subject = `${selectedRows.length} Contract(s) - ${
+          recipientType === "buyer" ? "Buyer" : "Seller"
+        } Documents`;
+      }
 
-      // Create mailto link with BCC
-      const mailtoLink = `mailto:?bcc=${recipients.join(
+      // Create mailto link - use 'to' for seller, 'bcc' for buyer
+      const emailField = recipientType === "seller" ? "to" : "bcc";
+      const mailtoLink = `mailto:?${emailField}=${recipients.join(
         ","
       )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
         "Please find attached contract documents."
