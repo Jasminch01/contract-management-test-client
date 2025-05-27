@@ -128,7 +128,7 @@ const CreateBuyerPage = () => {
               </div>
               <div className="w-full md:w-1/2">
                 <label className="block text-sm font-medium text-gray-700">
-                  BUYER CONTRACT NAME *
+                  BUYER CONTACT NAME *
                 </label>
                 <input
                   type="text"

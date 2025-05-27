@@ -7,13 +7,16 @@ import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   MdArrowDropDown,
   MdCancel,
+  MdDelete,
   MdKeyboardBackspace,
   MdSave,
 } from "react-icons/md";
-
+import { addDays } from "date-fns";
 interface ContractProps {
   contract: Tcontract;
 }
@@ -21,6 +24,10 @@ interface ContractProps {
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
 }) => {
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]);
   const [preview, setPreview] = useState(false);
   const [contract, setContract] = useState(initialContract);
   const [hasChanges, setHasChanges] = useState(false);
@@ -30,11 +37,59 @@ const EditableContract: React.FC<ContractProps> = ({
   const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
     useState(false);
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [fileUploads, setFileUploads] = useState({
+    sellersContract: null,
+    buyersContract: null,
+  });
+  const [startDate, endDate] = dateRange;
   const statusOptions: ContractStatus[] = [
     "incompleted",
     "completed",
     "invoiced",
   ];
+
+  const handleFileUpload = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      // In a real app, you would upload the file to a server here
+      // For demo purposes, we'll create a local URL
+      const fileUrl = URL.createObjectURL(file);
+
+      setContract((prev) => ({
+        ...prev,
+        attachments: {
+          ...prev.attachments,
+          [field]: fileUrl,
+        },
+      }));
+
+      setFileUploads((prev) => ({
+        ...prev,
+        [field]: file,
+      }));
+
+      setHasChanges(true);
+    }
+  };
+
+  // Handle file removal
+  const handleRemoveAttachment = (field) => {
+    setContract((prev) => ({
+      ...prev,
+      attachments: {
+        ...prev.attachments,
+        [field]: null,
+      },
+    }));
+
+    setFileUploads((prev) => ({
+      ...prev,
+      [field]: null,
+    }));
+
+    setHasChanges(true);
+  };
 
   const brokeragePayableOptions = [
     { name: "Buyer", value: "Buyer" },
@@ -101,6 +156,24 @@ const EditableContract: React.FC<ContractProps> = ({
       return newContract;
     });
     setHasChanges(true);
+  };
+
+  const handleDateChange = (update: [Date | null, Date | null]) => {
+    setDateRange(update);
+
+    // Convert date range to string for storage in formData
+    if (update[0] && update[1]) {
+      const formattedDateRange = `${update[0].toLocaleDateString()} - ${update[1].toLocaleDateString()}`;
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: formattedDateRange,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: "",
+      }));
+    }
   };
 
   const handleSave = () => {
@@ -402,6 +475,19 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
+            <div className="flex">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Deliverd Destination
+              </div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.destination || ""}
+                  onChange={(e) => handleChange(e, "destination")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
@@ -411,11 +497,21 @@ const EditableContract: React.FC<ContractProps> = ({
                 Delivery Period
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.deliveryPeriod || ""}
-                  onChange={(e) => handleChange(e, "deliveryPeriod")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={handleDateChange}
+                  isClearable={true}
+                  placeholderText="Select date range"
+                  className="mt-1 w-full xl:w-[250px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  calendarClassName="w-full sm:w-auto" // Makes calendar responsive
+                  dateFormat="MMM d, yyyy"
+                  minDate={new Date()}
+                  maxDate={addDays(new Date(), 365)}
+                  shouldCloseOnSelect={false}
+                  selectsDisabledDaysInRange
+                  required
                 />
               </div>
             </div>
@@ -793,29 +889,101 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
+            {/* Attachments Section */}
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Attachments
               </div>
               <div className="w-1/2 p-3">
-                {contract.attachments ? (
-                  <div className="flex flex-col gap-1">
-                    <a
-                      href={contract.attachments.sellersContract}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Seller&apos;s Contract
-                    </a>
-                    <a
-                      href={contract.attachments.buyersContract}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Buyer&apos;s Contract
-                    </a>
+                <div className="flex flex-col gap-4">
+                  {/* Sellers Contract */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
+                      Seller Contract
+                    </label>
+                    {contract.attachments?.sellersContract ? (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={contract.attachments.sellersContract}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Current File
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveAttachment("sellersContract")
+                          }
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <MdDelete />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) =>
+                            handleFileUpload(e, "sellersContract")
+                          }
+                          className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-gray-50 file:text-gray-700
+                hover:file:bg-gray-100"
+                        />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  "N/A"
-                )}
+
+                  {/* Buyers Contract */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
+                      Buyer Contract
+                    </label>
+                    {contract.attachments?.buyersContract ? (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={contract.attachments.buyersContract}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Current File
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveAttachment("buyersContract")
+                          }
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <MdDelete />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) =>
+                            handleFileUpload(e, "buyersContract")
+                          }
+                          className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-gray-50 file:text-gray-700
+                hover:file:bg-gray-100"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
