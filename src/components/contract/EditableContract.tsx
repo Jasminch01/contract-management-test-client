@@ -7,13 +7,15 @@ import { Contract as Tcontract } from "@/types/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   MdArrowDropDown,
   MdCancel,
   MdKeyboardBackspace,
   MdSave,
 } from "react-icons/md";
-
+import { addDays } from "date-fns";
 interface ContractProps {
   contract: Tcontract;
 }
@@ -21,6 +23,10 @@ interface ContractProps {
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
 }) => {
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]);
   const [preview, setPreview] = useState(false);
   const [contract, setContract] = useState(initialContract);
   const [hasChanges, setHasChanges] = useState(false);
@@ -30,6 +36,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
     useState(false);
   const router = useRouter();
+  const [startDate, endDate] = dateRange;
   const statusOptions: ContractStatus[] = [
     "incompleted",
     "completed",
@@ -101,6 +108,24 @@ const EditableContract: React.FC<ContractProps> = ({
       return newContract;
     });
     setHasChanges(true);
+  };
+
+  const handleDateChange = (update: [Date | null, Date | null]) => {
+    setDateRange(update);
+
+    // Convert date range to string for storage in formData
+    if (update[0] && update[1]) {
+      const formattedDateRange = `${update[0].toLocaleDateString()} - ${update[1].toLocaleDateString()}`;
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: formattedDateRange,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPeriod: "",
+      }));
+    }
   };
 
   const handleSave = () => {
@@ -402,6 +427,19 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
+            <div className="flex">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Deliverd Destination
+              </div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.destination|| ""}
+                  onChange={(e) => handleChange(e, "destination")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
@@ -411,11 +449,21 @@ const EditableContract: React.FC<ContractProps> = ({
                 Delivery Period
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.deliveryPeriod || ""}
-                  onChange={(e) => handleChange(e, "deliveryPeriod")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={handleDateChange}
+                  isClearable={true}
+                  placeholderText="Select date range"
+                  className="mt-1 w-full xl:w-[250px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  calendarClassName="w-full sm:w-auto" // Makes calendar responsive
+                  dateFormat="MMM d, yyyy"
+                  minDate={new Date()}
+                  maxDate={addDays(new Date(), 365)}
+                  shouldCloseOnSelect={false}
+                  selectsDisabledDaysInRange
+                  required
                 />
               </div>
             </div>
