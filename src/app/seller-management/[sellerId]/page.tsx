@@ -2,9 +2,9 @@
 import { sellers } from "@/data/data";
 import { Seller } from "@/types/types";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { MdOutlineEdit } from "react-icons/md";
+import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
 
 const SellerInformationPage = () => {
   const { sellerId } = useParams();
@@ -12,6 +12,11 @@ const SellerInformationPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const router = useRouter();
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/contract-management");
+  };
   useEffect(() => {
     const fetchSellerData = () => {
       setLoading(true);
@@ -51,7 +56,10 @@ const SellerInformationPage = () => {
     <div>
       {/* Header */}
       <div className="border-b border-gray-300 py-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl flex items-center gap-5">
+          <button type="button" onClick={handleBack} className="cursor-pointer">
+            <MdKeyboardBackspace size={24} />
+          </button>
           <p className="text-xl font-semibold">Seller Information</p>
         </div>
       </div>

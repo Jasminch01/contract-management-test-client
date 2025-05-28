@@ -189,7 +189,22 @@ const CreateContractForm = () => {
     }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
+    const newId = Math.max(...contracts.map((s) => s.id), 0) + 1;
+
+    const newContract: Contract = {
+      id: newId,
+      ...formData,
+      isDeleted: false,
+    };
+    console.log(newContract);
+
+    contracts.unshift(newContract);
+    toast.success("Contract created successfully!");
+    router.push("/contract-management");
+  };
 
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
@@ -592,19 +607,3 @@ const CreateContractForm = () => {
 };
 
 export default CreateContractForm;
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newId = Math.max(...contracts.map((s) => s.id), 0) + 1;
-
-    const newContract: Contract = {
-      id: newId,
-      ...formData,
-      isDeleted: false,
-    };
-    console.log(newContract);
-
-    contracts.unshift(newContract);
-    toast.success("Contract created successfully!");
-    router.push("/contract-management");
-  };

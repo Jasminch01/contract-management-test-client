@@ -38,8 +38,8 @@ export default function SearchFilterBar({
       field: "commoditySeason",
     },
     {
-      id: "grower",
-      label: "Grower",
+      id: "seller",
+      label: "Seller",
       field: (contract) => contract.seller.sellerLegalName,
     },
     {
