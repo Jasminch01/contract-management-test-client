@@ -77,7 +77,7 @@ export default function SearchFilterBar({
     };
   }, []);
 
-  // Apply filters to data
+  // Apply filters to data - FIXED: Removed onFilterChange from dependencies
   useEffect(() => {
     if (!searchTerm && selectedFilters.length === 0) {
       onFilterChange(data);
@@ -103,21 +103,27 @@ export default function SearchFilterBar({
             );
             if (!filterOption) return false;
 
-            const fieldValue =
-              typeof filterOption.field === "function"
-                ? filterOption.field(contract)
-                : contract[filterOption.field as keyof Contract];
+            let fieldValue;
+            if (typeof filterOption.field === "function") {
+              fieldValue = filterOption.field(contract);
+            } else {
+              fieldValue = contract[filterOption.field];
+            }
 
-            return String(fieldValue)
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase());
+            // Add null/undefined check
+            return (
+              fieldValue &&
+              String(fieldValue)
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            );
           });
         });
       }
     }
 
     onFilterChange(filteredData);
-  }, [searchTerm, selectedFilters, data, onFilterChange, filterOptions]);
+  }, [searchTerm, selectedFilters, data]); // Removed onFilterChange from dependencies
 
   const toggleFilter = (filterId: string) => {
     setSelectedFilters((prev) =>
@@ -179,7 +185,7 @@ export default function SearchFilterBar({
           </div>
 
           {/* Filter Options Grid */}
-          <div className="grid xl:grid-cols-4 gird-cols-2 gap-5 p-4">
+          <div className="grid xl:grid-cols-4 grid-cols-2 gap-5 p-4">
             {filterOptions.map((option) => (
               <div
                 key={option.id}
