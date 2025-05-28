@@ -2,15 +2,21 @@
 import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { MdOutlineEdit } from "react-icons/md";
+import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
 
 const BuyerInformationPage = () => {
   const { buyerId } = useParams(); // Get the ID from URL params
   const [buyerData, setBuyerData] = useState<Buyer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/contract-management");
+  };
 
   useEffect(() => {
     const fetchBuyerData = () => {
@@ -50,7 +56,10 @@ const BuyerInformationPage = () => {
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl flex items-center gap-5">
+          <button type="button" onClick={handleBack} className="cursor-pointer">
+            <MdKeyboardBackspace size={24} />
+          </button>
           <p className="text-xl font-semibold">Buyer Information</p>
         </div>
       </div>

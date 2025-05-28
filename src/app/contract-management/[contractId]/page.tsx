@@ -2,8 +2,9 @@
 import Contract from "@/components/contract/Contract";
 import { contracts } from "@/data/data";
 import { Contract as TContract } from "@/types/types";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { MdKeyboardBackspace } from "react-icons/md";
 
 const ContractDetailsPage = () => {
   const [contractData, setContractData] = useState<TContract | null>(null);
@@ -12,7 +13,12 @@ const ContractDetailsPage = () => {
 
   // Get the ID from the URL parameters
   const { contractId } = useParams();
-  console.log(contractId);
+
+  const router = useRouter();
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/contract-management");
+  };
 
   useEffect(() => {
     const fetchContractData = async () => {
@@ -56,10 +62,19 @@ const ContractDetailsPage = () => {
 
   return (
     <div className="mt-6">
-      <div className="border-b border-gray-300">
-        <h1 className="text-xl font-bold text-center mb-3">
-          Contract {contractData.contractNumber || contractId}
-        </h1>
+      <div className="border-b border-gray-300 ">
+        <div className="mx-auto max-w-6xl relative mb-5">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="cursor-pointer absolute left-0"
+          >
+            <MdKeyboardBackspace size={24} />
+          </button>
+          <h1 className="text-xl font-bold text-center">
+            Contract {contractData.contractNumber || contractId}
+          </h1>
+        </div>
       </div>
       <Contract contract={contractData} />
     </div>

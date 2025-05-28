@@ -2,7 +2,7 @@
 import { Seller } from "@/types/types";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
-import { MdSave, MdCancel } from "react-icons/md";
+import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
 import { sellers } from "@/data/data";
 
@@ -191,6 +191,11 @@ const SellerInformationEditPage = () => {
     setSaveStatus("idle");
   };
 
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/contract-management");
+  };
+
   const handleSave = () => {
     if (!sellerData) return;
 
@@ -217,7 +222,16 @@ const SellerInformationEditPage = () => {
     <div>
       <div className="border-b border-gray-300 py-10">
         <div className="mx-auto max-w-6xl flex justify-between items-center">
-          <p className="text-xl font-semibold">Seller Information</p>
+          <div className="flex items-center gap-5">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="cursor-pointer"
+            >
+              <MdKeyboardBackspace size={24} />
+            </button>
+            <p className="text-xl font-semibold">Seller Information</p>
+          </div>
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition-colors cursor-pointer"
