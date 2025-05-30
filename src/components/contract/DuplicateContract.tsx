@@ -419,10 +419,29 @@ const EditableContract: React.FC<ContractProps> = ({
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Season</div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
+                <select
                   value={contract.commoditySeason || ""}
                   onChange={(e) => handleChange(e, "commoditySeason")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                >
+                  <option value="">Select Season</option>
+                  <option value="2023/2024">2023/2024</option>
+                  <option value="2024/2025">2024/2025</option>
+                  <option value="2025/2026">2025/2026</option>
+                  <option value="2026/2027">2026/2027</option>
+                  {/* Add more seasons as needed */}
+                </select>
+              </div>
+            </div>
+            <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Tolerance
+              </div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract.tolerance || ""}
+                  onChange={(e) => handleChange(e, "tolerance")}
                   className="w-full border border-gray-300 p-1 rounded"
                 />
               </div>

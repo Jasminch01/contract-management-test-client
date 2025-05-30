@@ -199,6 +199,12 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               </div>
             </div>
             <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tolerance</div>
+              <div className="w-1/2 p-3">
+                {contract.tolerance || "N/A"}
+              </div>
+            </div>
+            <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tonnes</div>
               <div className="w-1/2 p-3">{contract.tonnes || "N/A"}</div>
             </div>
@@ -260,6 +266,10 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Broker</div>
+              <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
+            </div>
+            <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Brokerage Payable By</div>
               <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
