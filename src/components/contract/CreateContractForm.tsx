@@ -576,6 +576,21 @@ const CreateContractForm = () => {
               <option value="2026/2027">2026/2027</option>
             </select>
           </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              tolerance
+            </label>
+            <input
+              onChange={handleChange}
+              name="tolerance"
+              value={formData.tolerance}
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder=""
+              required
+            />
+          </div>
         </div>
 
         {/* Submit Buttons */}

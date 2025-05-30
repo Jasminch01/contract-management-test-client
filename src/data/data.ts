@@ -314,6 +314,7 @@ export const contracts = [
     weights: "Gross",
     buyerContractReference: "BCR-1001",
     notes: "Urgent delivery required.",
+    tolerance: "±5%",
     buyer: {
       id: "buyer-001",
       name: "Commex International",
@@ -379,6 +380,7 @@ export const contracts = [
     weights: "Net",
     buyerContractReference: "BCR-1002",
     notes: "Inspect moisture level before shipping.",
+    tolerance: "±5%",
     buyer: {
       id: "buyer-002",
       name: "AgroWorld Traders",
@@ -444,6 +446,7 @@ export const contracts = [
     weights: "Gross",
     buyerContractReference: "BCR-1003",
     notes: "Ship in batches of 50 tonnes.",
+    tolerance: "±5%",
     buyer: {
       id: "buyer-003",
       name: "ExportGrain Co.",
@@ -509,6 +512,7 @@ export const contracts = [
     weights: "Gross",
     buyerContractReference: "BCR-1003",
     notes: "Ship in batches of 50 tonnes.",
+    tolerance: "±5%",
     buyer: {
       id: "buyer-003",
       name: "ExportGrain Co.",

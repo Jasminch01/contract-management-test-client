@@ -79,6 +79,7 @@ export interface Contract {
   weights: string;
   buyerContractReference: string;
   notes: string;
+  tolerance : string;
   buyer: Buyer;
   seller: Seller;
   priceExGst: string;
