@@ -444,15 +444,25 @@ const CreateContractForm = () => {
             <label className="block text-xs font-medium text-gray-700 uppercase">
               CONVEYANCE
             </label>
-            <input
+            <select
               onChange={handleChange}
               name="conveyance"
               value={formData.conveyance}
-              type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
               required
-            />
+            >
+              <option value="">Select an option</option>
+              <option value="Port Zone">Port Zone</option>
+              <option value="Del MZ">Del MZ</option>
+              <option value="Del Destination">Del Destination</option>
+              <option value="Free On Truck">Free On Truck</option>
+              <option value="Ex-Farm">Ex-Farm</option>
+              <option value="Track">Track</option>
+              <option value="Delivered Site">Delivered Site</option>
+              <option value="Free In Store">Free In Store</option>
+              <option value="DCT">DCT</option>
+              <option value="FOB">FOB</option>
+            </select>
           </div>
 
           <div className="md:row-start-6">
