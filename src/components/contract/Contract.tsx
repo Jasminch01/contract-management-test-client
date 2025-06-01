@@ -32,18 +32,18 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="pb-1 space-y-2">
                 <h2 className="font-bold text-sm">Buyer</h2>
                 <p>{contract.buyer.name}</p>
-                <p>Top Box Stock</p>
-                <p>Minimum VIC, 3004</p>
                 <p>{contract.buyer.officeAddress}</p>
-                <p>{contract.buyer.email}</p>
+                <p>Email : {contract.buyer.email}</p>
+                <p>Contact : {contract.buyer.phone}</p>
               </div>
 
               <div className="pb-1 space-y-2">
                 <h2 className="font-bold text-sm">Seller</h2>
                 <p>{contract.seller.sellerLegalName}</p>
                 <p>{contract.seller.sellerOfficeAddress}</p>
-                <p>{contract.seller.sellerContactName}</p>
-                <p>{contract.seller.sellerEmail}</p>
+                <p>NGR : {contract.seller.sellerMainNGR}</p>
+                <p>Email : {contract.seller.sellerEmail}</p>
+                <p>Contact : {contract.seller.sellerContactName}</p>
               </div>
             </div>
             {/* Full-width Broker Ref section with borders */}
@@ -51,7 +51,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-full py-2 mb-4 border-b border-t  border-gray-300">
                 <div className="flex px-20">
                   <span className="w-1/4 font-semibold">Broker Ref:</span>
-                  <span className="w-1/4">{contract.brokerReference}</span>
+                  <span className="w-1/4">{contract.contractNumber}</span>
                   <span className="w-1/4 font-semibold">Contract Date:</span>
                   <span className="w-1/4">{contract.contractDate}</span>
                 </div>
@@ -73,34 +73,34 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Quality:</span>
-                  <span className="w-3/4">H1 AS PER GTA CSG-101 STANDARDS</span>
+                  <span className="w-3/4">
+                    {contract.grade} AS PER GTA CSG-101 STANDARDS
+                  </span>
                 </div>
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Quantity:</span>
                   <span className="w-3/4">
-                    20.66 METRIC TONNES - NIL TOLERANCE
+                    {contract.tonnes} METRIC TONNES - {contract.tolerance}{" "}
+                    TOLERANCE
                   </span>
                 </div>
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Price:</span>
                   <span className="w-3/4">
-                    A${contract.priceExGst} PER TONNE IN DISPOT YITTERM,
-                    ROCKVORTHY
+                    A${contract.priceExGst} PER TONNE IN {contract.destination}
                   </span>
                 </div>
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Delivery Period:</span>
-                  <span className="w-3/4">{contract.deliveryOption}</span>
+                  <span className="w-3/4">{contract.deliveryPeriod}</span>
                 </div>
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Payment:</span>
-                  <span className="w-3/4">
-                    5 DARS END OF WEEK OF CULVERT SANDAR IS END OF WEED
-                  </span>
+                  <span className="w-3/4">{contract.paymentTerms}</span>
                 </div>
 
                 <div className="flex pb-1">
@@ -115,12 +115,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
 
                 <div className="pb-1">
                   <div className="font-semibold mb-1">Terms & Conditions:</div>
-                  <p className="text-xs">
-                    WHEN NOT IN CONFLICT WITH THE ABOVE CONDITIONS THIS CONTRACT
-                    EXPRESSLY INCORPORATES THE TERMS & CONDITIONS OF THE GTA NO
-                    3 CONTRACT INCLUDING THE GTA TRADE RULES AND DISPURE
-                    RESOLUTION RULES
-                  </p>
+                  <p className="text-xs">{contract.termsAndConditions}</p>
                 </div>
 
                 <div className="flex pb-1">
@@ -199,10 +194,10 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               </div>
             </div>
             <div className="flex border-b border-gray-300">
-              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tolerance</div>
-              <div className="w-1/2 p-3">
-                {contract.tolerance || "N/A"}
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Tolerance
               </div>
+              <div className="w-1/2 p-3">{contract.tolerance || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tonnes</div>
@@ -269,7 +264,9 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
-              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Brokerage Payable By</div>
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Brokerage Payable By
+              </div>
               <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">

@@ -648,6 +648,33 @@ const EditableContract: React.FC<ContractProps> = ({
             </div>
 
             <div className="flex">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Conveyance
+              </div>
+              <div className="w-1/2 p-3 relative">
+                <select
+                  onChange={(e) => handleChange(e, "conveyance")}
+                  name="conveyance"
+                  value={contract.conveyance}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  required
+                >
+                  <option value="">{contract.conveyance}</option>
+                  <option value="Port Zone">Port Zone</option>
+                  <option value="Del MZ">Del MZ</option>
+                  <option value="Del Destination">Del Destination</option>
+                  <option value="Free On Truck">Free On Truck</option>
+                  <option value="Ex-Farm">Ex-Farm</option>
+                  <option value="Track">Track</option>
+                  <option value="Delivered Site">Delivered Site</option>
+                  <option value="Free In Store">Free In Store</option>
+                  <option value="DCT">DCT</option>
+                  <option value="FOB">FOB</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Status</div>
               <div className="w-1/2 p-3 relative">
                 <div
