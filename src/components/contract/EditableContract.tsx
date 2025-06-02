@@ -36,6 +36,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
     useState(false);
+  const [showConveyanceDropdown, setShowConveyanceDropdown] = useState(false);
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [fileUploads, setFileUploads] = useState({
@@ -95,6 +96,19 @@ const EditableContract: React.FC<ContractProps> = ({
     { name: "Buyer", value: "Buyer" },
     { name: "Seller", value: "Seller" },
     { name: "No Brokerage Payable", value: "No Brokerage Payable" },
+  ];
+
+  const conveyanceOptions = [
+    { value: "Port Zone", name: "Port Zone" },
+    { value: "Del MZ", name: "Del MZ" },
+    { value: "Del Destination", name: "Del Destination" },
+    { value: "Free On Truck", name: "Free On Truck" },
+    { value: "Ex-Farm", name: "Ex-Farm" },
+    { value: "Track", name: "Track" },
+    { value: "Delivered Site", name: "Delivered Site" },
+    { value: "Free In Store", name: "Free In Store" },
+    { value: "DCT", name: "DCT" },
+    { value: "FOB", name: "FOB" },
   ];
 
   const handleBrokeragePayableSelect = (selectedOption) => {
@@ -647,28 +661,47 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
             </div>
 
-            <div className="flex">
-              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Conveyance</div>
+            <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Conveyance
+              </div>
               <div className="w-1/2 p-3 relative">
-                <select
-                  onChange={(e) => handleChange(e, "conveyance")}
-                  name="conveyance"
-                  value={contract.conveyance}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  required
+                <div
+                  className="w-full border border-gray-300 p-1 rounded flex justify-between items-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowConveyanceDropdown(!showConveyanceDropdown);
+                  }}
                 >
-                  <option value="">{contract.conveyance}</option>
-                  <option value="Port Zone">Port Zone</option>
-                  <option value="Del MZ">Del MZ</option>
-                  <option value="Del Destination">Del Destination</option>
-                  <option value="Free On Truck">Free On Truck</option>
-                  <option value="Ex-Farm">Ex-Farm</option>
-                  <option value="Track">Track</option>
-                  <option value="Delivered Site">Delivered Site</option>
-                  <option value="Free In Store">Free In Store</option>
-                  <option value="DCT">DCT</option>
-                  <option value="FOB">FOB</option>
-                </select>
+                  <span>
+                    {conveyanceOptions.find(
+                      (opt) => opt.value === contract.conveyance
+                    )?.name || "Select Conveyance"}
+                  </span>
+                  <MdArrowDropDown className="text-xl" />
+                </div>
+                {showConveyanceDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+                    {conveyanceOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChange({
+                            target: {
+                              name: "conveyance",
+                              value: option.value,
+                            },
+                          });
+                          setShowConveyanceDropdown(false);
+                        }}
+                      >
+                        {option.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex">
