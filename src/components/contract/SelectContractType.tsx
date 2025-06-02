@@ -46,7 +46,7 @@ const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700 uppercase">
+      <label className="block text-xs text-gray-700 uppercase">
         CONTRACT TYPE
       </label>
 

@@ -50,7 +50,7 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700 uppercase">
+      <label className="block text-xs text-gray-700 uppercase">
         Buyer
       </label>
 
