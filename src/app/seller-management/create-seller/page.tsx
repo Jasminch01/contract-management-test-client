@@ -166,7 +166,7 @@ const CreateSellerPage = () => {
               onClick={() => setIsModalOpen(true)}
               className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition- cursor-pointer"
             >
-              Bulk Handle Password
+              Bulk Handler Passwords
             </button>
           </div>
           {/* Form */}
@@ -490,7 +490,7 @@ const CreateSellerPage = () => {
                         Bulk Handler
                       </th>
                       <th className="border border-gray-300 px-4 py-2">
-                        Username/Email/Regos No
+                        Username/Email/PAN No
                       </th>
                       <th className="border border-gray-300 px-4 py-2">
                         Password
@@ -504,7 +504,7 @@ const CreateSellerPage = () => {
                       "GrainFlow",
                       "Tports",
                       "CBH",
-                      "Local Depots",
+                      "Louis Dreyfus",
                     ].map((handler, idx) => (
                       <tr key={idx}>
                         <td className="border border-gray-300 px-4 py-2">
