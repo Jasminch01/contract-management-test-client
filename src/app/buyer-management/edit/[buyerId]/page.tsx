@@ -4,39 +4,45 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
-import { initialBuyers } from "@/data/data";
+import axios from "axios";
 
 const BuyerInformationEditPage = () => {
   const { buyerId } = useParams();
   const router = useRouter();
-
-  const foundBuyer = initialBuyers.find(
-    (buyer) => buyer.id.toString() === buyerId
+  const [buyerData, setBuyerData] = useState<Buyer | null>(null);
+  const [originalBuyerData, setOriginalBuyerData] = useState<Buyer | null>(
+    null
   );
-
-  const [buyerData, setBuyerData] = useState<Buyer | null>(foundBuyer || null);
-  const [originalBuyerData] = useState<Buyer | null>(foundBuyer || null);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    if (!foundBuyer) {
-      toast.error(`Buyer with ID ${buyerId} not found`);
-      router.push("/buyer-management");
-    }
-  }, [foundBuyer, buyerId, router]);
+    const getBuyer = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8000/api/buyers/${buyerId}`
+        );
+        setBuyerData(res.data);
+        setOriginalBuyerData(res.data);
+      } catch (error) {
+        console.log(error);
+        toast.error("Failed to load buyer data");
+      }
+    };
+    getBuyer();
+  }, [buyerId]);
 
   useEffect(() => {
     if (buyerData && originalBuyerData) {
-      setHasChanges(
-        JSON.stringify(buyerData) !== JSON.stringify(originalBuyerData)
-      );
+      const changesExist =
+        JSON.stringify(buyerData) !== JSON.stringify(originalBuyerData);
+      setHasChanges(changesExist);
     }
   }, [buyerData, originalBuyerData]);
 
-  if (!buyerData) return null;
+  if (!buyerData) return <div>Loading...</div>;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -51,30 +57,27 @@ const BuyerInformationEditPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.push("/buyer-management");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!buyerData) return;
-
-    setSaveStatus("saving");
-
     try {
-      const index = initialBuyers.findIndex(
-        (buyer) => buyer.id === buyerData.id
+      const res = await axios.put(
+        `http://localhost:8000/api/buyers/${buyerId}`,
+        buyerData
       );
-      if (index !== -1) {
-        initialBuyers[index] = { ...buyerData };
-      }
+      if (res.data) {
+        setOriginalBuyerData(res.data);
+        setSaveStatus("success");
+        toast.success("Buyer information updated successfully");
 
-      setSaveStatus("success");
-      toast.success("Buyer updated successfully!");
-      router.push(`/buyer-management`);
-      setTimeout(() => setSaveStatus("idle"), 2000);
-    } catch (err) {
-      console.error("Error saving buyer:", err);
+        router.push("/buyer-management");
+      }
+    } catch (error) {
+      console.error(error);
       setSaveStatus("error");
-      toast.error("Failed to update buyer");
+      toast.error("Failed to update buyer information");
     }
   };
 
@@ -83,6 +86,7 @@ const BuyerInformationEditPage = () => {
       setBuyerData({ ...originalBuyerData });
     }
     setSaveStatus("idle");
+    setHasChanges(false);
   };
 
   return (
@@ -131,8 +135,8 @@ const BuyerInformationEditPage = () => {
             />
             <Field
               label="Buyer Phone Number"
-              name="phone"
-              value={buyerData.phone || ""}
+              name="phoneNumber"
+              value={buyerData.phoneNumber || ""}
               onChange={handleInputChange}
             />
           </div>

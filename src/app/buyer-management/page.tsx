@@ -1,6 +1,6 @@
 "use client";
-import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -35,13 +35,13 @@ const columns = [
   },
   {
     name: "PHONE",
-    selector: (row: Buyer) => row.phone,
+    selector: (row: Buyer) => row.phoneNumber,
     sortable: true,
   },
   {
     name: "CREATED DATE",
     selector: (row: Buyer) =>
-      row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
+      row?.createdAt ? new Date(row?.createdAt).toLocaleDateString() : "N/A",
     sortable: true,
   },
 ];
@@ -77,20 +77,8 @@ const customStyles = {
 };
 
 const BuyerManagementPage = () => {
-  // Adding createdAt field to initial buyers for demo purposes
-  const buyersWithDates = initialBuyers
-    .filter((b) => !b.isDeleted)
-    .map((buyer) => ({
-      ...buyer,
-      createdAt:
-        buyer.createdAt ||
-        new Date(
-          Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-        ).toISOString(),
-    }));
-
-  const [data, setData] = useState<Buyer[]>(buyersWithDates);
-  const [filteredData, setFilteredData] = useState<Buyer[]>(buyersWithDates);
+  const [data, setData] = useState<Buyer[]>([]);
+  const [filteredData, setFilteredData] = useState<Buyer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
@@ -98,6 +86,20 @@ const BuyerManagementPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "lastWeek"
   const router = useRouter();
+
+  useEffect(() => {
+    const buyers = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/buyers`);
+        console.log(res.data);
+        setData(res.data);
+        setFilteredData(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    buyers();
+  }, []);
 
   // Filter options for date filter dropdown
   const dateFilterOptions = [
@@ -115,6 +117,7 @@ const BuyerManagementPage = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       result = result.filter((buyer) => {
+        if (!buyer.createdAt) return false;
         const createdDate = new Date(buyer.createdAt);
         return createdDate >= today;
       });
@@ -122,6 +125,7 @@ const BuyerManagementPage = () => {
       const lastWeek = new Date();
       lastWeek.setDate(lastWeek.getDate() - 7);
       result = result.filter((buyer) => {
+        if (!buyer.createdAt) return false;
         const createdDate = new Date(buyer.createdAt);
         return createdDate >= lastWeek;
       });
@@ -135,7 +139,7 @@ const BuyerManagementPage = () => {
           buyer.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.phone.toLowerCase().includes(searchTerm.toLowerCase())
+          buyer.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
     }
@@ -144,7 +148,7 @@ const BuyerManagementPage = () => {
   }, [searchTerm, dateFilter, data]);
 
   const handleRowClicked = (row: Buyer) => {
-    router.push(`/buyer-management/${row.id}`);
+    router.push(`/buyer-management/${row?._id}`);
   };
 
   const handleChange = (selected: {
@@ -164,7 +168,7 @@ const BuyerManagementPage = () => {
       toast.error("Please select only one buyer to edit");
       return;
     }
-    router.push(`/buyer-management/edit/${selectedRows[0].id}`);
+    router.push(`/buyer-management/edit/${selectedRows[0]._id}`);
   };
 
   const handleDelete = () => {
@@ -175,20 +179,25 @@ const BuyerManagementPage = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    // Soft delete by setting isDeleted to true
-    const updatedData = data.map((buyer) =>
-      selectedRows.some((row) => row.id === buyer.id)
-        ? { ...buyer, isDeleted: true }
-        : buyer
-    );
+  const confirmDelete = async () => {
+    try {
+      if (selectedRows.length === 0) return; // No selection
 
-    setData(updatedData.filter((b) => !b.isDeleted));
-    setFilteredData(updatedData.filter((b) => !b.isDeleted));
-    setSelectedRows([]);
-    setToggleCleared(!toggleCleared);
-    setIsDeleteConfirmOpen(false);
-    toast.success(`${selectedRows.length} buyer(s) deleted successfully`);
+      const idsToDelete = selectedRows.map((row) => row._id); // Always works
+
+      await Promise.all(
+        idsToDelete.map((id) =>
+          axios.patch(`http://localhost:8000/api/buyers/${id}/trash`)
+        )
+      );
+
+      setToggleCleared(!toggleCleared);
+      setIsDeleteConfirmOpen(false);
+      toast.success(`${idsToDelete.length} buyer(s) moved to trash`);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete buyers");
+    }
   };
 
   const handleFilter = () => {
@@ -242,7 +251,7 @@ const BuyerManagementPage = () => {
               List of Buyers
             </h2>
             <p className="text-sm text-gray-500">
-              {filteredData.length} buyer(s) found
+              {filteredData?.length} buyer(s) found
               {dateFilter !== "all" && (
                 <span>
                   {" "}

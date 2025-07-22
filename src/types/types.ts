@@ -20,16 +20,15 @@ export interface Note {
 }
 
 export interface Buyer {
-  id: string;
+  _id?: string;
   name: string;
   abn: string;
   officeAddress: string;
   contactName: string;
   email: string;
-  phone: string;
-  isDeleted: boolean;
-  createdAt: string; // ISO datetime format
-  updatedAt: string; // ISO datetime format
+  phoneNumber: string;
+  isDeleted?: boolean;
+  createdAt?: string;
 }
 
 export interface Seller {
@@ -79,7 +78,7 @@ export interface Contract {
   weights: string;
   buyerContractReference: string;
   notes: string;
-  tolerance : string;
+  tolerance: string;
   buyer: Buyer;
   seller: Seller;
   priceExGst: string;
