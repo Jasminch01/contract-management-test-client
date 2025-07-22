@@ -4,54 +4,36 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
-import { sellers } from "@/data/data";
+import axios from "axios";
 
 const SellerInformationEditPage = () => {
   const { sellerId } = useParams();
   const router = useRouter();
+  const [sellerData, setSellerData] = useState<Seller | null>(null);
+  const [originalSellerData] = useState<Seller | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const foundSeller = sellers.find(
-    (seller) => seller.id.toString() === sellerId
-  );
-
-  const [sellerData, setSellerData] = useState<
-    Seller & {
-      sellerLocationZone: string[];
-      accountNumber: string;
-    }
-  >(
-    foundSeller
-      ? {
-          ...foundSeller,
-          sellerLocationZone: foundSeller.sellerLocationZone || [],
-          accountNumber: foundSeller.accountNumber || "",
-        }
-      : {
-          id: 0,
-          sellerLegalName: "",
-          sellerOfficeAddress: "",
-          sellerABN: "",
-          sellerMainNGR: "",
-          sellerAdditionalNGRs: [],
-          sellerContactName: "",
-          sellerEmail: "",
-          sellerPhoneNumber: "",
-          sellerLocationZone: [],
-          accountNumber: "",
-          isDeleted: false,
-          createdAt: "",
-          updatedAt: "",
-        }
-  );
-
-  const [originalSellerData] = useState<Seller | null>(foundSeller || null);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [hasChanges, setHasChanges] = useState(false);
+  
+  useEffect(() => {
+    const getBuyer = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8000/api/sellers/${sellerId}`
+        );
+        setSellerData(res.data);
+      } catch (error) {
+        console.log(error);
+        toast.error("Failed to load buyer data");
+      }
+    };
+    getBuyer();
+  }, [sellerId]);
 
   // Bulk Handler Password state
   const [passwordData, setPasswordData] = useState<{
@@ -92,11 +74,11 @@ const SellerInformationEditPage = () => {
     };
   }, []);
 
-  if (!sellerData) {
-    toast.error(`Seller with ID ${sellerId} not found`);
-    router.push("/seller-management");
-    return null;
-  }
+  // if (!sellerData) {
+  //   toast.error(`Seller with ID ${sellerId} not found`);
+  //   router.push("/seller-management");
+  //   return null;
+  // }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -118,7 +100,7 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        sellerAdditionalNGRs: value.split(",").map((s) => s.trim()),
+        additionalNgrs: value.split(", ").map((s) => s.trim()),
       };
       if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
         setHasChanges(true);
@@ -132,9 +114,9 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        sellerLocationZone: prev.sellerLocationZone.includes(zone)
-          ? prev.sellerLocationZone.filter((z) => z !== zone)
-          : [...prev.sellerLocationZone, zone],
+        locationZone: prev.locationZone.includes(zone) // ✅ Fixed: use locationZone
+          ? prev.locationZone.filter((z) => z !== zone)
+          : [...prev.locationZone, zone],
       };
       if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
         setHasChanges(true);
@@ -148,9 +130,7 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        sellerLocationZone: prev.sellerLocationZone.filter(
-          (z) => z !== zoneToRemove
-        ),
+        locationZone: prev.locationZone.filter((z) => z !== zoneToRemove), // ✅ Fixed: use locationZone
       };
       if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
         setHasChanges(true);
@@ -183,7 +163,7 @@ const SellerInformationEditPage = () => {
     if (originalSellerData) {
       setSellerData({
         ...originalSellerData,
-        sellerLocationZone: originalSellerData.sellerLocationZone || [],
+        locationZone: originalSellerData.locationZone || [],
         accountNumber: originalSellerData.accountNumber || "",
       });
     }
@@ -193,30 +173,32 @@ const SellerInformationEditPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.push("/seller-management");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!sellerData) return;
 
     setSaveStatus("saving");
     try {
-      const index = sellers.findIndex((s) => s.id === sellerData.id);
-      if (index !== -1) {
-        sellers[index] = { ...sellerData };
+      const res = await axios.put(
+        `http://localhost:8000/api/sellers/${sellerId}`,
+        sellerData
+      );
+      if (res.data) {
+        setHasChanges(false);
+        setSaveStatus("success");
+        toast.success("Seller updated successfully!");
+        router.push("/seller-management");
       }
-
-      setHasChanges(false);
-      setSaveStatus("success");
-      toast.success("Seller updated successfully!");
-      router.push("/seller-management");
-      setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
       console.error("Error saving seller:", err);
       setSaveStatus("error");
       toast.error("Failed to update seller");
     }
   };
+
+  if (!sellerData) return <div>Loading...</div>;
 
   return (
     <div>
@@ -246,44 +228,44 @@ const SellerInformationEditPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 w-full border border-gray-300 rounded-md p-6 gap-5 bg-white">
             <Field
               label="Seller Legal Name"
-              name="sellerLegalName"
-              value={sellerData.sellerLegalName}
+              name="legalName"
+              value={sellerData?.legalName}
               onChange={handleInputChange}
             />
             <Field
               label="Office Address"
-              name="sellerOfficeAddress"
-              value={sellerData.sellerOfficeAddress}
+              name="address"
+              value={sellerData.address}
               onChange={handleInputChange}
             />
             <Field
               label="ABN"
-              name="sellerABN"
-              value={sellerData.sellerABN}
+              name="abn"
+              value={sellerData.abn}
               onChange={handleInputChange}
             />
             <Field
               label="Main NGR"
-              name="sellerMainNGR"
-              value={sellerData.sellerMainNGR}
+              name="mainNgr"
+              value={sellerData.mainNgr}
               onChange={handleInputChange}
             />
             <Field
               label="Contact Name"
-              name="sellerContactName"
-              value={sellerData.sellerContactName}
+              name="contractName"
+              value={sellerData.contactName}
               onChange={handleInputChange}
             />
             <Field
               label="Email"
-              name="sellerEmail"
-              value={sellerData.sellerEmail}
+              name="email"
+              value={sellerData.email}
               onChange={handleInputChange}
             />
             <Field
               label="Phone Number"
-              name="sellerPhoneNumber"
-              value={sellerData.sellerPhoneNumber}
+              name="phoneNumber"
+              value={sellerData.phoneNumber}
               onChange={handleInputChange}
             />
             <Field
@@ -300,7 +282,8 @@ const SellerInformationEditPage = () => {
               </label>
               <input
                 type="text"
-                value={sellerData.sellerAdditionalNGRs.join(",")}
+                name="additionalNgrs"
+                value={sellerData.additionalNgrs.join(", ")}
                 onChange={handleAdditionalNGRChange}
                 className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
                 placeholder="Enter NGRs separated by commas"
@@ -318,12 +301,12 @@ const SellerInformationEditPage = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] cursor-pointer min-h-[42px] flex items-center justify-between"
                 >
                   <div className="flex-1 flex flex-wrap gap-1 mr-2">
-                    {sellerData.sellerLocationZone.length === 0 ? (
+                    {sellerData.locationZone.length === 0 ? (
                       <span className="text-gray-500 text-sm">
                         Select location zones...
                       </span>
                     ) : (
-                      sellerData.sellerLocationZone.map((zone) => (
+                      sellerData.locationZone.map((zone) => (
                         <span
                           key={zone}
                           className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#2A5D36] text-white"
@@ -371,16 +354,14 @@ const SellerInformationEditPage = () => {
                         >
                           <input
                             type="checkbox"
-                            checked={sellerData.sellerLocationZone.includes(
-                              zone
-                            )}
+                            checked={sellerData.locationZone.includes(zone)}
                             onChange={() => handleLocationZoneChange(zone)}
                             className="mr-3 h-4 w-4 text-[#2A5D36] focus:ring-[#2A5D36] border-gray-300 rounded"
                           />
                           <span className="text-sm text-gray-700 flex-1">
                             {zone}
                           </span>
-                          {sellerData.sellerLocationZone.includes(zone) && (
+                          {sellerData.locationZone.includes(zone) && (
                             <svg
                               className="w-4 h-4 text-[#2A5D36]"
                               fill="currentColor"
@@ -402,10 +383,20 @@ const SellerInformationEditPage = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            setSellerData((prev) => ({
-                              ...prev,
-                              sellerLocationZone: [],
-                            }));
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = {
+                                ...prev,
+                                locationZone: [],
+                              };
+                              if (
+                                JSON.stringify(updated) !==
+                                JSON.stringify(originalSellerData)
+                              ) {
+                                setHasChanges(true);
+                              }
+                              return updated;
+                            });
                           }}
                           className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
                         >
@@ -414,10 +405,20 @@ const SellerInformationEditPage = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            setSellerData((prev) => ({
-                              ...prev,
-                              sellerLocationZone: [...locationZones],
-                            }));
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = {
+                                ...prev,
+                                locationZone: [...locationZones],
+                              };
+                              if (
+                                JSON.stringify(updated) !==
+                                JSON.stringify(originalSellerData)
+                              ) {
+                                setHasChanges(true);
+                              }
+                              return updated;
+                            });
                           }}
                           className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
                         >

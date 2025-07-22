@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Seller } from "@/types/types";
-import { sellers } from "@/data/data";
+import axios from "axios";
 
 const CreateSellerPage = () => {
   const router = useRouter();
@@ -19,22 +19,19 @@ const CreateSellerPage = () => {
     loremIpsum: "",
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [formData, setFormData] = useState<
-    Omit<Seller, "id" | "isDeleted" | "createdAt" | "updatedAt"> & {
-      sellerLocationZone: string[];
-      accountNumber: string;
-    }
-  >({
-    sellerLegalName: "",
-    sellerOfficeAddress: "",
-    sellerABN: "",
-    sellerMainNGR: "",
-    sellerAdditionalNGRs: [],
-    sellerContactName: "",
-    sellerEmail: "",
-    sellerPhoneNumber: "",
-    sellerLocationZone: [],
+  const [formData, setFormData] = useState<Seller>({
+    legalName: "",
+    address: "",
+    abn: "",
+    mainNgr: "",
+    additionalNgrs: [],
+    contactName: "",
+    email: "",
+    phoneNumber: "",
+    locationZone: [],
     accountNumber: "",
+    authorityActFormPdf: "",
+    authorityToAct: "",
   });
 
   const locationZones = [
@@ -69,36 +66,78 @@ const CreateSellerPage = () => {
   ) => {
     const { name, value } = e.target;
 
-    if (name === "sellerAdditionalNGRs") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value.split(",").map((s) => s.trim()),
-      }));
-    } else {
-      setFormData((prev) => ({
+    setFormData((prev) => {
+      // Special handling for additionalNgrs
+      if (name === "additionalNgrs") {
+        return {
+          ...prev,
+          [name]: value
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s !== ""), // Remove empty strings
+        };
+      }
+
+      // Normal handling for other fields
+      return {
         ...prev,
         [name]: value,
+      };
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; // Get the first selected file
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        authorityActFormPdf: file, // Store the File object
       }));
     }
   };
 
   const handleLocationZoneChange = (zone: string) => {
+    setFormData((prev) => {
+      if (prev.locationZone.includes(zone)) {
+        // Remove zone if already selected
+        return {
+          ...prev,
+          locationZone: prev.locationZone.filter((z) => z !== zone),
+        };
+      } else {
+        // Add zone if not selected
+        return {
+          ...prev,
+          locationZone: [...prev.locationZone, zone],
+        };
+      }
+    });
+  };
+
+  // Remove a single zone
+  const removeZone = (zone: string) => {
     setFormData((prev) => ({
       ...prev,
-      sellerLocationZone: prev.sellerLocationZone.includes(zone)
-        ? prev.sellerLocationZone.filter((z) => z !== zone)
-        : [...prev.sellerLocationZone, zone],
+      locationZone: prev.locationZone.filter((z) => z !== zone),
     }));
   };
 
-  const removeZone = (zoneToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      sellerLocationZone: prev.sellerLocationZone.filter(
-        (z) => z !== zoneToRemove
-      ),
-    }));
-  };
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handlePasswordDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -114,42 +153,31 @@ const CreateSellerPage = () => {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (
-      !formData.sellerLegalName ||
-      !formData.sellerOfficeAddress ||
-      !formData.sellerABN ||
-      !formData.sellerMainNGR ||
-      !formData.sellerContactName
-    ) {
+    // Basic validation
+    if (!formData.legalName || !formData.abn || !formData.contactName) {
       toast.error("Please fill in all required fields");
       return;
     }
-
-    const currentTimestamp = new Date().toISOString();
-    const newId = Math.max(...sellers.map((s) => s.id), 0) + 1;
-
-    const newSeller: Seller & {
-      sellerLocationZone: string[];
-      accountNumber: string;
-    } = {
-      id: newId,
+    const newSeller: Seller = {
       ...formData,
-      isDeleted: false,
-      createdAt: currentTimestamp,
-      updatedAt: currentTimestamp,
     };
 
-    sellers.push(newSeller);
+    console.log(newSeller);
 
-    console.log("New seller created:", newSeller);
-    toast.success("Seller created successfully!");
-
-    setTimeout(() => {
-      router.push("/seller-management");
-    }, 1000);
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/sellers",
+        newSeller
+      );
+      if (res?.data) {
+        toast.success("Seller created successfully!");
+        router.push("/seller-management");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -180,8 +208,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="sellerLegalName"
-                    value={formData.sellerLegalName}
+                    name="legalName"
+                    value={formData.legalName}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -193,8 +221,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="sellerOfficeAddress"
-                    value={formData.sellerOfficeAddress}
+                    name="address"
+                    value={formData.address}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -210,8 +238,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="sellerABN"
-                    value={formData.sellerABN}
+                    name="abn"
+                    value={formData.abn}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -223,8 +251,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="sellerContactName"
-                    value={formData.sellerContactName}
+                    name="contactName"
+                    value={formData.contactName}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -240,8 +268,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="email"
-                    name="sellerEmail"
-                    value={formData.sellerEmail}
+                    name="email"
+                    value={formData.email}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -253,8 +281,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="tel"
-                    name="sellerPhoneNumber"
-                    value={formData.sellerPhoneNumber}
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -270,22 +298,24 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="sellerMainNGR"
-                    value={formData.sellerMainNGR}
+                    name="mainNgr"
+                    value={formData.mainNgr}
                     onChange={handleChange}
                     required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>
+
                 <div className="w-full md:w-1/2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     SELLER ADDITIONAL NGRS (comma separated)
                   </label>
                   <input
                     type="text"
-                    name="sellerAdditionalNGRs"
+                    name="additionalNgrs"
+                    value={formData.additionalNgrs.join(",")}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
                     placeholder="NGR1, NGR2, NGR3"
                   />
                 </div>
@@ -304,12 +334,12 @@ const CreateSellerPage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] cursor-pointer min-h-[42px] flex items-center justify-between"
                     >
                       <div className="flex-1 flex flex-wrap gap-1 mr-2">
-                        {formData.sellerLocationZone.length === 0 ? (
+                        {formData.locationZone.length === 0 ? (
                           <span className="text-gray-500 text-sm">
                             Select location zones...
                           </span>
                         ) : (
-                          formData.sellerLocationZone.map((zone) => (
+                          formData.locationZone.map((zone) => (
                             <span
                               key={zone}
                               className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#2A5D36] text-white"
@@ -360,16 +390,14 @@ const CreateSellerPage = () => {
                             >
                               <input
                                 type="checkbox"
-                                checked={formData.sellerLocationZone.includes(
-                                  zone
-                                )}
+                                checked={formData.locationZone.includes(zone)}
                                 onChange={() => handleLocationZoneChange(zone)}
                                 className="mr-3 h-4 w-4 text-[#2A5D36] focus:ring-[#2A5D36] border-gray-300 rounded"
                               />
                               <span className="text-sm text-gray-700 flex-1">
                                 {zone}
                               </span>
-                              {formData.sellerLocationZone.includes(zone) && (
+                              {formData.locationZone.includes(zone) && (
                                 <svg
                                   className="w-4 h-4 text-[#2A5D36]"
                                   fill="currentColor"
@@ -419,6 +447,7 @@ const CreateSellerPage = () => {
                     )}
                   </div>
                 </div>
+
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-medium text-gray-700">
                     ACCOUNT NUMBER
@@ -442,6 +471,8 @@ const CreateSellerPage = () => {
                   </label>
                   <input
                     type="file"
+                    name="authorityActFormPdf"
+                    onChange={handleFileChange}
                     accept="application/pdf"
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />

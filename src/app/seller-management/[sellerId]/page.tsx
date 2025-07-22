@@ -1,6 +1,6 @@
 "use client";
-import { sellers } from "@/data/data";
 import { Seller } from "@/types/types";
+import axios from "axios";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ const SellerInformationPage = () => {
   const { sellerId } = useParams();
   const [sellerData, setSellerData] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -18,24 +18,20 @@ const SellerInformationPage = () => {
     router.push("/contract-management");
   };
   useEffect(() => {
-    const fetchSellerData = () => {
-      setLoading(true);
-
-      const foundSeller = sellers.find(
-        (seller) => seller.id.toString() === sellerId
-      );
-
-      if (foundSeller) {
-        setSellerData(foundSeller);
-        setError(null);
-      } else {
-        setError(`Seller with ID ${sellerId} not found`);
+    const getBuyer = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8000/api/sellers/${sellerId}`
+        );
+        setSellerData(res.data);
+        if (res.data) {
+          setLoading(false)
+        }
+      } catch (error) {
+        console.log(error)
       }
-
-      setLoading(false);
     };
-
-    fetchSellerData();
+    getBuyer();
   }, [sellerId]);
 
   if (loading) {
@@ -44,9 +40,9 @@ const SellerInformationPage = () => {
     );
   }
 
-  if (error) {
-    return <div className="text-center py-10 text-red-500">Error: {error}</div>;
-  }
+  // if (error) {
+  //   return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  // }
 
   if (!sellerData) {
     return <div className="text-center py-10">No seller data found</div>;
@@ -66,7 +62,7 @@ const SellerInformationPage = () => {
 
       {/* Title */}
       <div className="my-10 text-center">
-        <p className="text-lg">{sellerData.sellerLegalName}</p>
+        <p className="text-lg">{sellerData.legalName}</p>
       </div>
 
       {/* Info Grid */}
@@ -74,26 +70,26 @@ const SellerInformationPage = () => {
         <div className="grid grid-cols-2 w-full border border-gray-300 rounded-md">
           <InfoRow
             label="Seller Legal Name"
-            value={sellerData.sellerLegalName}
+            value={sellerData.legalName}
           />
-          <InfoRow label="Seller ABN" value={sellerData.sellerABN} />
+          <InfoRow label="Seller ABN" value={sellerData.abn} />
           <InfoRow
             label="Seller Additional NGRs"
-            value={sellerData.sellerAdditionalNGRs.join(", ")}
+            value={sellerData.additionalNgrs.join(", ")}
           />
-          <InfoRow label="Seller Email" value={sellerData.sellerEmail} />
+          <InfoRow label="Seller Email" value={sellerData.email} />
           <InfoRow
             label="Seller Farm or PO Address"
-            value={sellerData.sellerOfficeAddress}
+            value={sellerData.address}
           />
-          <InfoRow label="Seller Main NGR" value={sellerData.sellerMainNGR} />
+          <InfoRow label="Seller Main NGR" value={sellerData.mainNgr} />
           <InfoRow
             label="Seller Contact Name"
-            value={sellerData.sellerContactName}
+            value={sellerData.contactName}
           />
           <InfoRow
             label="Seller Phone Number"
-            value={sellerData.sellerPhoneNumber}
+            value={sellerData.phoneNumber}
           />
         </div>
 

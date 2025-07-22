@@ -32,20 +32,39 @@ export interface Buyer {
 }
 
 export interface Seller {
-  sellerLocationZone: string[];
+  _id?: string;
+  legalName: string;
+  abn: string;
+  additionalNgrs: string[];
   accountNumber: string;
-  id: number;
-  sellerLegalName: string;
-  sellerOfficeAddress: string;
-  sellerABN: string;
-  sellerMainNGR: string;
-  sellerAdditionalNGRs: string[];
-  sellerContactName: string;
-  sellerEmail: string;
-  sellerPhoneNumber: string;
-  isDeleted: boolean;
-  createdAt: string; // ISO datetime format
-  updatedAt: string; // ISO datetime format
+  email: string;
+  authorityToAct: string;
+  address: string;
+  mainNgr: string;
+  contactName: string;
+  locationZone: string[];
+  phoneNumber: string;
+  authorityActFormPdf: string | File;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdAt?: string;
+
+  bulkHandlerCredentials?: {
+    handlerName: {
+      type: StringConstructor;
+      enum: [
+        "Viterra",
+        "Graincorp",
+        "GrainFlow",
+        "Tports",
+        "CBH",
+        "Louis Dreyfus"
+      ];
+      required: true;
+    };
+    identifier?: string; // Username / Email / PAN no
+    password?: string;
+  };
 }
 
 export interface ContractAttachments {
