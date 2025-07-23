@@ -28,6 +28,7 @@ export interface Buyer {
   email: string;
   phoneNumber: string;
   isDeleted?: boolean;
+  deletedAt? : string;
   createdAt?: string;
 }
 
@@ -79,7 +80,7 @@ export interface Contract {
   destination: string;
   grower: string;
   season: string;
-  id: number;
+  _id: string;
   contractNumber: string;
   tonnes: string;
   certificationScheme: string;
@@ -108,6 +109,7 @@ export interface Contract {
   attachments: ContractAttachments;
   status: ContractStatus;
   isDeleted: boolean;
+  deletedAt : string;
   createdAt: string; // ISO datetime format
   updatedAt: string; // ISO datetime format
 }

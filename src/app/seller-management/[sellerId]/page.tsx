@@ -15,7 +15,7 @@ const SellerInformationPage = () => {
   const router = useRouter();
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.push("/seller-management");
   };
   useEffect(() => {
     const getBuyer = async () => {
