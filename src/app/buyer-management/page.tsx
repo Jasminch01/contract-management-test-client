@@ -1,4 +1,5 @@
 "use client";
+import { getBuyers } from "@/api/buyerApi";
 import { Buyer } from "@/types/types";
 import axios from "axios";
 import Link from "next/link";
@@ -88,17 +89,17 @@ const BuyerManagementPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const buyers = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/buyers`);
-        console.log(res.data);
-        setData(res.data);
-        setFilteredData(res.data);
-      } catch (error) {
-        console.log(error);
+        const buyerData = await getBuyers();
+        setData(buyerData);
+      } catch (err) {
+        console.log(err);
+      } finally {
       }
     };
-    buyers();
+
+    fetchData();
   }, []);
 
   // Filter options for date filter dropdown

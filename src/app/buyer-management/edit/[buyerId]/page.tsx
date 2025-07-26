@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { getBuyer, updateBuyer } from "@/api/buyerApi";
 
 const BuyerInformationEditPage = () => {
   const { buyerId } = useParams();
@@ -17,22 +17,21 @@ const BuyerInformationEditPage = () => {
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [hasChanges, setHasChanges] = useState(false);
+  const buyerIdString = buyerId?.toString() as string;
 
   useEffect(() => {
-    const getBuyer = async () => {
+    const buyer = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8000/api/buyers/${buyerId}`
-        );
-        setBuyerData(res.data);
-        setOriginalBuyerData(res.data);
+        const res = await getBuyer(buyerIdString);
+        setBuyerData(res);
+        setOriginalBuyerData(res);
       } catch (error) {
         console.log(error);
         toast.error("Failed to load buyer data");
       }
     };
-    getBuyer();
-  }, [buyerId]);
+    buyer();
+  }, [buyerIdString]);
 
   useEffect(() => {
     if (buyerData && originalBuyerData) {
@@ -63,12 +62,9 @@ const BuyerInformationEditPage = () => {
   const handleSave = async () => {
     if (!buyerData) return;
     try {
-      const res = await axios.put(
-        `http://localhost:8000/api/buyers/${buyerId}`,
-        buyerData
-      );
-      if (res.data) {
-        setOriginalBuyerData(res.data);
+      const res = await updateBuyer(buyerData, buyerIdString);
+      if (res) {
+        setOriginalBuyerData(res);
         setSaveStatus("success");
         toast.success("Buyer information updated successfully");
 

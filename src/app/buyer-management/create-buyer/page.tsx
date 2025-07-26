@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Buyer } from "@/types/types"; // Import from types
-import axios from "axios";
+import { createBuyer } from "@/api/buyerApi";
 
 const CreateBuyerPage = () => {
   const router = useRouter();
@@ -35,11 +35,8 @@ const CreateBuyerPage = () => {
       ...formData,
     };
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/buyers",
-        newBuyer
-      );
-      if (res?.data) {
+      const res = await createBuyer(newBuyer);
+      if (res) {
         toast.success("Buyer created successfully!");
         router.push("/buyer-management");
       }

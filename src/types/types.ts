@@ -10,6 +10,39 @@ export interface HistoricalPrice {
 export interface HistoricalPricesData {
   historical_prices: HistoricalPrice[];
 }
+
+export interface PortZoneBid {
+  _id?: string; // MongoDB _id mapped to this
+  label:
+    | "Outer Harbor"
+    | "Port Lincoln"
+    | "Port Giles"
+    | "Wallaroo"
+    | "Lucky Bay"
+    | "Thevenard"
+    | "Wallaroo Tports";
+  season: string;
+
+  // Bid types - matching backend schema exactly
+  APW1: number | null;
+  H1: number | number | null;
+  H2: number | null;
+  AUH2: number | null;
+  ASW1: number | null;
+  AGP1: number | null;
+  SFW1: number | null;
+  BAR1: number | null;
+  MA1: number | null;
+  CM1: number | null;
+  COMD: number | null;
+  CANS: number | null;
+  FIEV: number | null;
+  "NIP/HAL": number | null;
+  // Timestamps (handled by MongoDB)
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface Note {
   id: string;
   noteName: string;
@@ -28,7 +61,7 @@ export interface Buyer {
   email: string;
   phoneNumber: string;
   isDeleted?: boolean;
-  deletedAt? : string;
+  deletedAt?: string;
   createdAt?: string;
 }
 
@@ -109,7 +142,7 @@ export interface Contract {
   attachments: ContractAttachments;
   status: ContractStatus;
   isDeleted: boolean;
-  deletedAt : string;
+  deletedAt: string;
   createdAt: string; // ISO datetime format
   updatedAt: string; // ISO datetime format
 }

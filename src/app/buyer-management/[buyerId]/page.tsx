@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { getBuyer } from "@/api/buyerApi";
 
 const BuyerInformationPage = () => {
   const { buyerId } = useParams();
@@ -18,6 +18,7 @@ const BuyerInformationPage = () => {
     e.preventDefault();
     router.push("/buyer-management");
   };
+  const buyerIdString = buyerId?.toString() as string;
 
   useEffect(() => {
     const fetchBuyerData = async () => {
@@ -25,14 +26,12 @@ const BuyerInformationPage = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(
-          `http://localhost:8000/api/buyers/${buyerId}`
-        );
+        const response = await getBuyer(buyerIdString);
 
-        if (response.data) {
-          setBuyerData(response.data);
+        if (response) {
+          setBuyerData(response);
         } else {
-          setError(`Buyer with ID ${buyerId} not found`);
+          setError(`Buyer with ID ${buyerIdString} not found`);
         }
       } catch (err) {
         console.error("Error fetching buyer data:", err);
@@ -44,7 +43,7 @@ const BuyerInformationPage = () => {
     };
 
     fetchBuyerData();
-  }, [buyerId]);
+  }, [buyerIdString]);
 
   if (loading) {
     return (
