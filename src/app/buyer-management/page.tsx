@@ -1,7 +1,7 @@
 "use client";
-import { getBuyers } from "@/api/buyerApi";
+import { getBuyers, moveBuyersToTrash } from "@/api/buyerApi";
 import { Buyer } from "@/types/types";
-import axios from "axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -78,7 +78,6 @@ const customStyles = {
 };
 
 const BuyerManagementPage = () => {
-  const [data, setData] = useState<Buyer[]>([]);
   const [filteredData, setFilteredData] = useState<Buyer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
@@ -87,20 +86,40 @@ const BuyerManagementPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "lastWeek"
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const buyerData = await getBuyers();
-        setData(buyerData);
-      } catch (err) {
-        console.log(err);
-      } finally {
-      }
-    };
+  // TanStack Query for fetching buyers
+  const {
+    data: data = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["buyers"],
+    queryFn: getBuyers,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  });
 
-    fetchData();
-  }, []);
+  // Mutation for deleting buyers
+  const deleteBuyersMutation = useMutation({
+    mutationFn: moveBuyersToTrash,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch buyers data
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+
+      setToggleCleared(!toggleCleared);
+      setIsDeleteConfirmOpen(false);
+      toast.success(`${variables.length} buyer(s) moved to trash`);
+
+      // Clear selected rows
+      setSelectedRows([]);
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete buyers");
+    },
+  });
 
   // Filter options for date filter dropdown
   const dateFilterOptions = [
@@ -181,24 +200,17 @@ const BuyerManagementPage = () => {
   };
 
   const confirmDelete = async () => {
-    try {
-      if (selectedRows.length === 0) return; // No selection
+    if (selectedRows.length === 0) return;
 
-      const idsToDelete = selectedRows.map((row) => row._id); // Always works
+    const idsToDelete = selectedRows.reduce<string[]>((acc, row) => {
+      if (row._id) acc.push(row._id);
+      return acc;
+    }, []);
 
-      await Promise.all(
-        idsToDelete.map((id) =>
-          axios.patch(`http://localhost:8000/api/buyers/${id}/trash`)
-        )
-      );
+    if (idsToDelete.length === 0) return;
 
-      setToggleCleared(!toggleCleared);
-      setIsDeleteConfirmOpen(false);
-      toast.success(`${idsToDelete.length} buyer(s) moved to trash`);
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete buyers");
-    }
+    // Use the mutation instead of direct API call
+    deleteBuyersMutation.mutate(idsToDelete);
   };
 
   const handleFilter = () => {
@@ -214,6 +226,37 @@ const BuyerManagementPage = () => {
     setDateFilter("all");
     setIsFilterOpen(false);
   };
+
+  // Handle loading and error states
+  if (isLoading) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2A5D36] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading buyers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center text-red-600">
+          <p className="text-lg font-semibold">Error loading buyers</p>
+          <p>{error?.message || "Something went wrong"}</p>
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["buyers"] })
+            }
+            className="mt-4 px-4 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-20">
@@ -231,7 +274,6 @@ const BuyerManagementPage = () => {
         </div>
 
         {/* Search Input */}
-
         <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
@@ -282,13 +324,19 @@ const BuyerManagementPage = () => {
             <button
               onClick={handleDelete}
               className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !deleteBuyersMutation.isPending
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50"
               }`}
-              disabled={selectedRows.length === 0}
+              disabled={
+                selectedRows.length === 0 || deleteBuyersMutation.isPending
+              }
             >
-              <RiDeleteBin6Fill className="text-red-500" />
+              {deleteBuyersMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+              ) : (
+                <RiDeleteBin6Fill className="text-red-500" />
+              )}
               Delete
             </button>
 
@@ -391,8 +439,8 @@ const BuyerManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
@@ -408,13 +456,18 @@ const BuyerManagementPage = () => {
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={deleteBuyersMutation.isPending}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e] flex items-center gap-2"
+                  disabled={deleteBuyersMutation.isPending}
                 >
+                  {deleteBuyersMutation.isPending && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
                   Delete
                 </button>
               </div>

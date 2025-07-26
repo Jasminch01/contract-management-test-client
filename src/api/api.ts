@@ -24,7 +24,7 @@ instance.interceptors.request.use(
 // Add response interceptor
 instance.interceptors.response.use(
   (response) => {
-    return response;
+    return response.data;
   },
   (error) => {
     // Handle response error (e.g., redirect to login on 401)

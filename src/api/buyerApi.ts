@@ -4,7 +4,7 @@ import { Buyer } from "@/types/types";
 
 export const getBuyer = async (buyerId: string) => {
   try {
-    const { data } = await instance.get(`buyers/${buyerId}`);
+    const data = await instance.get(`buyers/${buyerId}`);
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -32,7 +32,7 @@ export const getBuyers = async (): Promise<Buyer[]> => {
 
 export const createBuyer = async (newBuyer: Buyer) => {
   try {
-    const { data } = await instance.post(`buyers`, newBuyer);
+    const data = await instance.post(`buyers`, newBuyer);
     return data;
   } catch (error) {
     return error;
@@ -41,9 +41,22 @@ export const createBuyer = async (newBuyer: Buyer) => {
 
 export const updateBuyer = async (updatedBuyerData: Buyer, buyerId: string) => {
   try {
-    const { data } = await instance.put(`buyers/${buyerId}`, updatedBuyerData);
+    const data = await instance.put(`buyers/${buyerId}`, updatedBuyerData);
     return data;
   } catch (error) {
     return error;
+  }
+};
+
+export const moveBuyersToTrash = async (buyerIds: string[]): Promise<void> => {
+  try {
+    if (buyerIds.length === 0) return;
+
+    await Promise.all(
+      buyerIds.map((id) => instance.patch(`buyers/${id}/trash`))
+    );
+  } catch (error) {
+    console.error("Move to trash error:", error);
+    throw error;
   }
 };

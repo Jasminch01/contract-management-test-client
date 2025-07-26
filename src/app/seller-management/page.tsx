@@ -10,7 +10,8 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { Seller } from "@/types/types";
 import toast, { Toaster } from "react-hot-toast";
-import axios from "axios";
+import { getsellers, moveSelllersToTrash } from "@/api/sellerApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const columns = [
   {
@@ -78,7 +79,6 @@ const customStyles = {
 };
 
 const SellerManagementPage = () => {
-  const [data, setData] = useState<Seller[]>();
   const [filteredData, setFilteredData] = useState<Seller[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Seller[]>([]);
@@ -87,19 +87,39 @@ const SellerManagementPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "lastWeek"
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const getSeller = async () => {
-      try {
-        const res = await axios.get(`http://localhost:8000/api/sellers`);
-        setData(res.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getSeller();
-  }, []);
+  // TanStack Query for fetching buyers
+  const {
+    data: data = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["sellers"],
+    queryFn: getsellers,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  });
 
+  const deleteSellerMutation = useMutation({
+    mutationFn: moveSelllersToTrash,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch buyers data
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+
+      setToggleCleared(!toggleCleared);
+      setIsDeleteConfirmOpen(false);
+      toast.success(`${variables.length} buyer(s) moved to trash`);
+
+      // Clear selected rows
+      setSelectedRows([]);
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete buyers");
+    },
+  });
   // Filter options for date filter dropdown
   const dateFilterOptions = [
     { value: "all", label: "All Time" },
@@ -184,24 +204,15 @@ const SellerManagementPage = () => {
   };
 
   const confirmDelete = async () => {
-    try {
-      if (selectedRows.length === 0) return; // No selection
+    if (selectedRows.length === 0) return; // No selection
 
-      const idsToDelete = selectedRows.map((row) => row._id); // Always works
+    const idsToDelete = selectedRows.reduce<string[]>((acc, row) => {
+      if (row._id) acc.push(row._id);
+      return acc;
+    }, []);
 
-      await Promise.all(
-        idsToDelete.map((id) =>
-          axios.patch(`http://localhost:8000/api/sellers/${id}/trash`)
-        )
-      );
-
-      setToggleCleared(!toggleCleared);
-      setIsDeleteConfirmOpen(false);
-      toast.success(`${idsToDelete.length} seller(s) moved to trash`);
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete sellers");
-    }
+    if (idsToDelete.length === 0) return;
+    deleteSellerMutation.mutate(idsToDelete);
   };
 
   const handleFilter = () => {
@@ -217,6 +228,35 @@ const SellerManagementPage = () => {
     setDateFilter("all");
     setIsFilterOpen(false);
   };
+  if (isLoading) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2A5D36] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading buyers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center text-red-600">
+          <p className="text-lg font-semibold">Error loading buyers</p>
+          <p>{error?.message || "Something went wrong"}</p>
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["buyers"] })
+            }
+            className="mt-4 px-4 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-20">
@@ -358,7 +398,6 @@ const SellerManagementPage = () => {
             </div>
           </div>
         </div>
-
         {/* DataTable */}
         <div className="overflow-auto border border-gray-200 shadow-sm">
           <DataTable

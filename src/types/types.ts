@@ -57,6 +57,7 @@ export interface Buyer {
   name: string;
   abn: string;
   officeAddress: string;
+  accountNumber : string;
   contactName: string;
   email: string;
   phoneNumber: string;

@@ -5,34 +5,88 @@ import React, { useState, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
 import { getBuyer, updateBuyer } from "@/api/buyerApi";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const BuyerInformationEditPage = () => {
   const { buyerId } = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const buyerIdString = buyerId?.toString() as string;
+
   const [buyerData, setBuyerData] = useState<Buyer | null>(null);
   const [originalBuyerData, setOriginalBuyerData] = useState<Buyer | null>(
     null
   );
-  const [saveStatus, setSaveStatus] = useState<
-    "idle" | "saving" | "success" | "error"
-  >("idle");
   const [hasChanges, setHasChanges] = useState(false);
-  const buyerIdString = buyerId?.toString() as string;
 
-  useEffect(() => {
-    const buyer = async () => {
-      try {
-        const res = await getBuyer(buyerIdString);
-        setBuyerData(res);
-        setOriginalBuyerData(res);
-      } catch (error) {
-        console.log(error);
-        toast.error("Failed to load buyer data");
+  // Query to fetch buyer data
+  const {
+    data: fetchedBuyerData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["buyer", buyerIdString],
+    queryFn: () => getBuyer(buyerIdString) as Promise<Buyer>,
+    enabled: !!buyerIdString,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+  });
+
+  // Mutation to update buyer data
+  const updateBuyerMutation = useMutation({
+    mutationFn: (updatedBuyer: Buyer) =>
+      updateBuyer(updatedBuyer, buyerIdString),
+    onMutate: async (updatedBuyer) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["buyer", buyerIdString] });
+
+      // Snapshot the previous value
+      const previousBuyer = queryClient.getQueryData(["buyer", buyerIdString]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["buyer", buyerIdString], updatedBuyer);
+
+      return { previousBuyer };
+    },
+    onError: (error, updatedBuyer, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousBuyer) {
+        queryClient.setQueryData(
+          ["buyer", buyerIdString],
+          context.previousBuyer
+        );
       }
-    };
-    buyer();
-  }, [buyerIdString]);
+      console.error(error);
+      toast.error("Failed to update buyer information");
+    },
+    onSuccess: () => {
+      toast.success("Buyer information updated successfully");
 
+      // Invalidate and refetch buyer data to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
+
+      // Also invalidate the buyers list if you have one
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+
+      // Navigate back to buyer management
+      router.push(`/buyer-management`);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure server state consistency
+      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
+    },
+  });
+
+  // Set local state when data is fetched
+  useEffect(() => {
+    if (fetchedBuyerData) {
+      setBuyerData(fetchedBuyerData);
+      setOriginalBuyerData(fetchedBuyerData);
+    }
+  }, [fetchedBuyerData]);
+
+  // Track changes
   useEffect(() => {
     if (buyerData && originalBuyerData) {
       const changesExist =
@@ -41,7 +95,51 @@ const BuyerInformationEditPage = () => {
     }
   }, [buyerData, originalBuyerData]);
 
-  if (!buyerData) return <div>Loading...</div>;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+          <p className="text-gray-600">Loading buyer data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load buyer data"}
+          </p>
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({
+                queryKey: ["buyer", buyerIdString],
+              })
+            }
+            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!buyerData) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <p className="text-red-500">Buyer not found</p>
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,32 +154,18 @@ const BuyerInformationEditPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/buyer-management");
+    router.back();
   };
 
   const handleSave = async () => {
     if (!buyerData) return;
-    try {
-      const res = await updateBuyer(buyerData, buyerIdString);
-      if (res) {
-        setOriginalBuyerData(res);
-        setSaveStatus("success");
-        toast.success("Buyer information updated successfully");
-
-        router.push("/buyer-management");
-      }
-    } catch (error) {
-      console.error(error);
-      setSaveStatus("error");
-      toast.error("Failed to update buyer information");
-    }
+    updateBuyerMutation.mutate(buyerData);
   };
 
   const handleCancel = () => {
     if (originalBuyerData) {
       setBuyerData({ ...originalBuyerData });
     }
-    setSaveStatus("idle");
     setHasChanges(false);
   };
 
@@ -135,6 +219,12 @@ const BuyerInformationEditPage = () => {
               value={buyerData.phoneNumber || ""}
               onChange={handleInputChange}
             />
+            <Field
+              label="Account Number"
+              name="accountNumber"
+              value={buyerData.accountNumber || ""}
+              onChange={handleInputChange}
+            />
           </div>
 
           {/* Action Buttons */}
@@ -142,18 +232,19 @@ const BuyerInformationEditPage = () => {
             <div className="mt-10 flex gap-3">
               <button
                 onClick={handleCancel}
-                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                disabled={updateBuyerMutation.isPending}
+                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdCancel className="text-lg" />
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                disabled={saveStatus === "saving"}
+                disabled={updateBuyerMutation.isPending}
                 className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdSave className="text-lg" />
-                {saveStatus === "saving" ? "Saving..." : "Save"}
+                {updateBuyerMutation.isPending ? "Saving..." : "Save"}
               </button>
             </div>
           )}

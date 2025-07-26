@@ -1,10 +1,10 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import "./globals.css";
 import localFont from "next/font/local";
 import Sidebar from "@/components/Sidebar";
+import QueryProvider from "@/provider/QueryProvider";
 
 const satoshiFont = localFont({
   src: [
@@ -57,16 +57,18 @@ export default function RootLayout({
     <html lang="en">
       <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
       <body className={satoshiFont.className}>
-        {isAuthenticated ? (
-          <div className="md:flex">
-            <Sidebar />
-            <div className="md:flex-1 h-screen lg:w-[20rem] w-full">
-              {children}
+        <QueryProvider>
+          {isAuthenticated ? (
+            <div className="md:flex">
+              <Sidebar />
+              <div className="md:flex-1 h-screen lg:w-[20rem] w-full">
+                {children}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="min-h-screen bg-gray-50">{children}</div>
-        )}
+          ) : (
+            <div className="min-h-screen bg-gray-50">{children}</div>
+          )}
+        </QueryProvider>
       </body>
     </html>
   );

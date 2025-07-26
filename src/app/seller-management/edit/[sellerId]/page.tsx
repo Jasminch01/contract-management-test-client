@@ -4,13 +4,17 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { getseller, updateSeller } from "@/api/sellerApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const SellerInformationEditPage = () => {
   const { sellerId } = useParams();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [sellerData, setSellerData] = useState<Seller | null>(null);
-  const [originalSellerData] = useState<Seller | null>(null);
+  const [originalSellerData, setOriginalSellerData] = useState<Seller | null>(
+    null
+  );
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,21 +23,24 @@ const SellerInformationEditPage = () => {
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [hasChanges, setHasChanges] = useState(false);
-  
-  useEffect(() => {
-    const getBuyer = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:8000/api/sellers/${sellerId}`
-        );
-        setSellerData(res.data);
-      } catch (error) {
-        console.log(error);
-        toast.error("Failed to load buyer data");
-      }
-    };
-    getBuyer();
-  }, [sellerId]);
+
+  // Fix: Ensure sellerId is properly handled
+  const sellerIdStr = Array.isArray(sellerId)
+    ? sellerId[0]
+    : sellerId?.toString();
+
+  const {
+    data: fetchSellerData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["seller", sellerIdStr],
+    queryFn: () => getseller(sellerIdStr!) as Promise<Seller>,
+    enabled: !!sellerIdStr,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+  });
 
   // Bulk Handler Password state
   const [passwordData, setPasswordData] = useState<{
@@ -74,24 +81,91 @@ const SellerInformationEditPage = () => {
     };
   }, []);
 
-  // if (!sellerData) {
-  //   toast.error(`Seller with ID ${sellerId} not found`);
-  //   router.push("/seller-management");
-  //   return null;
-  // }
+  // Mutation to update seller data
+  const updateSellerMutation = useMutation({
+    mutationFn: (updatedSeller: Seller) =>
+      updateSeller(updatedSeller, sellerIdStr!),
+    onMutate: async (updatedSeller) => {
+      setSaveStatus("saving");
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["seller", sellerIdStr] });
+
+      // Snapshot the previous value
+      const previousSeller = queryClient.getQueryData(["seller", sellerIdStr]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["seller", sellerIdStr], updatedSeller);
+
+      return { previousSeller };
+    },
+    onError: (error, updatedSeller, context) => {
+      setSaveStatus("error");
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousSeller) {
+        queryClient.setQueryData(
+          ["seller", sellerIdStr],
+          context.previousSeller
+        );
+      }
+      console.error("Update seller error:", error);
+      toast.error("Failed to update seller information");
+    },
+    onSuccess: () => {
+      setSaveStatus("success");
+      toast.success("Seller information updated successfully");
+      setHasChanges(false);
+
+      // Invalidate and refetch seller data to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+
+      // Also invalidate the sellers list if you have one
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+
+      // Navigate back to seller management after a short delay
+      setTimeout(() => {
+        router.push(`/seller-management`);
+      }, 1000);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure server state consistency
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+    },
+  });
+
+  useEffect(() => {
+    if (fetchSellerData) {
+      // Fix: Ensure proper initialization with default values
+      const initializedData = {
+        ...fetchSellerData,
+        locationZone: fetchSellerData.locationZone || [],
+        additionalNgrs: fetchSellerData.additionalNgrs || [],
+        accountNumber: fetchSellerData.accountNumber || "",
+        contactName:
+          fetchSellerData.contactName || fetchSellerData.legalName || "",
+      };
+
+      setSellerData(initializedData);
+      setOriginalSellerData(initializedData);
+    }
+  }, [fetchSellerData]);
+
+  // Fix: Utility function to check for changes
+  const checkForChanges = (updatedData: Seller) => {
+    if (!originalSellerData) return false;
+    return JSON.stringify(updatedData) !== JSON.stringify(originalSellerData);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSellerData((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, [name]: value };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
 
+  // Fix: Handle Additional NGRs change properly
   const handleAdditionalNGRChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -100,27 +174,30 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        additionalNgrs: value.split(", ").map((s) => s.trim()),
+        additionalNgrs: value
+          ? value
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s)
+          : [],
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
 
+  // Fix: Handle Location Zone change properly
   const handleLocationZoneChange = (zone: string) => {
     setSellerData((prev) => {
       if (!prev) return prev;
+      const currentZones = prev.locationZone || [];
       const updated = {
         ...prev,
-        locationZone: prev.locationZone.includes(zone) // ✅ Fixed: use locationZone
-          ? prev.locationZone.filter((z) => z !== zone)
-          : [...prev.locationZone, zone],
+        locationZone: currentZones.includes(zone)
+          ? currentZones.filter((z) => z !== zone)
+          : [...currentZones, zone],
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
@@ -130,11 +207,11 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        locationZone: prev.locationZone.filter((z) => z !== zoneToRemove), // ✅ Fixed: use locationZone
+        locationZone: (prev.locationZone || []).filter(
+          (z) => z !== zoneToRemove
+        ),
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
@@ -161,11 +238,7 @@ const SellerInformationEditPage = () => {
 
   const handleCancel = () => {
     if (originalSellerData) {
-      setSellerData({
-        ...originalSellerData,
-        locationZone: originalSellerData.locationZone || [],
-        accountNumber: originalSellerData.accountNumber || "",
-      });
+      setSellerData({ ...originalSellerData });
     }
     setHasChanges(false);
     setSaveStatus("idle");
@@ -173,32 +246,87 @@ const SellerInformationEditPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (hasChanges) {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (!confirmLeave) return;
+    }
     router.push("/seller-management");
   };
 
   const handleSave = async () => {
-    if (!sellerData) return;
-
-    setSaveStatus("saving");
-    try {
-      const res = await axios.put(
-        `http://localhost:8000/api/sellers/${sellerId}`,
-        sellerData
-      );
-      if (res.data) {
-        setHasChanges(false);
-        setSaveStatus("success");
-        toast.success("Seller updated successfully!");
-        router.push("/seller-management");
-      }
-    } catch (err) {
-      console.error("Error saving seller:", err);
-      setSaveStatus("error");
-      toast.error("Failed to update seller");
-    }
+    if (!sellerData || !sellerIdStr) return;
+    updateSellerMutation.mutate(sellerData);
   };
 
-  if (!sellerData) return <div>Loading...</div>;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+          <p className="text-gray-600">Loading seller data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load seller data"}
+          </p>
+          <div className="space-x-4">
+            <button
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["seller", sellerIdStr],
+                })
+              }
+              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => router.push("/seller-management")}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Back to Seller Management
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fix: Better handling of seller not found case
+  if (!sellerData && !isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">
+            Seller with ID {sellerId} not found
+          </p>
+          <button
+            onClick={() => router.push("/seller-management")}
+            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+          >
+            Back to Seller Management
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sellerData) {
+    return null;
+  }
 
   return (
     <div>
@@ -229,84 +357,70 @@ const SellerInformationEditPage = () => {
             <Field
               label="Seller Legal Name"
               name="legalName"
-              value={sellerData?.legalName}
+              value={sellerData?.legalName || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Office Address"
               name="address"
-              value={sellerData.address}
+              value={sellerData.address || ""}
               onChange={handleInputChange}
             />
             <Field
               label="ABN"
               name="abn"
-              value={sellerData.abn}
+              value={sellerData.abn || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Main NGR"
               name="mainNgr"
-              value={sellerData.mainNgr}
+              value={sellerData.mainNgr || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Contact Name"
-              name="contractName"
-              value={sellerData.contactName}
+              name="contactName"
+              value={sellerData.contactName || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Email"
               name="email"
-              value={sellerData.email}
+              value={sellerData.email || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Phone Number"
               name="phoneNumber"
-              value={sellerData.phoneNumber}
+              value={sellerData.phoneNumber || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Account Number"
               name="accountNumber"
-              value={sellerData.accountNumber}
+              value={sellerData.accountNumber || ""}
               onChange={handleInputChange}
             />
 
-            {/* Additional NGRs */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Additional NGRs
-              </label>
-              <input
-                type="text"
-                name="additionalNgrs"
-                value={sellerData.additionalNgrs.join(", ")}
-                onChange={handleAdditionalNGRChange}
-                className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
-                placeholder="Enter NGRs separated by commas"
-              />
-            </div>
-
-            {/* Location Zone */}
-            <div>
+            {/* Fix: Location Zone Selector */}
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SELLER LOCATION ZONE
+                SELLER LOCATION ZONE (Multiple Select)
               </label>
               <div className="relative" ref={dropdownRef}>
+                {/* Dropdown Button with Selected Items Inside */}
                 <div
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] cursor-pointer min-h-[42px] flex items-center justify-between"
                 >
                   <div className="flex-1 flex flex-wrap gap-1 mr-2">
-                    {sellerData.locationZone.length === 0 ? (
+                    {(sellerData.locationZone || []).length === 0 ? (
                       <span className="text-gray-500 text-sm">
                         Select location zones...
                       </span>
                     ) : (
-                      sellerData.locationZone.map((zone) => (
+                      (sellerData.locationZone || []).map((zone) => (
                         <span
                           key={zone}
                           className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#2A5D36] text-white"
@@ -344,6 +458,7 @@ const SellerInformationEditPage = () => {
                   </svg>
                 </div>
 
+                {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                     <div className="py-1">
@@ -354,14 +469,16 @@ const SellerInformationEditPage = () => {
                         >
                           <input
                             type="checkbox"
-                            checked={sellerData.locationZone.includes(zone)}
+                            checked={(sellerData.locationZone || []).includes(
+                              zone
+                            )}
                             onChange={() => handleLocationZoneChange(zone)}
                             className="mr-3 h-4 w-4 text-[#2A5D36] focus:ring-[#2A5D36] border-gray-300 rounded"
                           />
                           <span className="text-sm text-gray-700 flex-1">
                             {zone}
                           </span>
-                          {sellerData.locationZone.includes(zone) && (
+                          {(sellerData.locationZone || []).includes(zone) && (
                             <svg
                               className="w-4 h-4 text-[#2A5D36]"
                               fill="currentColor"
@@ -377,58 +494,24 @@ const SellerInformationEditPage = () => {
                         </label>
                       ))}
                     </div>
-
-                    <div className="border-t border-gray-200 px-3 py-2 bg-gray-50">
-                      <div className="flex justify-between">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSellerData((prev) => {
-                              if (!prev) return prev;
-                              const updated = {
-                                ...prev,
-                                locationZone: [],
-                              };
-                              if (
-                                JSON.stringify(updated) !==
-                                JSON.stringify(originalSellerData)
-                              ) {
-                                setHasChanges(true);
-                              }
-                              return updated;
-                            });
-                          }}
-                          className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
-                        >
-                          Clear All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSellerData((prev) => {
-                              if (!prev) return prev;
-                              const updated = {
-                                ...prev,
-                                locationZone: [...locationZones],
-                              };
-                              if (
-                                JSON.stringify(updated) !==
-                                JSON.stringify(originalSellerData)
-                              ) {
-                                setHasChanges(true);
-                              }
-                              return updated;
-                            });
-                          }}
-                          className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
-                        >
-                          Select All
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Fix: Additional NGRs */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Additional NGRs
+              </label>
+              <input
+                type="text"
+                name="additionalNgrs"
+                value={(sellerData.additionalNgrs || []).join(", ")}
+                onChange={handleAdditionalNGRChange}
+                className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+                placeholder="Enter NGRs separated by commas"
+              />
             </div>
 
             {/* Authority to Act Form */}
@@ -449,7 +532,8 @@ const SellerInformationEditPage = () => {
             <div className="mt-10 flex gap-3">
               <button
                 onClick={handleCancel}
-                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                disabled={saveStatus === "saving"}
+                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdCancel className="text-lg" />
                 Cancel

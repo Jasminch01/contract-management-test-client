@@ -3,9 +3,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Seller } from "@/types/types";
-import axios from "axios";
+import { createSeller } from "@/api/sellerApi";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const CreateSellerPage = () => {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +34,32 @@ const CreateSellerPage = () => {
     accountNumber: "",
     authorityActFormPdf: "",
     authorityToAct: "",
+  });
+
+  // TanStack Query mutation for creating buyer
+  const createSellerMutation = useMutation({
+    mutationFn: createSeller,
+    onSuccess: (data) => {
+      // Invalidate and refetch the buyers list
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+
+      // Optionally, you can also add the new buyer to the cache immediately
+      // This provides instant feedback without waiting for refetch
+      queryClient.setQueryData(["buyers"], (oldData: Seller[] | undefined) => {
+        if (oldData) {
+          return [data, ...oldData];
+        }
+        return [data];
+      });
+
+      toast.success("Seller created successfully!");
+      router.push("/seller-management");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.error("Create buyer error:", error);
+      toast.error(error?.message || "Failed to create buyer");
+    },
   });
 
   const locationZones = [
@@ -72,9 +100,8 @@ const CreateSellerPage = () => {
         return {
           ...prev,
           [name]: value
-            .split(",")
+            .split(", ")
             .map((s) => s.trim())
-            .filter((s) => s !== ""), // Remove empty strings
         };
       }
 
@@ -163,21 +190,7 @@ const CreateSellerPage = () => {
     const newSeller: Seller = {
       ...formData,
     };
-
-    console.log(newSeller);
-
-    try {
-      const res = await axios.post(
-        "http://localhost:8000/api/sellers",
-        newSeller
-      );
-      if (res?.data) {
-        toast.success("Seller created successfully!");
-        router.push("/seller-management");
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    createSellerMutation.mutate(newSeller);
   };
 
   return (
@@ -313,7 +326,7 @@ const CreateSellerPage = () => {
                   <input
                     type="text"
                     name="additionalNgrs"
-                    value={formData.additionalNgrs.join(",")}
+                    value={formData.additionalNgrs.join(", ")}
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
                     placeholder="NGR1, NGR2, NGR3"

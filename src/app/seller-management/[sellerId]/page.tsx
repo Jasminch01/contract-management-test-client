@@ -1,6 +1,6 @@
 "use client";
+import { getseller } from "@/api/sellerApi";
 import { Seller } from "@/types/types";
-import axios from "axios";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -11,28 +11,27 @@ const SellerInformationPage = () => {
   const [sellerData, setSellerData] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
   // const [error, setError] = useState<string | null>(null);
-
+  const sellerIdStr = sellerId?.toString() as string;
   const router = useRouter();
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.push("/seller-management");
   };
+
   useEffect(() => {
-    const getBuyer = async () => {
+    const getSellerData = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8000/api/sellers/${sellerId}`
-        );
-        setSellerData(res.data);
-        if (res.data) {
-          setLoading(false)
+        const res = await getseller(sellerIdStr);
+        setSellerData(res);
+        if (res) {
+          setLoading(false);
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     };
-    getBuyer();
-  }, [sellerId]);
+    getSellerData();
+  }, [sellerIdStr]);
 
   if (loading) {
     return (
@@ -68,10 +67,7 @@ const SellerInformationPage = () => {
       {/* Info Grid */}
       <div className="flex flex-col items-center mx-auto max-w-6xl w-full">
         <div className="grid grid-cols-2 w-full border border-gray-300 rounded-md">
-          <InfoRow
-            label="Seller Legal Name"
-            value={sellerData.legalName}
-          />
+          <InfoRow label="Seller Legal Name" value={sellerData.legalName} />
           <InfoRow label="Seller ABN" value={sellerData.abn} />
           <InfoRow
             label="Seller Additional NGRs"
@@ -83,14 +79,8 @@ const SellerInformationPage = () => {
             value={sellerData.address}
           />
           <InfoRow label="Seller Main NGR" value={sellerData.mainNgr} />
-          <InfoRow
-            label="Seller Contact Name"
-            value={sellerData.contactName}
-          />
-          <InfoRow
-            label="Seller Phone Number"
-            value={sellerData.phoneNumber}
-          />
+          <InfoRow label="Seller Contact Name" value={sellerData.contactName} />
+          <InfoRow label="Seller Phone Number" value={sellerData.phoneNumber} />
         </div>
 
         {/* Edit Button */}
