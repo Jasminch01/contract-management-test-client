@@ -5,7 +5,6 @@ import { Seller } from "@/types/types";
 export const getseller = async (sellerId: string) => {
   try {
     const data = await instance.get(`sellers/${sellerId}`);
-    console.log(data)
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -52,7 +51,9 @@ export const updateSeller = async (
   }
 };
 
-export const moveSelllersToTrash = async (buyerIds: string[]): Promise<void> => {
+export const moveSelllersToTrash = async (
+  buyerIds: string[]
+): Promise<void> => {
   try {
     if (buyerIds.length === 0) return;
 

@@ -1,13 +1,34 @@
 "use client";
-
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Contract } from "@/types/types";
 import { IoDocumentText } from "react-icons/io5";
 import ExportContractPdf from "./ExportContractPdf";
 import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
-
+interface Contract {
+  _id: string;
+  createdAt: string;
+  contractNumber: string;
+  season: string;
+  seller: {
+    mainNgr?: string;
+    legalName?: string;
+    email?: string;
+  };
+  grade: string;
+  tonnes: number;
+  buyer: {
+    name?: string;
+    email?: string;
+  };
+  deliveryDestination: string;
+  destination?: string; // Additional field that might be used
+  deliveryOption?: string;
+  priceExGST: number;
+  status: string;
+  notes?: string;
+  isDeleted?: boolean;
+}
 interface PdfExportButtonProps {
   selectedRows: Contract[];
 }

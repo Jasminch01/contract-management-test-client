@@ -1,8 +1,31 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { CSVLink } from "react-csv";
 import { IoDocumentText } from "react-icons/io5";
-import { Contract } from "@/types/types";
 
+interface Contract {
+  _id: string;
+  createdAt: string;
+  contractNumber: string;
+  season: string;
+  seller: {
+    mainNgr?: string;
+    legalName?: string;
+    email?: string;
+  };
+  grade: string;
+  tonnes: number;
+  buyer: {
+    name?: string;
+    email?: string;
+  };
+  deliveryDestination: string;
+  destination?: string; // Additional field that might be used
+  deliveryOption?: string;
+  priceExGST: number;
+  status: string;
+  notes?: string;
+  isDeleted?: boolean;
+}
 interface ExportCSVButtonProps {
   selectedRows: Contract[];
 }

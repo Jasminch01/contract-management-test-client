@@ -1,95 +1,135 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+//@ts-nocheck
+
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DataTable from "react-data-table-component";
 import toast, { Toaster } from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoIosPersonAdd, IoIosSend } from "react-icons/io";
 import { IoFilterSharp, IoWarning } from "react-icons/io5";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiCircleFill, RiDeleteBin6Fill } from "react-icons/ri";
-import { contracts } from "@/data/data";
-import { Contract } from "@/types/types";
 import ExportCsv from "@/components/contract/ExportCsv";
 import PdfExportButton from "@/components/contract/PdfExportButton";
 import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
+import { fetchContracts, moveContractToTrash } from "@/api/ContractAPi";
+
+interface Contract {
+  _id: string;
+  createdAt: string;
+  contractNumber: string;
+  season: string;
+  commoditySeason?: string;
+  seller: {
+    mainNgr?: string;
+    legalName?: string;
+    email?: string;
+    sellerOfficeAddress?: string;
+    sellerContactName?: string;
+    sellerEmail?: string;
+  };
+  grade: string;
+  tonnes: number;
+  buyer: {
+    name?: string;
+    email?: string;
+    officeAddress?: string;
+  };
+  deliveryDestination: string;
+  destination?: string;
+  deliveryOption?: string;
+  priceExGST: number;
+  priceExGst?: number; // Alternative naming
+  status: string;
+  notes?: string;
+  isDeleted?: boolean;
+
+  // Additional properties used in PDF
+  brokerReference?: string;
+  contractDate?: string;
+  commodity?: string;
+  freight?: string;
+  weights?: string;
+  specialCondition?: string;
+}
 
 const columns = [
   {
     name: "DATE",
-    selector: (row: Contract) => row.createdAt,
+    selector: (row: Contract) => row?.createdAt || "",
     sortable: true,
   },
   {
     name: "CONTRACT NUMBER",
-    selector: (row: Contract) => row.contractNumber,
+    selector: (row: Contract) => row?.contractNumber || "",
     sortable: true,
   },
   {
     name: "SEASON",
-    selector: (row: Contract) => row.commoditySeason,
+    selector: (row: Contract) => row?.season || "",
     sortable: true,
   },
   {
     name: "NGR",
-    selector: (row: Contract) => row.seller.sellerMainNGR,
+    selector: (row: Contract) => row?.seller?.mainNgr || "",
     sortable: true,
   },
   {
     name: "SELLER",
-    selector: (row: Contract) => row.seller.sellerLegalName,
+    selector: (row: Contract) => row?.seller?.legalName || "",
     sortable: true,
   },
   {
     name: "GRADE",
-    selector: (row: Contract) => row.grade,
+    selector: (row: Contract) => row?.grade || "",
     sortable: true,
   },
   {
     name: "TONNES",
-    selector: (row: Contract) => row.tonnes,
+    selector: (row: Contract) => row?.tonnes || 0,
     sortable: true,
   },
   {
     name: "BUYER",
-    selector: (row: Contract) => row.buyer.name,
+    selector: (row: Contract) => row?.buyer?.name || "",
     sortable: true,
   },
   {
     name: "DESTINATION",
-    selector: (row: Contract) => row.destination,
+    selector: (row: Contract) => row?.deliveryDestination || "",
     sortable: true,
   },
   {
     name: "CONTRACT PRICE",
-    selector: (row: Contract) => row.priceExGst,
+    selector: (row: Contract) => row?.priceExGST || 0,
     sortable: true,
   },
   {
     name: "STATUS",
-    selector: (row: Contract) => row.status,
+    selector: (row: Contract) => row?.status || "",
     sortable: true,
     cell: (row: Contract) => (
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status.toLowerCase() === "completed"
-              ? "text-[#108A2B]" // Gray for completed
-              : row.status.toLowerCase() === "invoiced"
+            row.status?.toLowerCase() === "completed"
+              ? "text-[#108A2B]" // Green for completed
+              : row.status?.toLowerCase() === "invoiced"
               ? "text-[#3B82F6]" // Blue for invoiced
               : "text-[#FAD957]" // Yellow for incomplete (default)
           }`}
         />
-        {row.status}
+        {row.status || "Unknown"}
       </p>
     ),
   },
   {
     name: "NOTES",
-    selector: (row: Contract) => row.notes,
+    selector: (row: Contract) => row.notes || "",
   },
 ];
 
@@ -119,31 +159,79 @@ const customStyles = {
 };
 
 const statusOptions = [
-  { value: "completed", label: "Completed" },
+  { value: "complete", label: "Complete" },
   { value: "incomplete", label: "Incomplete" },
   { value: "invoiced", label: "Invoiced" },
 ];
 
 const ContractManagementPage = () => {
   const router = useRouter();
-  const [masterData, setMasterData] = useState<Contract[]>(
-    contracts.filter((b) => !b.isDeleted)
-  );
-  const [data, setData] = useState<Contract[]>(
-    contracts.filter((b) => !b.isDeleted)
-  );
+  const queryClient = useQueryClient();
+
+  // Hydration fix: Add mounted state and initialize with proper defaults
+  const [isMounted, setIsMounted] = useState(false);
+  const [masterData, setMasterData] = useState<Contract[]>([]);
+  const [data, setData] = useState<Contract[]>([]);
   const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [searchFilteredData, setSearchFilteredData] = useState<Contract[]>(
-    contracts.filter((b) => !b.isDeleted)
-  );
+  const [searchFilteredData, setSearchFilteredData] = useState<Contract[]>([]);
+
+  // Set mounted state on client - this prevents hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Fetch contracts using TanStack Query - only when mounted
+  const {
+    data: contracts = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["contracts"],
+    queryFn: fetchContracts,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    enabled: isMounted, // Only fetch after component is mounted
+  });
+
+  // Update local state when contracts data changes
+  useEffect(() => {
+    if (contracts && contracts.length > 0 && isMounted) {
+      // No longer filtering out deleted contracts
+      setMasterData(contracts);
+      setData(contracts);
+      setSearchFilteredData(contracts);
+    }
+  }, [contracts, isMounted]);
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: moveContractToTrash,
+    onSuccess: () => {
+      // Invalidate and refetch contracts
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+
+      // Clear selected rows and close modal
+      setSelectedRows([]);
+      setIsDeleteConfirmOpen(false);
+
+      toast.success(`Contract(s) deleted successfully`);
+    },
+    onError: (error) => {
+      console.error("Error deleting contracts:", error);
+      toast.error("Failed to delete contracts. Please try again.");
+    },
+  });
 
   // Handle row click to view details
   const handleRowClicked = (row: Contract) => {
-    router.push(`/contract-management/${row.id}`);
+    if (row._id) {
+      router.push(`/contract-management/${row._id}`);
+    }
   };
 
   // Handle row selection
@@ -163,7 +251,7 @@ const ContractManagementPage = () => {
     if (selectedStatus !== "all") {
       const statusFiltered = filteredData.filter(
         (contract) =>
-          contract.status.toLowerCase() === selectedStatus.toLowerCase()
+          contract.status?.toLowerCase() === selectedStatus.toLowerCase()
       );
       setData(statusFiltered);
     } else {
@@ -172,17 +260,22 @@ const ContractManagementPage = () => {
   };
 
   const handleStatusChange = (value: string) => {
+    console.log(value)
     setSelectedStatus(value);
     setIsFilterActive(value !== "all");
     setIsFilterOpen(false);
+      const filtered = searchFilteredData.filter(
+        (contract) => contract.status?.toLowerCase() === value.toLowerCase()
+      );
 
+      console.log(filtered)
     if (value === "all") {
       // Show all the data that matches current search criteria
       setData(searchFilteredData);
     } else {
       // Apply status filter on top of search filter
       const filtered = searchFilteredData.filter(
-        (contract) => contract.status.toLowerCase() === value.toLowerCase()
+        (contract) => contract.status?.toLowerCase() === value.toLowerCase()
       );
       setData(filtered);
     }
@@ -205,34 +298,10 @@ const ContractManagementPage = () => {
   };
 
   const confirmDelete = () => {
-    // Get IDs of selected rows for deletion
-    const selectedIds = selectedRows.map((row) => row.id);
-
-    // Update masterData to remove deleted contracts
-    const updatedMasterData = masterData.filter(
-      (contract) => !selectedIds.includes(contract.id)
-    );
-
-    // Update search filtered data to remove deleted contracts
-    const updatedSearchFiltered = searchFilteredData.filter(
-      (contract) => !selectedIds.includes(contract.id)
-    );
-
-    // Update displayed data to remove deleted contracts
-    const updatedDisplayData = data.filter(
-      (contract) => !selectedIds.includes(contract.id)
-    );
-
-    // Update all state variables with filtered data
-    setMasterData(updatedMasterData);
-    setSearchFilteredData(updatedSearchFiltered);
-    setData(updatedDisplayData);
-
-    // Clear selected rows and close modal
-    setSelectedRows([]);
-    setIsDeleteConfirmOpen(false);
-
-    toast.success(`${selectedRows.length} contract(s) deleted successfully`);
+    const selectedIds = selectedRows.map((row) => row._id).filter(Boolean);
+    if (selectedIds.length > 0) {
+      deleteMutation.mutate(selectedIds);
+    }
   };
 
   // Handle edit selected contract
@@ -241,58 +310,20 @@ const ContractManagementPage = () => {
       toast.error("Please select exactly one contract to edit");
       return;
     }
-    router.push(`/contract-management/edit/${selectedRows[0].id}`);
+    if (selectedRows[0]._id) {
+      router.push(`/contract-management/edit/${selectedRows[0]._id}`);
+    }
   };
+
   const handleDuplicate = () => {
     if (selectedRows.length !== 1) {
       toast.error("Please select exactly one contract to duplicate");
       return;
     }
-    router.push(`/contract-management/duplicate/${selectedRows[0].id}`);
+    if (selectedRows[0]._id) {
+      router.push(`/contract-management/duplicate/${selectedRows[0]._id}`);
+    }
   };
-
-  // Handle duplicate contracts
-  // const handleDuplicate = () => {
-  //   if (selectedRows.length === 0) {
-  //     toast.error("Please select at least one contract to duplicate");
-  //     return;
-  //   }
-
-  //   // Create duplicated contracts with new contract numbers
-  //   const duplicatedContracts = selectedRows.map((contract) => {
-  //     // Generate a new unique ID
-  //     const newId = `dup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-  //     // Generate new contract number by appending "-DUP" and current timestamp
-  //     const newContractNumber = `${contract.contractNumber}-DUP-${Date.now()
-  //       .toString()
-  //       .slice(-6)}`;
-
-  //     // Create duplicate with new ID and contract number
-  //     return {
-  //       ...contract,
-  //       id: newId,
-  //       contractNumber: newContractNumber,
-  //       createdAt: new Date().toISOString().split("T")[0], // Today's date
-  //       status: "Incomplete", // Reset status to incomplete
-  //       notes: contract.notes
-  //         ? `${contract.notes} (Duplicated from ${contract.contractNumber})`
-  //         : `Duplicated from ${contract.contractNumber}`,
-  //     };
-  //   });
-
-  //   // Update all state variables with the new duplicated contracts
-  //   setMasterData([...duplicatedContracts, ...masterData]);
-  //   setData([...duplicatedContracts, ...data]);
-  //   setSearchFilteredData([...duplicatedContracts, ...searchFilteredData]);
-
-  //   // Clear selected rows after duplication
-  //   setSelectedRows([]);
-
-  //   toast.success(
-  //     `${duplicatedContracts.length} contract(s) duplicated successfully`
-  //   );
-  // };
 
   const handleEmail = async (recipientType: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
@@ -306,9 +337,9 @@ const ContractManagementPage = () => {
       // Create email recipients
       const recipients = selectedRows
         .map((row) =>
-          recipientType === "buyer" ? row.buyer.email : row.seller.sellerEmail
+          recipientType === "buyer" ? row.buyer?.email : row.seller?.email
         )
-        .filter((email) => email); // Remove any empty emails
+        .filter((email): email is string => Boolean(email)); // Type guard to filter out undefined values
 
       if (recipients.length === 0) {
         toast.error(
@@ -322,10 +353,10 @@ const ContractManagementPage = () => {
       if (recipientType === "seller" && selectedRows.length === 1) {
         // For single seller email, use the specific format
         const contract = selectedRows[0];
-        subject = `Broker Note - ${contract.contractNumber} ${
-          contract.tonnes
-        }mt ${contract.grade} ${contract.deliveryOption || "Delivered"} ${
-          contract.destination
+        subject = `Broker Note - ${contract.contractNumber || ""} ${
+          contract.tonnes || 0
+        }mt ${contract.grade || ""} ${contract.deliveryOption || "Delivered"} ${
+          contract.destination || contract.deliveryDestination || ""
         }`;
       } else {
         // For buyer emails, keep the original format
@@ -356,6 +387,49 @@ const ContractManagementPage = () => {
     }
   };
 
+  // Prevent hydration mismatch by not rendering anything until mounted
+  if (!isMounted) {
+    return (
+      <div className="mt-20 flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2A5D36]"></div>
+        <span className="ml-3 text-gray-600">Initializing...</span>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="mt-20 flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2A5D36]"></div>
+        <span className="ml-3 text-gray-600">Loading contracts...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="mt-20 flex flex-col justify-center items-center min-h-64">
+        <div className="text-red-500 text-center">
+          <IoWarning className="text-4xl mx-auto mb-2" />
+          <p className="text-lg font-semibold">Error loading contracts</p>
+          <p className="text-sm text-gray-600 mt-1">
+            {error?.message || "Something went wrong"}
+          </p>
+        </div>
+        <button
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["contracts"] })
+          }
+          className="mt-4 px-4 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728] transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-20">
       <Toaster />
@@ -385,7 +459,9 @@ const ContractManagementPage = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
           {/* Title */}
           <div className="w-full md:w-auto">
-            <p className="text-lg font-semibold">List of Contracts</p>
+            <p className="text-lg font-semibold">
+              List of Contracts ({data.length})
+            </p>
           </div>
 
           {/* Action Buttons */}
@@ -439,14 +515,15 @@ const ContractManagementPage = () => {
             </button>
             <button
               onClick={handleDelete}
+              disabled={deleteMutation.isPending}
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !deleteMutation.isPending
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50 pointer-events-none"
               }`}
             >
               <RiDeleteBin6Fill className="text-red-500" />
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </button>
             <div className="relative">
               <button
@@ -574,8 +651,8 @@ const ContractManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning className="text-red-500" />
@@ -597,15 +674,20 @@ const ContractManagementPage = () => {
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={deleteMutation.isPending}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#a52a2a]"
+                  disabled={deleteMutation.isPending}
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#a52a2a] disabled:opacity-50 flex items-center gap-2"
                 >
-                  Delete
+                  {deleteMutation.isPending && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>

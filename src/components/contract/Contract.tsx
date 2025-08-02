@@ -1,10 +1,10 @@
-import { Contract as Tcontract } from "@/types/types";
+import { TContract } from "@/types/types";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { MdOutlineEdit } from "react-icons/md";
 interface ContractProps {
-  contract: Tcontract;
+  contract: TContract;
 }
 const Contract: React.FC<ContractProps> = ({ contract }) => {
   const [preview, setPreview] = useState(false);
@@ -34,16 +34,16 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>{contract.buyer.name}</p>
                 <p>{contract.buyer.officeAddress}</p>
                 <p>Email : {contract.buyer.email}</p>
-                <p>Contact : {contract.buyer.phone}</p>
+                <p>Contact : {contract.buyer.contactName}</p>
               </div>
 
               <div className="pb-1 space-y-2">
                 <h2 className="font-bold text-sm">Seller</h2>
-                <p>{contract.seller.sellerLegalName}</p>
-                <p>{contract.seller.sellerOfficeAddress}</p>
-                <p>NGR : {contract.seller.sellerMainNGR}</p>
-                <p>Email : {contract.seller.sellerEmail}</p>
-                <p>Contact : {contract.seller.sellerContactName}</p>
+                <p>{contract.seller.legalName}</p>
+                <p>{contract.seller.address}</p>
+                <p>NGR : {contract.seller.mainNgr}</p>
+                <p>Email : {contract.seller.email}</p>
+                <p>Contact : {contract.seller.contactName}</p>
               </div>
             </div>
             {/* Full-width Broker Ref section with borders */}
@@ -53,7 +53,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                   <span className="w-1/4 font-semibold">Broker Ref:</span>
                   <span className="w-1/4">{contract.contractNumber}</span>
                   <span className="w-1/4 font-semibold">Contract Date:</span>
-                  <span className="w-1/4">{contract.contractDate}</span>
+                  <span className="w-1/4">{contract.createdAt}</span>
                 </div>
               </div>
             </div>
@@ -68,7 +68,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Season:</span>
-                  <span className="w-3/4">{contract.commoditySeason}</span>
+                  <span className="w-3/4">{contract.season}</span>
                 </div>
 
                 <div className="flex pb-1">
@@ -89,13 +89,16 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Price:</span>
                   <span className="w-3/4">
-                    A${contract.priceExGst} PER TONNE IN {contract.destination}
+                    A${contract.priceExGST} PER TONNE IN{" "}
+                    {contract.deliveryDestination}
                   </span>
                 </div>
 
                 <div className="flex pb-1">
                   <span className="w-1/4 font-semibold">Delivery Period:</span>
-                  <span className="w-3/4">{contract.deliveryPeriod}</span>
+                  <span className="w-3/4">
+                    {contract?.deliveryPeriod?.start}
+                  </span>
                 </div>
 
                 <div className="flex pb-1">
@@ -158,7 +161,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
     <div>
       <div className="my-10 text-center">
         <p className="text-lg">
-          {contract.commodity} - {contract.commoditySeason}
+          {contract.commodity} - {contract.season}
         </p>
       </div>
 
@@ -179,7 +182,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Contract Date
               </div>
-              <div className="w-1/2 p-3">{contract.contractDate || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract.createdAt || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -189,9 +192,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Season</div>
-              <div className="w-1/2 p-3">
-                {contract.commoditySeason || "N/A"}
-              </div>
+              <div className="w-1/2 p-3">{contract.season || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -217,7 +218,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Price (ex GST)
               </div>
-              <div className="w-1/2 p-3">{contract.priceExGst || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract.priceExGST || "N/A"}</div>
             </div>
           </div>
 
@@ -228,7 +229,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Delivery Period
               </div>
               <div className="w-1/2 p-3">
-                {contract.deliveryPeriod || "N/A"}
+                {contract?.deliveryPeriod?.start || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -261,13 +262,13 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Broker</div>
-              <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract.seller.legalName || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Brokerage Payable By
               </div>
-              <div className="w-1/2 p-3">{contract.broker || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract.brokeragePayableBy || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -320,7 +321,9 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
-              <div className="w-1/2 p-3">{contract.buyer?.phone || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                {contract.buyer?.phoneNumber || "N/A"}
+              </div>
             </div>
           </div>
         </div>
@@ -336,7 +339,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Legal Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerLegalName || "N/A"}
+                {contract.seller?.legalName || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -344,21 +347,19 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Office Address
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerOfficeAddress || "N/A"}
+                {contract.seller?.address || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">ABN</div>
-              <div className="w-1/2 p-3">
-                {contract.seller?.sellerABN || "N/A"}
-              </div>
+              <div className="w-1/2 p-3">{contract.seller?.abn || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Main NGR
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerMainNGR || "N/A"}
+                {contract.seller?.mainNgr || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -366,19 +367,17 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerContactName || "N/A"}
+                {contract.seller?.legalName || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
-              <div className="w-1/2 p-3">
-                {contract.seller?.sellerEmail || "N/A"}
-              </div>
+              <div className="w-1/2 p-3">{contract.seller?.email || "N/A"}</div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract.seller?.sellerPhoneNumber || "N/A"}
+                {contract.seller?.phoneNumber || "N/A"}
               </div>
             </div>
           </div>
@@ -415,24 +414,27 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Attachments
               </div>
               <div className="w-1/2 p-3">
-                {contract.attachments ? (
-                  <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1">
+                  {contract.attachedBuyerContract ? 
+                  
+                <a
+                    href={contract.attachedBuyerContract}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Seller&apos;s Contract
+                  </a> : <p>N/A</p>
+                }
+                  {contract.attachedSellerContract ? (
                     <a
-                      href={contract.attachments.sellersContract}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Seller&apos;s Contract
-                    </a>
-                    <a
-                      href={contract.attachments.buyersContract}
+                      href={contract.attachedSellerContract}
                       className="text-blue-600 hover:underline"
                     >
                       Buyer&apos;s Contract
                     </a>
-                  </div>
-                ) : (
-                  "N/A"
-                )}
+                  ) : (
+                    <p>N/A</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -440,7 +442,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
 
         {/* Edit Button */}
         <div className="mt-10 w-full flex justify-center gap-5">
-          <Link href={`/contract-management/edit/${contract.id}`}>
+          <Link href={`/contract-management/edit/${contract._id}`}>
             <button className="cursor-pointer py-2 px-5 bg-[#2A5D36] text-white hover:bg-[#1e4728]  rounded flex items-center gap-2">
               <MdOutlineEdit className="text-lg" />
               Edit Contract

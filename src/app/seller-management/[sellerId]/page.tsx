@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+
 "use client";
 import { getseller } from "@/api/sellerApi";
 import { Seller } from "@/types/types";

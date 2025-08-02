@@ -1,27 +1,55 @@
 "use client";
 import { Buyer, Contract, Seller } from "@/types/types";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoFilterSharp } from "react-icons/io5";
 import { RiDeleteBin6Fill, RiResetLeftFill } from "react-icons/ri";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  emptyTrashBin,
+  getTrashData,
+  permanentlyDeleteTrashItems,
+} from "@/api/rubbishBinApi";
 
 type DeletedItem =
   | (Buyer & { type: "Buyer" })
   | (Seller & { type: "Seller" })
   | (Contract & { type: "Contract" });
 
+interface TrashData {
+  buyers: Buyer[];
+  sellers: Seller[];
+  contracts: Contract[];
+}
+// API functions
+const fetchDeletedItems = async (): Promise<TrashData> => {
+  const response = await getTrashData();
+  return response;
+};
+
+const permanentlyDeleteItems = async (itemIds: string[]): Promise<void> => {
+  await permanentlyDeleteTrashItems(itemIds);
+};
+
+const emptyTrash = async (): Promise<void> => {
+  await emptyTrashBin();
+};
+
+// const restoreItems = async (items: DeletedItem[]): Promise<void> => {
+//   // await restoreTrashItems(items);
+// };
+
 const RubbishBin = () => {
-  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<DeletedItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [activeFilters, setActiveFilters] = useState<
     ("Contract" | "Seller" | "Buyer")[]
   >([]);
   const [selectedRows, setSelectedRows] = useState<DeletedItem[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteInProgress, setDeleteInProgress] = useState(false);
+  const [showEmptyModal, setShowEmptyModal] = useState(false);
+
+  const queryClient = useQueryClient();
 
   // Simple notification system
   const [notification, setNotification] = useState({
@@ -37,49 +65,100 @@ const RubbishBin = () => {
     }, 3000);
   };
 
-  console.log("Deleted Items:", deletedItems);
+  // Fetch deleted items using TanStack Query
+  const {
+    data: deletedData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["deletedItems"],
+    queryFn: fetchDeletedItems,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: 60000, // Refetch every minute for live updates
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
+  // Permanent delete mutation
+  const permanentDeleteMutation = useMutation({
+    mutationFn: permanentlyDeleteItems,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      setSelectedRows([]);
+      setShowDeleteModal(false);
+      showNotification(
+        "Selected items permanently deleted successfully",
+        "success"
+      );
+    },
+    onError: (error) => {
+      console.error("Error permanently deleting items:", error);
+      showNotification("Error permanently deleting items", "error");
+    },
+  });
+
+  // Empty trash mutation
+  const emptyTrashMutation = useMutation({
+    mutationFn: emptyTrash,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      setShowEmptyModal(false);
+      showNotification("Rubbish bin emptied successfully", "success");
+    },
+    onError: (error) => {
+      console.error("Error emptying trash:", error);
+      showNotification("Error emptying rubbish bin", "error");
+    },
+  });
+
+  // Restore items mutation
+  // const restoreItemsMutation = useMutation({
+  //   mutationFn: restoreItems,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+  //     setSelectedRows([]);
+  //     showNotification("Selected items restored successfully", "success");
+  //   },
+  //   onError: (error) => {
+  //     console.error("Error restoring items:", error);
+  //     showNotification("Error restoring items", "error");
+  //   },
+  // });
+
+  // Process deleted items data
+  const deletedItems: DeletedItem[] = React.useMemo(() => {
+    if (!deletedData) return [];
+
+    const deletedBuyers = deletedData.buyers || [];
+    const deletedSellers = deletedData.sellers || [];
+    const deletedContracts = deletedData.contracts || [];
+
+    return [
+      ...deletedContracts.map((c: Contract) => ({
+        ...c,
+        type: "Contract" as const,
+      })),
+      ...deletedSellers.map((s: Seller) => ({
+        ...s,
+        type: "Seller" as const,
+      })),
+      ...deletedBuyers.map((b: Buyer) => ({
+        ...b,
+        type: "Buyer" as const,
+      })),
+    ];
+  }, [deletedData]);
+
+  // Handle error state
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`http://localhost:8000/api/trash`);
+    if (error) {
+      showNotification("Error loading deleted items", "error");
+    }
+  }, [error]);
 
-        // Get the data from response
-        const deletedBuyers = res.data?.buyers || [];
-        const deletedSellers = res.data?.sellers || [];
-        const deletedContracts = res.data?.contracts || [];
-
-        // Process and combine all data
-        const allItems: DeletedItem[] = [
-          ...deletedContracts.map((c: Contract) => ({
-            ...c,
-            type: "Contract" as const,
-          })),
-          ...deletedSellers.map((s: Seller) => ({
-            ...s,
-            type: "Seller" as const,
-          })),
-          ...deletedBuyers.map((b: Buyer) => ({
-            ...b,
-            type: "Buyer" as const,
-          })),
-        ];
-
-        // Set the combined deleted items
-        setDeletedItems(allItems);
-        setFilteredItems(allItems);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        showNotification("Error loading deleted items", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []); // Remove dependencies to prevent infinite loop
-
+  // Filter items based on active filters
   useEffect(() => {
     if (activeFilters.length === 0) {
       setFilteredItems(deletedItems);
@@ -106,51 +185,47 @@ const RubbishBin = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmPermanentDelete = async() => {
-    setDeleteInProgress(true);
+  const confirmPermanentDelete = () => {
+    const itemIds = selectedRows
+      .map((item) => item._id)
+      .filter((id): id is string => id !== undefined);
 
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // Filter out the selected rows from the deletedItems
-      const updatedItems = deletedItems.filter(
-        (item) =>
-          !selectedRows.some((selectedItem) => selectedItem._id === item._id)
-      );
+    if (itemIds.length === 0) {
+      showNotification("No valid items selected for deletion", "error");
+      return;
+    }
 
-      setDeletedItems(updatedItems);
-      setSelectedRows([]);
-      setDeleteInProgress(false);
-      setShowDeleteModal(false);
-
-      // Show success notification
-      showNotification(
-        "Selected items permanently deleted successfully",
-        "success"
-      );
-    }, 1500);
+    permanentDeleteMutation.mutate(itemIds);
   };
 
   const cancelPermanentDelete = () => {
     setShowDeleteModal(false);
   };
 
-  const emptyRubbishBin = async () => {
-    const res = await axios.delete(`http://localhost:8000/api/trash/bulk`);
-    if (res.data) {
+  const handleEmptyRubbishBin = () => {
+    if (deletedItems.length === 0) {
       showNotification("Rubbish bin is already empty", "info");
       return;
     }
-    if (deletedItems.length === 0) {
-    }
-
-    // Simulate API call delay
-    // setTimeout(() => {
-    //   setDeletedItems([]);
-    //   setSelectedRows([]);
-    //   showNotification("Rubbish bin emptied successfully", "success");
-    // }, 1000);
+    setShowEmptyModal(true);
   };
+
+  const confirmEmptyTrash = () => {
+    emptyTrashMutation.mutate();
+  };
+
+  const cancelEmptyTrash = () => {
+    setShowEmptyModal(false);
+  };
+
+  // const handleRestore = () => {
+  //   if (selectedRows.length === 0) {
+  //     showNotification("No valid items selected for restoration", "error");
+  //     return;
+  //   }
+
+  //   restoreItemsMutation.mutate(selectedRows); // Pass the full objects instead of just IDs
+  // };
 
   const columns = [
     {
@@ -244,6 +319,11 @@ const RubbishBin = () => {
     },
   };
 
+  const isAnyMutationLoading =
+    permanentDeleteMutation.isPending ||
+    emptyTrashMutation.isPending 
+    // restoreItemsMutation.isPending;
+
   return (
     <div className="mt-20">
       {/* Header Section */}
@@ -251,16 +331,38 @@ const RubbishBin = () => {
         {/* Title */}
         <div className="w-full md:w-auto">
           <p className="text-lg font-semibold text-gray-800">Rubbish bin</p>
+          {isLoading && <p className="text-sm text-blue-500">Loading...</p>}
         </div>
 
-        {/* Empty Bin Button */}
-        <div className="w-full md:w-auto">
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex gap-2">
           <button
-            onClick={emptyRubbishBin}
-            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50"
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
+            disabled={isLoading}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Refresh
+          </button>
+          <button
+            onClick={handleEmptyRubbishBin}
+            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
+            disabled={emptyTrashMutation.isPending || deletedItems.length === 0}
           >
             <RiDeleteBin6Fill className="text-red-500" />
-            Empty Rubbish Bin
+            {emptyTrashMutation.isPending ? "Emptying..." : "Empty Rubbish Bin"}
           </button>
         </div>
       </div>
@@ -308,26 +410,29 @@ const RubbishBin = () => {
           <div className="w-full md:w-auto flex gap-2 relative">
             <button
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !isAnyMutationLoading
                   ? "cursor-pointer hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed"
               }`}
-              disabled={selectedRows.length === 0}
+              // onClick={handleRestore}
+              disabled={selectedRows.length === 0 || isAnyMutationLoading}
             >
               <RiResetLeftFill />
-              Restore
+              {/* {restoreItemsMutation.isPending ? "Restoring..." : "Restore"}? */}
             </button>
             <button
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !isAnyMutationLoading
                   ? "cursor-pointer hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed"
               }`}
               onClick={handlePermanentDelete}
-              disabled={selectedRows.length === 0}
+              disabled={selectedRows.length === 0 || isAnyMutationLoading}
             >
               <RiDeleteBin6Fill className="text-red-500" />
-              Permanent Delete
+              {permanentDeleteMutation.isPending
+                ? "Deleting..."
+                : "Permanent Delete"}
             </button>
             <div className="relative">
               <button
@@ -392,11 +497,17 @@ const RubbishBin = () => {
           <DataTable
             columns={columns}
             data={filteredItems}
-            progressPending={loading}
+            progressPending={isLoading}
             selectableRows
             pagination
             highlightOnHover
-            noDataComponent={<div className="p-4">No deleted items found</div>}
+            noDataComponent={
+              <div className="p-4">
+                {error
+                  ? "Error loading deleted items"
+                  : "No deleted items found"}
+              </div>
+            }
             fixedHeader
             fixedHeaderScrollHeight="500px"
             selectableRowsHighlight
@@ -404,7 +515,7 @@ const RubbishBin = () => {
             pointerOnHover
             customStyles={customStyles}
             onSelectedRowsChange={handleRowSelected}
-            clearSelectedRows={deleteInProgress}
+            clearSelectedRows={isAnyMutationLoading}
           />
         </div>
 
@@ -424,22 +535,57 @@ const RubbishBin = () => {
                 <button
                   onClick={cancelPermanentDelete}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  disabled={deleteInProgress}
+                  disabled={permanentDeleteMutation.isPending}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmPermanentDelete}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                  disabled={deleteInProgress}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                  disabled={permanentDeleteMutation.isPending}
                 >
-                  {deleteInProgress ? "Deleting..." : "Delete Permanently"}
+                  {permanentDeleteMutation.isPending
+                    ? "Deleting..."
+                    : "Delete Permanently"}
                 </button>
               </div>
             </div>
           </div>
         )}
 
+        {/* Empty Trash Confirmation Modal */}
+        {showEmptyModal && (
+          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
+                Empty Rubbish Bin
+              </h3>
+              <p className="text-gray-600 mb-6 text-center">
+                Are you sure you want to empty the entire rubbish bin? This will
+                permanently delete all {deletedItems.length} items and cannot be
+                undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={cancelEmptyTrash}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  disabled={emptyTrashMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmEmptyTrash}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                  disabled={emptyTrashMutation.isPending}
+                >
+                  {emptyTrashMutation.isPending ? "Emptying..." : "Empty Bin"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notification */}
         {notification.visible && (
           <div className="fixed bottom-4 right-4 max-w-md z-50">
             <div

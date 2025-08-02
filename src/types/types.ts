@@ -7,6 +7,22 @@ export interface HistoricalPrice {
   comment?: string; // Optional field
 }
 
+export interface ContractType {
+  id: number;
+  name: string;
+}
+
+export type BrokeragePayableOption = {
+  name: string;
+  value: string;
+};
+
+export interface ConveyanceOption {
+  id: number;
+  value: string;
+  label: string;
+}
+
 export interface HistoricalPricesData {
   historical_prices: HistoricalPrice[];
 }
@@ -57,7 +73,7 @@ export interface Buyer {
   name: string;
   abn: string;
   officeAddress: string;
-  accountNumber : string;
+  accountNumber: string;
   contactName: string;
   email: string;
   phoneNumber: string;
@@ -102,26 +118,20 @@ export interface Seller {
   };
 }
 
-export interface ContractAttachments {
-  sellersContract: string;
-  buyersContract: string;
-}
-
 export type ContractStatus = "incompleted" | "completed" | "invoiced";
 
 export interface Contract {
-  contractPrice: string;
-  destination: string;
-  grower: string;
+  deliveryDestination: string;
   season: string;
-  _id: string;
-  contractNumber: string;
+  _id?: string;
+  // contractNumber: string;
   tonnes: string;
   certificationScheme: string;
   termsAndConditions: string;
-  contractDate: string; // ISO date format "YYYY-MM-DD"
-  deliveryPeriod: string; // ISO date format "YYYY-MM-DD"
-  commoditySeason: string;
+  deliveryPeriod: {
+    start: string;
+    end: string;
+  }; // ISO date format "YYYY-MM-DD"
   deliveryOption: string;
   paymentTerms: string;
   commodity: string;
@@ -133,20 +143,91 @@ export interface Contract {
   buyerContractReference: string;
   notes: string;
   tolerance: string;
-  buyer: Buyer;
-  seller: Seller;
-  priceExGst: string;
-  broker: string;
+  buyer: string;
+  seller: string;
+  priceExGST: string;
+  brokeragePayableBy: string;
   conveyance: string;
-  brokerReference: string;
+  ngrNumber: string;
+  // brokerReference: string;
   sellerContractReference: string;
-  attachments: ContractAttachments;
-  status: ContractStatus;
-  isDeleted: boolean;
-  deletedAt: string;
-  createdAt: string; // ISO datetime format
-  updatedAt: string; // ISO datetime format
+  attachSellersContract: string;
+  attachBuyersContract: string;
+  contractType: string;
 }
 
 // For the array of contracts
-export type Contracts = Contract[];
+
+export interface Buyer {
+  _id?: string;
+  name: string;
+  abn: string;
+  email: string;
+  accountNumber: string;
+  officeAddress: string;
+  contactName: string;
+  phoneNumber: string;
+  isDeleted?: boolean;
+  createdAt?: string; // or Date if you'll parse it
+  updatedAt: string; // or Date if you'll parse it
+  __v: number;
+}
+
+export interface Seller {
+  locationZone?: string[]; // Replace 'any' with a more specific type if needed
+  _id?: string;
+  legalName: string;
+  abn: string;
+  mainNgr: string;
+  additionalNgrs?: string[]; // Replace 'any' with a more specific type if needed
+  accountNumber: string;
+  email: string;
+  address: string;
+  contactName: string;
+  phoneNumber: string;
+  isDeleted?: boolean;
+  createdAt?: string; // or Date if you'll parse it
+  updatedAt: string; // or Date if you'll parse it
+  __v: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bulkHandlerCredentials?: any[]; // Replace 'any' with a more specific type if needed
+}
+
+export interface TContract {
+  _id?: string;
+  buyerContractReference: string;
+  sellerContractReference: string;
+  grade: string;
+  buyer: Buyer;
+  seller: Seller;
+  contractType: string;
+  deliveryOption: string;
+  deliveryPeriod: {
+    start: string;
+    end: string;
+  };
+  freight: string;
+  weights: string;
+  priceExGST: string;
+  conveyance: string;
+  attachedSellerContract?: string;
+  attachedBuyerContract?: string;
+  commodity: string;
+  certificationScheme: string;
+  paymentTerms: string;
+  brokerRate: string;
+  deliveryDestination: string;
+  brokeragePayableBy: string;
+  specialCondition: string;
+  termsAndConditions: string;
+  notes: string;
+  tonnes: number;
+  tolerance: string;
+  season: string;
+  isDeleted: boolean;
+  status: string;
+  createdAt: string; // or Date if you'll parse it
+  updatedAt: string; // or Date if you'll parse it
+  contractNumber: string;
+  __v: number;
+}

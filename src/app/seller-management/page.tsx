@@ -89,7 +89,7 @@ const SellerManagementPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // TanStack Query for fetching buyers
+  // TanStack Query for fetching sellers
   const {
     data: data = [],
     isLoading,

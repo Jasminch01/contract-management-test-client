@@ -23,10 +23,6 @@ const menus = [
     page: "Seller Management",
     link: "/seller-management",
   },
-  // {
-  //   page: "Notes",
-  //   link: "/notes",
-  // },
   {
     page: "Historical Daily Prices",
     link: "/historical-prices",

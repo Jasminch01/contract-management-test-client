@@ -1,23 +1,19 @@
+import { ContractType } from "@/types/types";
 import React, { useState, useRef, useEffect } from "react";
 
-interface Buyer {
-  id: number;
-  name: string;
-}
-
 interface SelectBuyerSellerProps {
-  onSelect: (buyer: Buyer) => void;
+  onSelect: (buyer: ContractType) => void;
 }
 
 const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
-  const initialBuyers: Buyer[] = [
+  const brokerAge: ContractType[] = [
     { id: 1, name: "Seller" },
     { id: 2, name: "Buyer" },
     { id: 3, name: "Buyer & Seller" },
     { id: 4, name: "No Brokerage Payable" },
   ];
 
-  const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
+  const [selectedBuyer, setSelectedBuyer] = useState<ContractType | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,9 +35,9 @@ const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
   }, []);
 
   // Handle selecting a buyer
-  const handleSelectBuyer = (buyer: Buyer) => {
-    setSelectedBuyer(buyer);
-    onSelect(buyer);
+  const handleSelectBuyer = (brokerAge: ContractType) => {
+    setSelectedBuyer(brokerAge);
+    onSelect(brokerAge);
     setIsDropdownOpen(false); // Close dropdown after selection
   };
 
@@ -82,15 +78,15 @@ const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
             {/* Buyer options */}
             <div className="max-h-60 overflow-y-auto">
-              {initialBuyers.map((buyer: Buyer) => (
+              {brokerAge.map((brokerAge: ContractType) => (
                 <div
-                  key={buyer.id}
+                  key={brokerAge.id}
                   className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                    selectedBuyer?.id === buyer.id ? "bg-gray-100" : ""
+                    selectedBuyer?.id === brokerAge.id ? "bg-gray-100" : ""
                   }`}
-                  onClick={() => handleSelectBuyer(buyer)}
+                  onClick={() => handleSelectBuyer(brokerAge)}
                 >
-                  {buyer.name}
+                  {brokerAge.name}
                 </div>
               ))}
             </div>

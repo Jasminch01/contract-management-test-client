@@ -1,9 +1,47 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from "react";
-import { Contract } from "@/types/types";
 import { IoIosClose } from "react-icons/io";
 import { FaCheck } from "react-icons/fa";
 import { LuSearch } from "react-icons/lu";
+
+interface Contract {
+  _id: string;
+  createdAt: string;
+  contractNumber: string;
+  season: string;
+  commoditySeason?: string;
+  seller: {
+    mainNgr?: string;
+    legalName?: string;
+    email?: string;
+    sellerOfficeAddress?: string;
+    sellerContactName?: string;
+    sellerEmail?: string;
+  };
+  grade: string;
+  tonnes: number;
+  buyer: {
+    name?: string;
+    email?: string;
+    officeAddress?: string;
+  };
+  deliveryDestination: string;
+  destination?: string;
+  deliveryOption?: string;
+  priceExGST: number;
+  priceExGst?: number; // Alternative naming
+  status: string;
+  notes?: string;
+  isDeleted?: boolean;
+
+  // Additional properties used in PDF
+  brokerReference?: string;
+  contractDate?: string;
+  commodity?: string;
+  freight?: string;
+  weights?: string;
+  specialCondition?: string;
+}
 
 type FilterOption = {
   id: string;
@@ -30,7 +68,7 @@ export default function SearchFilterBar({
     {
       id: "ngr",
       label: "NGR",
-      field: (contract) => contract.seller.sellerMainNGR,
+      field: (contract) => contract.seller?.mainNgr || "",
     },
     {
       id: "commodity",
@@ -40,7 +78,7 @@ export default function SearchFilterBar({
     {
       id: "seller",
       label: "Seller",
-      field: (contract) => contract.seller.sellerLegalName,
+      field: (contract) => contract.seller?.legalName || "",
     },
     {
       id: "grade",

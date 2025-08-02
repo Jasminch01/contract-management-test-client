@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 "use client";
 // import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
@@ -12,28 +10,28 @@ import { addDays } from "date-fns";
 import { useState, useEffect } from "react";
 import SelectBuyerSeller from "./SelectBuyerSeller";
 import SelectContractType from "./SelectContractType";
-import { Contract } from "@/types/types";
-import { contracts } from "@/data/data";
+import { Buyer, Contract, ContractType, Seller } from "@/types/types";
+// import { contracts } from "@/data/data";
 import toast from "react-hot-toast";
 import ConveyanceSelect from "./ConveyanceSelect";
+import { createContract } from "@/api/ContractAPi";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CiExport } from "react-icons/ci";
 
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
   ]);
-  const currentTimestamp = new Date().toISOString();
-  const [formData, setFormData] = useState<Omit<Contract, "id" | "isDeleted">>({
-    contractPrice: "",
-    destination: "",
-    grower: "",
-    contractNumber: "",
+  const [formData, setFormData] = useState<Contract>({
+    deliveryDestination: "",
     tonnes: "",
     certificationScheme: "",
     termsAndConditions: "",
-    contractDate: "",
-    deliveryPeriod: "",
-    commoditySeason: "",
+    deliveryPeriod: {
+      start: "",
+      end: "",
+    },
     deliveryOption: "",
     paymentTerms: "",
     commodity: "",
@@ -44,79 +42,53 @@ const CreateContractForm = () => {
     weights: "",
     buyerContractReference: "",
     notes: "",
-    buyer: {
-      id: "",
-      name: "",
-      abn: "",
-      officeAddress: "",
-      contactName: "",
-      email: "",
-      phone: "",
-      isDeleted: false,
-    },
-    seller: {
-      id: 1,
-      sellerLegalName: "",
-      sellerOfficeAddress: "",
-      sellerABN: "",
-      sellerMainNGR: "",
-      sellerAdditionalNGRs: [""],
-      sellerContactName: "",
-      sellerEmail: "",
-      sellerPhoneNumber: "",
-      isDeleted: false,
-    },
-    priceExGst: "",
-    broker: "",
+    buyer: "",
+    seller: "",
+    priceExGST: "",
     conveyance: "",
-    brokerReference: "",
+    ngrNumber: "",
     sellerContractReference: "",
-    attachments: {
-      sellersContract: "",
-      buyersContract: "",
-    },
-    status: "incompleted",
-    createdAt: currentTimestamp,
-    updatedAt: currentTimestamp,
-    contractType: "", // Added for contract type
-    brokeragePayableBy: "", // Added for brokerage payable by
+    attachSellersContract: "",
+    attachBuyersContract: "",
+    contractType: "",
+    brokeragePayableBy: "",
+    season: "",
+    tolerance: "",
   });
 
   const [isGrowerContract, setIsGrowerContract] = useState(false);
   const [startDate, endDate] = dateRange;
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  // Generate a contract number when the component mounts
-  useEffect(() => {
-    generateContractNumber();
-  }, []);
+  const createContractMutation = useMutation({
+    mutationFn: createContract,
+    onSuccess: (data) => {
+      // Invalidate and refetch contracts list
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+
+      // Or optimistically update the cache
+      queryClient.setQueryData(["contracts"], (old: Contract[]) => [
+        data,
+        ...old,
+      ]);
+      toast.success("Contract created successfully!");
+      // router.push("/contract-management");
+    },
+    onError: (error) => {
+      console.error("Error creating contract:", error);
+      toast.error("Failed to create contract. Please try again.");
+    },
+  });
 
   // Update isGrowerContract when contractType changes
   useEffect(() => {
     setIsGrowerContract(formData.contractType === "Grower");
   }, [formData.contractType]);
 
-  // Function to generate a unique contract number
-  const generateContractNumber = () => {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0");
-
-    const contractNumber = `CNT-${year}${month}${day}-${random}`;
-
-    setFormData((prev) => ({
-      ...prev,
-      contractNumber: contractNumber,
-    }));
-  };
-
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.back();
   };
 
   const handleDateChange = (update: [Date | null, Date | null]) => {
@@ -124,15 +96,22 @@ const CreateContractForm = () => {
 
     // Convert date range to string for storage in formData
     if (update[0] && update[1]) {
-      const formattedDateRange = `${update[0].toLocaleDateString()} - ${update[1].toLocaleDateString()}`;
+      const start = `${update[0].toLocaleDateString()}`;
+      const end = `${update[1].toLocaleDateString()}`;
       setFormData((prev) => ({
         ...prev,
-        deliveryPeriod: formattedDateRange,
+        deliveryPeriod: {
+          start,
+          end,
+        },
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
-        deliveryPeriod: "",
+        deliveryPeriod: {
+          start: "",
+          end: "",
+        },
       }));
     }
   };
@@ -151,31 +130,23 @@ const CreateContractForm = () => {
   };
 
   // For updating buyer information
-  const handleBuyerSelect = (buyer) => {
+  const handleBuyerSelect = (buyer: Buyer) => {
     setFormData((prev) => ({
       ...prev,
-      buyer: {
-        ...prev.buyer,
-        id: buyer.id,
-        name: buyer.name,
-      },
+      buyer: buyer._id as string,
     }));
   };
 
   // For updating seller information
-  const handleSellerSelect = (seller) => {
+  const handleSellerSelect = (seller: Seller) => {
     setFormData((prev) => ({
       ...prev,
-      seller: {
-        ...prev.seller,
-        id: seller.id,
-        sellerLegalName: seller.name,
-      },
+      seller: seller._id as string,
     }));
   };
 
   // For updating contract type
-  const handleContractTypeSelect = (type) => {
+  const handleContractTypeSelect = (type: ContractType) => {
     setFormData((prev) => ({
       ...prev,
       contractType: type.name,
@@ -183,48 +154,26 @@ const CreateContractForm = () => {
   };
 
   // For updating brokerage payable by
-  const handleBrokerageSelect = (option) => {
+  const handleBrokerageSelect = (option: ContractType) => {
     setFormData((prev) => ({
       ...prev,
       brokeragePayableBy: option.name,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const newId = Math.max(...contracts.map((s) => s.id), 0) + 1;
-
     const newContract: Contract = {
-      id: newId,
       ...formData,
-      isDeleted: false,
     };
+    createContractMutation.mutate(newContract);
     console.log(newContract);
-
-    contracts.unshift(newContract);
-    toast.success("Contract created successfully!");
-    router.push("/contract-management");
   };
 
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
       <form className="space-y-6 mt-7 md:mt-10" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 xl:grid-cols-4 xl:grid-rows-8 gap-5">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              Contract Number
-            </label>
-            <input
-              type="text"
-              name="contractNumber"
-              value={formData.contractNumber}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-gray-100"
-              placeholder=""
-              readOnly
-            />
-          </div>
           <div className="w-full">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               DELIVERY PERIOD
@@ -266,8 +215,8 @@ const CreateContractForm = () => {
             </label>
             <input
               type="text"
-              name="destination"
-              value={formData.destination}
+              name="deliveryDestination"
+              value={formData.deliveryDestination}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -304,19 +253,7 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="xl:row-span-2">
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              SPECIAL CONDITION
-            </label>
-            <textarea
-              name="specialCondition"
-              value={formData.specialCondition}
-              onChange={handleChange}
-              className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-              rows={4}
-            />
-          </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SELLER CONTRACT REFERENCE
@@ -328,6 +265,19 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+            />
+          </div>
+          <div className="xl:row-span-2">
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              SPECIAL CONDITION
+            </label>
+            <textarea
+              name="specialCondition"
+              value={formData.specialCondition}
+              onChange={handleChange}
+              className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder=""
+              rows={5}
             />
           </div>
           <div>
@@ -408,14 +358,15 @@ const CreateContractForm = () => {
               PRICE (EX-GST)
             </label>
             <input
-              value={formData.priceExGst}
+              value={formData.priceExGST}
               onChange={handleChange}
-              name="priceExGst"
+              name="priceExGST"
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH BUYERS CONTRACT
@@ -423,17 +374,9 @@ const CreateContractForm = () => {
             <input
               type="file"
               accept="application/pdf"
-              name="attachments.buyersContract"
-              value={formData.attachments.buyersContract}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  attachments: {
-                    ...prev.attachments,
-                    buyersContract: e.target.value,
-                  },
-                }))
-              }
+              name="attachBuyersContract"
+              value={formData.attachBuyersContract}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
@@ -444,8 +387,8 @@ const CreateContractForm = () => {
           <div className="md:row-start-6">
             <ConveyanceSelect
               value={formData.conveyance}
-              onChange={(value) =>
-                handleChange({ target: { name: "conveyance", value } })
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, conveyance: value }))
               }
             />
           </div>
@@ -476,6 +419,7 @@ const CreateContractForm = () => {
               rows={5}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH SELLERS CONTRACT
@@ -483,17 +427,9 @@ const CreateContractForm = () => {
             <input
               type="file"
               accept="application/pdf"
-              name="attachments.sellersContract"
-              value={formData.attachments.sellersContract}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  attachments: {
-                    ...prev.attachments,
-                    sellersContract: e.target.value,
-                  },
-                }))
-              }
+              name="attachSellersContract"
+              value={formData.attachSellersContract}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
             />
@@ -534,17 +470,9 @@ const CreateContractForm = () => {
               </label>
               <input
                 type="text"
-                name="seller.sellerMainNGR"
-                value={formData.seller.sellerMainNGR}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    seller: {
-                      ...prev.seller,
-                      sellerMainNGR: e.target.value,
-                    },
-                  }))
-                }
+                name="ngrNumber"
+                onChange={handleChange}
+                value={formData.ngrNumber}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                 placeholder=""
                 required
@@ -558,7 +486,7 @@ const CreateContractForm = () => {
               SEASON
             </label>
             <select
-              name="commoditySeason"
+              name="season"
               value={formData.season}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -597,13 +525,13 @@ const CreateContractForm = () => {
           >
             <IoArrowBack /> Back
           </button>
-          {/* <button
+          <button
             type="button"
             className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
           >
             Preview Contract
             <CiExport />
-          </button> */}
+          </button>
           <button
             type="submit"
             className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
