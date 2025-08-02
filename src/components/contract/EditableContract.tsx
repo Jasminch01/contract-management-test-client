@@ -19,6 +19,7 @@ import {
   ContractStatus,
   Seller,
   TContract,
+  TUpdateContract,
 } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getsellers } from "@/api/sellerApi";
@@ -122,6 +123,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const brokeragePayableOptions = [
     { name: "Buyer", value: "Buyer" },
     { name: "Seller", value: "Seller" },
+    { name: "Seller & Buyer", value: "Seller & Buyer" },
     { name: "No Brokerage Payable", value: "No Brokerage Payable" },
   ];
 
@@ -153,7 +155,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const handleBuyerSelect = (selectedBuyer: Buyer) => {
     setContract((prev) => ({
       ...prev,
-      buyer: selectedBuyer._id, // Ensure only ID is stored
+      buyer: selectedBuyer._id,
     }));
     setShowBuyerDropdown(false);
     setHasChanges(true);
@@ -161,13 +163,13 @@ const EditableContract: React.FC<ContractProps> = ({
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.back();
   };
 
   const handleSellerSelect = (selectedSeller: Seller) => {
     setContract((prev) => ({
       ...prev,
-      seller: selectedSeller._id, // Store only the ID
+      seller: selectedSeller._id,
     }));
     setShowSellerDropdown(false);
     setHasChanges(true);
@@ -182,24 +184,28 @@ const EditableContract: React.FC<ContractProps> = ({
     setShowStatusDropdown(false);
     setHasChanges(true);
   };
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
     field: string,
-    nestedObject?: string
+    nestedObject?: keyof typeof contract // Use keyof to restrict to actual property names
   ) => {
     const { value } = e.target;
     setContract((prev) => {
       const newContract = { ...prev };
       if (nestedObject) {
-        newContract[nestedObject] = {
-          ...newContract[nestedObject],
+        // Type assertion for nested object update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newContract as any)[nestedObject] = {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(newContract as any)[nestedObject],
           [field]: value,
         };
       } else {
-        newContract[field] = value;
+        // Type assertion for direct property update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newContract as any)[field] = value;
       }
       return newContract;
     });
@@ -228,7 +234,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const contractId = contract._id as string;
 
   const updateContractMutation = useMutation({
-    mutationFn: (updatedContract) =>
+    mutationFn: (updatedContract: TUpdateContract) =>
       updateContract(updatedContract, contractId),
 
     onMutate: async (updatedContract) => {
@@ -278,19 +284,29 @@ const EditableContract: React.FC<ContractProps> = ({
   });
 
   const handleSave = async () => {
+    // Extract buyer and seller IDs with proper validation
+    const buyerId =
+      typeof contract.buyer === "string" ? contract.buyer : contract.buyer?._id;
+
+    const sellerId =
+      typeof contract.seller === "string"
+        ? contract.seller
+        : contract.seller?._id;
+
+    // Validate required fields before proceeding
+    if (!buyerId || !sellerId) {
+      toast.error("Buyer and seller information is required");
+      return;
+    }
+
     const contractToSave = {
       ...contract,
-      buyer:
-        typeof contract.buyer === "string"
-          ? contract.buyer
-          : contract.buyer?._id,
-      seller:
-        typeof contract.seller === "string"
-          ? contract.seller
-          : contract.seller?._id,
+      buyer: buyerId,
+      seller: sellerId,
     };
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, __v, createdAt, updatedAt, ...updatedContract } = contractToSave;
+    const { _id, createdAt, ...updatedContract } = contractToSave;
     updateContractMutation.mutate(updatedContract);
   };
 

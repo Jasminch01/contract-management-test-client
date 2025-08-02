@@ -3,55 +3,17 @@ import { useState, useEffect, useRef } from "react";
 import { IoIosClose } from "react-icons/io";
 import { FaCheck } from "react-icons/fa";
 import { LuSearch } from "react-icons/lu";
-
-interface Contract {
-  _id: string;
-  createdAt: string;
-  contractNumber: string;
-  season: string;
-  commoditySeason?: string;
-  seller: {
-    mainNgr?: string;
-    legalName?: string;
-    email?: string;
-    sellerOfficeAddress?: string;
-    sellerContactName?: string;
-    sellerEmail?: string;
-  };
-  grade: string;
-  tonnes: number;
-  buyer: {
-    name?: string;
-    email?: string;
-    officeAddress?: string;
-  };
-  deliveryDestination: string;
-  destination?: string;
-  deliveryOption?: string;
-  priceExGST: number;
-  priceExGst?: number; // Alternative naming
-  status: string;
-  notes?: string;
-  isDeleted?: boolean;
-
-  // Additional properties used in PDF
-  brokerReference?: string;
-  contractDate?: string;
-  commodity?: string;
-  freight?: string;
-  weights?: string;
-  specialCondition?: string;
-}
+import { TContract } from "@/types/types";
 
 type FilterOption = {
   id: string;
   label: string;
-  field: keyof Contract | ((contract: Contract) => string);
+  field: keyof TContract | ((contract: TContract) => string);
 };
 
 interface SearchFilterBarProps {
-  data: Contract[];
-  onFilterChange: (filteredData: Contract[]) => void;
+  data: TContract[];
+  onFilterChange: (filteredData: TContract[]) => void;
 }
 
 export default function SearchFilterBar({
@@ -73,7 +35,7 @@ export default function SearchFilterBar({
     {
       id: "commodity",
       label: "Commodity",
-      field: "commoditySeason",
+      field: "season",
     },
     {
       id: "seller",

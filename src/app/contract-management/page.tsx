@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
-
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -17,102 +14,64 @@ import ExportCsv from "@/components/contract/ExportCsv";
 import PdfExportButton from "@/components/contract/PdfExportButton";
 import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
 import { fetchContracts, moveContractToTrash } from "@/api/ContractAPi";
-
-interface Contract {
-  _id: string;
-  createdAt: string;
-  contractNumber: string;
-  season: string;
-  commoditySeason?: string;
-  seller: {
-    mainNgr?: string;
-    legalName?: string;
-    email?: string;
-    sellerOfficeAddress?: string;
-    sellerContactName?: string;
-    sellerEmail?: string;
-  };
-  grade: string;
-  tonnes: number;
-  buyer: {
-    name?: string;
-    email?: string;
-    officeAddress?: string;
-  };
-  deliveryDestination: string;
-  destination?: string;
-  deliveryOption?: string;
-  priceExGST: number;
-  priceExGst?: number; // Alternative naming
-  status: string;
-  notes?: string;
-  isDeleted?: boolean;
-
-  // Additional properties used in PDF
-  brokerReference?: string;
-  contractDate?: string;
-  commodity?: string;
-  freight?: string;
-  weights?: string;
-  specialCondition?: string;
-}
+import { TContract } from "@/types/types";
 
 const columns = [
   {
     name: "DATE",
-    selector: (row: Contract) => row?.createdAt || "",
+    selector: (row: TContract) => row?.createdAt || "",
     sortable: true,
   },
   {
     name: "CONTRACT NUMBER",
-    selector: (row: Contract) => row?.contractNumber || "",
+    selector: (row: TContract) => row?.contractNumber || "",
     sortable: true,
   },
   {
     name: "SEASON",
-    selector: (row: Contract) => row?.season || "",
+    selector: (row: TContract) => row?.season || "",
     sortable: true,
   },
   {
     name: "NGR",
-    selector: (row: Contract) => row?.seller?.mainNgr || "",
+    selector: (row: TContract) => row?.seller?.mainNgr || "",
     sortable: true,
   },
   {
     name: "SELLER",
-    selector: (row: Contract) => row?.seller?.legalName || "",
+    selector: (row: TContract) => row?.seller?.legalName || "",
     sortable: true,
   },
   {
     name: "GRADE",
-    selector: (row: Contract) => row?.grade || "",
+    selector: (row: TContract) => row?.grade || "",
     sortable: true,
   },
   {
     name: "TONNES",
-    selector: (row: Contract) => row?.tonnes || 0,
+    selector: (row: TContract) => row?.tonnes || 0,
     sortable: true,
   },
   {
     name: "BUYER",
-    selector: (row: Contract) => row?.buyer?.name || "",
+    selector: (row: TContract) => row?.buyer?.name || "",
     sortable: true,
   },
   {
     name: "DESTINATION",
-    selector: (row: Contract) => row?.deliveryDestination || "",
+    selector: (row: TContract) => row?.deliveryDestination || "",
     sortable: true,
   },
   {
     name: "CONTRACT PRICE",
-    selector: (row: Contract) => row?.priceExGST || 0,
+    selector: (row: TContract) => row?.priceExGST || 0,
     sortable: true,
   },
   {
     name: "STATUS",
-    selector: (row: Contract) => row?.status || "",
+    selector: (row: TContract) => row?.status || "",
     sortable: true,
-    cell: (row: Contract) => (
+    cell: (row: TContract) => (
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
@@ -129,7 +88,7 @@ const columns = [
   },
   {
     name: "NOTES",
-    selector: (row: Contract) => row.notes || "",
+    selector: (row: TContract) => row.notes || "",
   },
 ];
 
@@ -170,14 +129,14 @@ const ContractManagementPage = () => {
 
   // Hydration fix: Add mounted state and initialize with proper defaults
   const [isMounted, setIsMounted] = useState(false);
-  const [masterData, setMasterData] = useState<Contract[]>([]);
-  const [data, setData] = useState<Contract[]>([]);
-  const [selectedRows, setSelectedRows] = useState<Contract[]>([]);
+  const [masterData, setMasterData] = useState<TContract[]>([]);
+  const [data, setData] = useState<TContract[]>([]);
+  const [selectedRows, setSelectedRows] = useState<TContract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [searchFilteredData, setSearchFilteredData] = useState<Contract[]>([]);
+  const [searchFilteredData, setSearchFilteredData] = useState<TContract[]>([]);
 
   // Set mounted state on client - this prevents hydration mismatch
   useEffect(() => {
@@ -228,7 +187,7 @@ const ContractManagementPage = () => {
   });
 
   // Handle row click to view details
-  const handleRowClicked = (row: Contract) => {
+  const handleRowClicked = (row: TContract) => {
     if (row._id) {
       router.push(`/contract-management/${row._id}`);
     }
@@ -238,13 +197,13 @@ const ContractManagementPage = () => {
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
-    selectedRows: Contract[];
+    selectedRows: TContract[];
   }) => {
     setSelectedRows(selected.selectedRows);
   };
 
   // Handle filter change from search filter bar
-  const handleFilterChange = (filteredData: Contract[]) => {
+  const handleFilterChange = (filteredData: TContract[]) => {
     setSearchFilteredData(filteredData);
 
     // Apply status filter to the search filtered data
@@ -260,15 +219,15 @@ const ContractManagementPage = () => {
   };
 
   const handleStatusChange = (value: string) => {
-    console.log(value)
+    console.log(value);
     setSelectedStatus(value);
     setIsFilterActive(value !== "all");
     setIsFilterOpen(false);
-      const filtered = searchFilteredData.filter(
-        (contract) => contract.status?.toLowerCase() === value.toLowerCase()
-      );
+    const filtered = searchFilteredData.filter(
+      (contract) => contract.status?.toLowerCase() === value.toLowerCase()
+    );
 
-      console.log(filtered)
+    console.log(filtered);
     if (value === "all") {
       // Show all the data that matches current search criteria
       setData(searchFilteredData);
@@ -298,7 +257,10 @@ const ContractManagementPage = () => {
   };
 
   const confirmDelete = () => {
-    const selectedIds = selectedRows.map((row) => row._id).filter(Boolean);
+    const selectedIds = selectedRows
+      .map((row) => row._id)
+      .filter((id): id is string => id !== undefined);
+
     if (selectedIds.length > 0) {
       deleteMutation.mutate(selectedIds);
     }
@@ -356,7 +318,7 @@ const ContractManagementPage = () => {
         subject = `Broker Note - ${contract.contractNumber || ""} ${
           contract.tonnes || 0
         }mt ${contract.grade || ""} ${contract.deliveryOption || "Delivered"} ${
-          contract.destination || contract.deliveryDestination || ""
+          contract.deliveryDestination || contract.deliveryDestination || ""
         }`;
       } else {
         // For buyer emails, keep the original format

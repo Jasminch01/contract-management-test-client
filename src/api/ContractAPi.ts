@@ -1,8 +1,8 @@
-import { Contract } from "@/types/types";
+import { TContract, TUpdateContract } from "@/types/types";
 import { instance } from "./api";
 import axios from "axios";
 
-export const createContract = async (contract: Contract) => {
+export const createContract = async (contract: TContract) => {
   try {
     const res = await instance.post("contracts", contract);
     console.log(res);
@@ -13,7 +13,7 @@ export const createContract = async (contract: Contract) => {
 };
 
 // API functions
-export const fetchContracts = async (): Promise<Contract[]> => {
+export const fetchContracts = async (): Promise<TContract[]> => {
   try {
     const { data } = await instance.get("contracts");
     return data;
@@ -42,18 +42,22 @@ export const fetchContract = async (id: string) => {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const updateContract = async (updatedContract: any, id: string) => {
+export const updateContract = async (
+  updatedContract: TUpdateContract,
+  id: string
+): Promise<TContract> => {
+  // Replace 'any' with your actual contract response type
   try {
-    const contract = await instance.put(`/contracts/${id}`, updatedContract);
-    return contract;
+    const response = await instance.put(`/contracts/${id}`, updatedContract);
+    return response.data; // Return the actual data, not the full axios response
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Axios error update buyers:", error.message);
+      console.error("Axios error update contract:", error.message);
     } else {
-      console.error("Unexpected error update buyers:", error);
+      console.error("Unexpected error update contract:", error);
     }
-    return {};
+    // Throw the error so React Query can handle it properly
+    throw error;
   }
 };
 

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -42,12 +40,10 @@ const CreateSellerPage = () => {
   const createSellerMutation = useMutation({
     mutationFn: createSeller,
     onSuccess: (data) => {
-      // Invalidate and refetch the buyers list
+      // Invalidate and refetch the sellers list
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
-
-      // Optionally, you can also add the new buyer to the cache immediately
       // This provides instant feedback without waiting for refetch
-      queryClient.setQueryData(["buyers"], (oldData: Seller[] | undefined) => {
+      queryClient.setQueryData(["sellers"], (oldData: Seller[] | undefined) => {
         if (oldData) {
           return [data, ...oldData];
         }
@@ -101,9 +97,7 @@ const CreateSellerPage = () => {
       if (name === "additionalNgrs") {
         return {
           ...prev,
-          [name]: value
-            .split(", ")
-            .map((s) => s.trim())
+          [name]: value.split(", ").map((s) => s.trim()),
         };
       }
 

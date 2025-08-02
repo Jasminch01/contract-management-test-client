@@ -1,5 +1,4 @@
 "use client";
-// import { CiExport } from "react-icons/ci";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
 import SellerSelect from "./SellerSelect";
@@ -11,7 +10,6 @@ import { useState, useEffect } from "react";
 import SelectBuyerSeller from "./SelectBuyerSeller";
 import SelectContractType from "./SelectContractType";
 import { Buyer, Contract, ContractType, Seller } from "@/types/types";
-// import { contracts } from "@/data/data";
 import toast from "react-hot-toast";
 import ConveyanceSelect from "./ConveyanceSelect";
 import { createContract } from "@/api/ContractAPi";
@@ -73,7 +71,7 @@ const CreateContractForm = () => {
         ...old,
       ]);
       toast.success("Contract created successfully!");
-      // router.push("/contract-management");
+      router.push("/contract-management");
     },
     onError: (error) => {
       console.error("Error creating contract:", error);
@@ -115,7 +113,14 @@ const CreateContractForm = () => {
       }));
     }
   };
-
+  const getFormattedSeasons = () => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 10 }, (_, i) => {
+      const startYear = currentYear - i - 1;
+      const endYear = startYear + 1;
+      return `${startYear}/${endYear}`;
+    });
+  };
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -493,10 +498,11 @@ const CreateContractForm = () => {
               required
             >
               <option value="">Select Season</option>
-              <option value="2023/2024">2023/2024</option>
-              <option value="2024/2025">2024/2025</option>
-              <option value="2025/2026">2025/2026</option>
-              <option value="2026/2027">2026/2027</option>
+              {getFormattedSeasons().map((season) => (
+                <option key={season} value={season}>
+                  {season}
+                </option>
+              ))}
             </select>
           </div>
 

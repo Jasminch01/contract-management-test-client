@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,8 +26,6 @@ const CreateBuyerPage = () => {
     onSuccess: (data) => {
       // Invalidate and refetch the buyers list
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
-
-      // Optionally, you can also add the new buyer to the cache immediately
       // This provides instant feedback without waiting for refetch
       queryClient.setQueryData(["buyers"], (oldData: Buyer[] | undefined) => {
         if (oldData) {

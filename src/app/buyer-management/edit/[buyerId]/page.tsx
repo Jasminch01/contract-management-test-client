@@ -26,7 +26,7 @@ const BuyerInformationEditPage = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["buyer", buyerIdString],
+    queryKey: ["buyers", buyerIdString],
     queryFn: () => getBuyer(buyerIdString) as Promise<Buyer>,
     enabled: !!buyerIdString,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -39,13 +39,11 @@ const BuyerInformationEditPage = () => {
       updateBuyer(updatedBuyer, buyerIdString),
     onMutate: async (updatedBuyer) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["buyer", buyerIdString] });
-
+      await queryClient.cancelQueries({ queryKey: ["buyers", buyerIdString] });
       // Snapshot the previous value
-      const previousBuyer = queryClient.getQueryData(["buyer", buyerIdString]);
-
+      const previousBuyer = queryClient.getQueryData(["buyers", buyerIdString]);
       // Optimistically update to the new value
-      queryClient.setQueryData(["buyer", buyerIdString], updatedBuyer);
+      queryClient.setQueryData(["buyers", buyerIdString], updatedBuyer);
 
       return { previousBuyer };
     },
@@ -53,7 +51,7 @@ const BuyerInformationEditPage = () => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousBuyer) {
         queryClient.setQueryData(
-          ["buyer", buyerIdString],
+          ["buyers", buyerIdString],
           context.previousBuyer
         );
       }
@@ -64,17 +62,15 @@ const BuyerInformationEditPage = () => {
       toast.success("Buyer information updated successfully");
 
       // Invalidate and refetch buyer data to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
-
+      queryClient.invalidateQueries({ queryKey: ["buyers", buyerIdString] });
       // Also invalidate the buyers list if you have one
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
-
       // Navigate back to buyer management
       router.push(`/buyer-management`);
     },
     onSettled: () => {
       // Always refetch after error or success to ensure server state consistency
-      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
+      queryClient.invalidateQueries({ queryKey: ["buyers", buyerIdString] });
     },
   });
 

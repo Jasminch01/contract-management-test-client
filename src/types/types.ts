@@ -59,15 +59,6 @@ export interface PortZoneBid {
   updatedAt?: Date;
 }
 
-export interface Note {
-  id: string;
-  noteName: string;
-  notes: string;
-  br: string;
-  date: string;
-  time: string;
-}
-
 export interface Buyer {
   _id?: string;
   name: string;
@@ -113,48 +104,12 @@ export interface Seller {
       ];
       required: true;
     };
-    identifier?: string; // Username / Email / PAN no
+    identifier?: string;
     password?: string;
   };
 }
 
-export type ContractStatus = "incompleted" | "completed" | "invoiced";
-
-export interface Contract {
-  deliveryDestination: string;
-  season: string;
-  _id?: string;
-  // contractNumber: string;
-  tonnes: string;
-  certificationScheme: string;
-  termsAndConditions: string;
-  deliveryPeriod: {
-    start: string;
-    end: string;
-  }; // ISO date format "YYYY-MM-DD"
-  deliveryOption: string;
-  paymentTerms: string;
-  commodity: string;
-  freight: string;
-  brokerRate: string;
-  specialCondition: string;
-  grade: string;
-  weights: string;
-  buyerContractReference: string;
-  notes: string;
-  tolerance: string;
-  buyer: string;
-  seller: string;
-  priceExGST: string;
-  brokeragePayableBy: string;
-  conveyance: string;
-  ngrNumber: string;
-  // brokerReference: string;
-  sellerContractReference: string;
-  attachSellersContract: string;
-  attachBuyersContract: string;
-  contractType: string;
-}
+export type ContractStatus = "Incomplete" | "Complete" | "Invoiced";
 
 // For the array of contracts
 
@@ -168,29 +123,24 @@ export interface Buyer {
   contactName: string;
   phoneNumber: string;
   isDeleted?: boolean;
-  createdAt?: string; // or Date if you'll parse it
-  updatedAt: string; // or Date if you'll parse it
-  __v: number;
+  createdAt?: string;
 }
 
 export interface Seller {
-  locationZone?: string[]; // Replace 'any' with a more specific type if needed
+  locationZone?: string[];
   _id?: string;
   legalName: string;
   abn: string;
   mainNgr: string;
-  additionalNgrs?: string[]; // Replace 'any' with a more specific type if needed
+  additionalNgrs?: string[];
   accountNumber: string;
   email: string;
   address: string;
   contactName: string;
   phoneNumber: string;
   isDeleted?: boolean;
-  createdAt?: string; // or Date if you'll parse it
-  updatedAt: string; // or Date if you'll parse it
-  __v: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bulkHandlerCredentials?: any[]; // Replace 'any' with a more specific type if needed
+  createdAt?: string;
+  bulkHandlerCredentials?: Bulk;
 }
 
 export interface TContract {
@@ -227,7 +177,38 @@ export interface TContract {
   isDeleted: boolean;
   status: string;
   createdAt: string; // or Date if you'll parse it
-  updatedAt: string; // or Date if you'll parse it
   contractNumber: string;
-  __v: number;
+}
+export interface TUpdateContract {
+  _id?: string;
+  buyerContractReference: string;
+  sellerContractReference: string;
+  grade: string;
+  buyer: string;
+  seller: string;
+  contractType: string;
+  deliveryOption: string;
+  deliveryPeriod: {
+    start: string;
+    end: string;
+  };
+  freight: string;
+  weights: string;
+  priceExGST: string;
+  conveyance: string;
+  attachedSellerContract?: string;
+  attachedBuyerContract?: string;
+  commodity: string;
+  certificationScheme: string;
+  paymentTerms: string;
+  brokerRate: string;
+  deliveryDestination: string;
+  brokeragePayableBy: string;
+  specialCondition: string;
+  termsAndConditions: string;
+  notes: string;
+  tonnes: number;
+  tolerance: string;
+  season: string;
+  status: string;
 }

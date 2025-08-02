@@ -110,14 +110,14 @@ const SellerManagementPage = () => {
 
       setToggleCleared(!toggleCleared);
       setIsDeleteConfirmOpen(false);
-      toast.success(`${variables.length} buyer(s) moved to trash`);
+      toast.success(`${variables.length} seller(s) moved to trash`);
 
       // Clear selected rows
       setSelectedRows([]);
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("Failed to delete buyers");
+      toast.error("Failed to delete sellers");
     },
   });
   // Filter options for date filter dropdown

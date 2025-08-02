@@ -88,13 +88,13 @@ const SellerInformationEditPage = () => {
     onMutate: async (updatedSeller) => {
       setSaveStatus("saving");
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["seller", sellerIdStr] });
+      await queryClient.cancelQueries({ queryKey: ["sellers", sellerIdStr] });
 
       // Snapshot the previous value
-      const previousSeller = queryClient.getQueryData(["seller", sellerIdStr]);
+      const previousSeller = queryClient.getQueryData(["sellers", sellerIdStr]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(["seller", sellerIdStr], updatedSeller);
+      queryClient.setQueryData(["sellers", sellerIdStr], updatedSeller);
 
       return { previousSeller };
     },
@@ -103,7 +103,7 @@ const SellerInformationEditPage = () => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousSeller) {
         queryClient.setQueryData(
-          ["seller", sellerIdStr],
+          ["sellers", sellerIdStr],
           context.previousSeller
         );
       }
@@ -116,7 +116,7 @@ const SellerInformationEditPage = () => {
       setHasChanges(false);
 
       // Invalidate and refetch seller data to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+      queryClient.invalidateQueries({ queryKey: ["sellers", sellerIdStr] });
 
       // Also invalidate the sellers list if you have one
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
@@ -128,7 +128,7 @@ const SellerInformationEditPage = () => {
     },
     onSettled: () => {
       // Always refetch after error or success to ensure server state consistency
-      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+      queryClient.invalidateQueries({ queryKey: ["sellers", sellerIdStr] });
     },
   });
 

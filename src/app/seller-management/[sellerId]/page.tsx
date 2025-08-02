@@ -1,51 +1,55 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
-
 "use client";
 import { getseller } from "@/api/sellerApi";
-import { Seller } from "@/types/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
+import { useQuery } from "@tanstack/react-query";
+import { Seller } from "@/types/types";
 
 const SellerInformationPage = () => {
   const { sellerId } = useParams();
-  const [sellerData, setSellerData] = useState<Seller | null>(null);
-  const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
-  const sellerIdStr = sellerId?.toString() as string;
   const router = useRouter();
+
+  const sellerIdStr = sellerId?.toString() as string;
+
+  // TanStack Query for fetching seller data
+  const {
+    data: sellerData,
+    isLoading: loading,
+    error,
+    isError,
+  } = useQuery({
+    queryKey: ["seller", sellerIdStr],
+    queryFn: () => getseller(sellerIdStr) as Promise<Seller>,
+    enabled: !!sellerIdStr, // Only run query if sellerId exists
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    retry: 2, // Retry failed requests 2 times
+  });
+
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.push("/seller-management");
   };
 
-  useEffect(() => {
-    const getSellerData = async () => {
-      try {
-        const res = await getseller(sellerIdStr);
-        setSellerData(res);
-        if (res) {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getSellerData();
-  }, [sellerIdStr]);
-
+  // Loading state
   if (loading) {
     return (
       <div className="text-center py-10">Loading seller information...</div>
     );
   }
 
-  // if (error) {
-  //   return <div className="text-center py-10 text-red-500">Error: {error}</div>;
-  // }
+  // Error state
+  if (isError) {
+    return (
+      <div className="text-center py-10 text-red-500">
+        Error:{" "}
+        {error instanceof Error ? error.message : "Failed to fetch seller data"}
+      </div>
+    );
+  }
 
+  // No data state
   if (!sellerData) {
     return <div className="text-center py-10">No seller data found</div>;
   }
@@ -74,7 +78,7 @@ const SellerInformationPage = () => {
           <InfoRow label="Seller ABN" value={sellerData.abn} />
           <InfoRow
             label="Seller Additional NGRs"
-            value={sellerData.additionalNgrs.join(", ")}
+            value={sellerData.additionalNgrs?.join(", ") || "N/A"}
           />
           <InfoRow label="Seller Email" value={sellerData.email} />
           <InfoRow
@@ -89,7 +93,7 @@ const SellerInformationPage = () => {
         {/* Edit Button */}
         <div className="mt-10">
           <Link href={`/seller-management/edit/${sellerId?.toString()}`}>
-            <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] text-white rounded flex items-center gap- hover:bg-[#1e4728] ">
+            <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4728]">
               <MdOutlineEdit className="text-lg" />
               Edit
             </button>
@@ -107,7 +111,7 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
       {label}
     </div>
     <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-      {value}
+      {value || "N/A"}
     </div>
   </>
 );

@@ -187,23 +187,29 @@ const EditableContract: React.FC<ContractProps> = ({
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
     field: string,
-    nestedObject?: string
+    nestedObject?: keyof typeof contract // Use keyof to restrict to actual property names
   ) => {
     const { value } = e.target;
     setContract((prev) => {
       const newContract = { ...prev };
       if (nestedObject) {
-        newContract[nestedObject] = {
-          ...newContract[nestedObject],
+        // Type assertion for nested object update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newContract as any)[nestedObject] = {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(newContract as any)[nestedObject],
           [field]: value,
         };
       } else {
-        newContract[field] = value;
+        // Type assertion for direct property update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (newContract as any)[field] = value;
       }
       return newContract;
     });
     setHasChanges(true);
   };
+
   const handleDateChange = (update: [Date | null, Date | null]) => {
     setDateRange(update);
 
@@ -259,7 +265,7 @@ const EditableContract: React.FC<ContractProps> = ({
 
     // Remove _id field for create operation
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, contractNumber, __v, createdAt, updatedAt, ...contractWithoutId } = contractToSave;
+    const { _id, ...contractWithoutId } = contractToSave;
     console.log(contractWithoutId);
     createContractMutation.mutate(contractWithoutId);
   };

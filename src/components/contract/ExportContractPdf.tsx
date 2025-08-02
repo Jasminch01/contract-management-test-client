@@ -7,46 +7,7 @@ import {
   StyleSheet,
   Image as PdfImage,
 } from "@react-pdf/renderer";
-
-// Extended Contract interface to include all properties used in the PDF
-interface Contract {
-  _id: string;
-  createdAt: string;
-  contractNumber: string;
-  season: string;
-  commoditySeason?: string;
-  seller: {
-    mainNgr?: string;
-    legalName?: string;
-    email?: string;
-    sellerOfficeAddress?: string;
-    sellerContactName?: string;
-    sellerEmail?: string;
-  };
-  grade: string;
-  tonnes: number;
-  buyer: {
-    name?: string;
-    email?: string;
-    officeAddress?: string;
-  };
-  deliveryDestination: string;
-  destination?: string;
-  deliveryOption?: string;
-  priceExGST: number;
-  priceExGst?: number; // Alternative naming
-  status: string;
-  notes?: string;
-  isDeleted?: boolean;
-
-  // Additional properties used in PDF
-  brokerReference?: string;
-  contractDate?: string;
-  commodity?: string;
-  freight?: string;
-  weights?: string;
-  specialCondition?: string;
-}
+import { TContract } from "@/types/types";
 
 const contractPdfStyles = StyleSheet.create({
   page: {
@@ -173,7 +134,7 @@ const contractPdfStyles = StyleSheet.create({
   },
 });
 
-const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
+const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
   return (
     <Document>
       {contracts.map((contract, index) => (
@@ -223,15 +184,13 @@ const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
                     {contract.seller?.legalName || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.seller?.sellerOfficeAddress || "N/A"}
+                    {contract.seller?.address || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.seller?.sellerContactName || "N/A"}
+                    {contract.seller?.contactName || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.seller?.sellerEmail ||
-                      contract.seller?.email ||
-                      "N/A"}
+                    {contract.seller?.email || contract.seller?.email || "N/A"}
                   </Text>
                 </View>
               </View>
@@ -249,7 +208,7 @@ const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
                       Broker Ref:
                     </Text>
                     <Text style={contractPdfStyles.brokerRefItem}>
-                      {contract.brokerReference ||
+                      {contract.sellerContractReference ||
                         contract.contractNumber ||
                         "N/A"}
                     </Text>
@@ -262,7 +221,7 @@ const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
                       Contract Date:
                     </Text>
                     <Text style={contractPdfStyles.brokerRefItem}>
-                      {contract.contractDate ||
+                      {contract.createdAt ||
                         new Date(contract.createdAt).toLocaleDateString() ||
                         "N/A"}
                     </Text>
@@ -282,7 +241,7 @@ const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
                 <View style={contractPdfStyles.detailRow}>
                   <Text style={contractPdfStyles.detailLabel}>Season:</Text>
                   <Text style={contractPdfStyles.detailValue}>
-                    {contract.commoditySeason || contract.season || "N/A"}
+                    {contract.season || contract.season || "N/A"}
                   </Text>
                 </View>
 
@@ -303,7 +262,7 @@ const ExportContractPdf = ({ contracts }: { contracts: Contract[] }) => {
                 <View style={contractPdfStyles.detailRow}>
                   <Text style={contractPdfStyles.detailLabel}>Price:</Text>
                   <Text style={contractPdfStyles.detailValue}>
-                    A${contract.priceExGst || contract.priceExGST || "0"} PER
+                    A${contract.priceExGST || contract.priceExGST || "0"} PER
                     TONNE IN DISPOT YITTERM, ROCKVORTHY
                   </Text>
                 </View>

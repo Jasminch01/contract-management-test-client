@@ -1,10 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
-
 "use client";
 import { fetchContract } from "@/api/ContractAPi";
 import DuplicateContract from "@/components/contract/DuplicateContract";
-import { Contract as TContract } from "@/types/types";
+import { TContract } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "next/dist/server/api-utils";
 import { useParams } from "next/navigation";
