@@ -89,7 +89,7 @@ const EditableContract: React.FC<ContractProps> = ({
   // Updated file upload handler - directly assigns to contract properties
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: "attachBuyersContracts" | "attachSellerContracts"
+    field: "attachedBuyersContracts" | "attachedSellerContracts"
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -108,7 +108,7 @@ const EditableContract: React.FC<ContractProps> = ({
 
   // Updated file removal handler
   const handleRemoveAttachment = (
-    field: "attachBuyersContracts" | "attachSellerContracts"
+    field: "attachedBuyersContracts" | "attachedSellerContracts"
   ) => {
     setContract((prev) => ({
       ...prev,
@@ -121,6 +121,7 @@ const EditableContract: React.FC<ContractProps> = ({
   const brokeragePayableOptions = [
     { name: "Buyer", value: "Buyer" },
     { name: "Seller", value: "Seller" },
+    { name: "Buyer & Seller", value: "Buyer & Seller" },
     { name: "No Brokerage Payable", value: "No Brokerage Payable" },
   ];
 
@@ -233,23 +234,32 @@ const EditableContract: React.FC<ContractProps> = ({
 
   const createContractMutation = useMutation({
     mutationFn: createContract,
-    onSuccess: (data) => {
-      // Invalidate and refetch contracts list
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+    onSuccess: async () => {
+      try {
+        // Force immediate refetch of all contract-related queries
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ["contracts"] }),
+          queryClient.refetchQueries({ queryKey: ["contract"] }),
+        ]);
 
-      // Or optimistically update the cache
-      queryClient.setQueryData(["contracts"], (old: Contract[]) => [
-        data,
-        ...old,
-      ]);
-      toast.success("Contract created successfully!");
-      router.push("/contract-management");
+        // Also invalidate to ensure future queries are fresh
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({ queryKey: ["contract"] });
+
+        toast.success("Contract duplicated successfully!");
+        router.push("/contract-management");
+      } catch (error) {
+        console.error("Error refetching queries:", error);
+        // Still navigate even if refetch fails
+        router.push("/contract-management");
+      }
     },
     onError: (error) => {
       console.error("Error creating contract:", error);
-      toast.error("Failed to create contract. Please try again.");
+      toast.error("Failed to duplicate contract. Please try again.");
     },
   });
+
   const handleSave = () => {
     const contractToSave = {
       ...contract,
@@ -262,11 +272,8 @@ const EditableContract: React.FC<ContractProps> = ({
           ? contract.seller
           : contract.seller?._id,
     };
-
-    // Remove _id field for create operation
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, ...contractWithoutId } = contractToSave;
-    console.log(contractWithoutId);
+    const { _id, contractNumber, ...contractWithoutId } = contractToSave;
     createContractMutation.mutate(contractWithoutId);
   };
 
@@ -379,10 +386,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.tolerance || ""}
                   onChange={(e) => handleChange(e, "tolerance")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -390,10 +397,10 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tonnes</div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.tonnes || ""}
                   onChange={(e) => handleChange(e, "tonnes")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -414,10 +421,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.weights || ""}
                   onChange={(e) => handleChange(e, "weights")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 roundedappearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -427,10 +434,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.priceExGST || ""}
                   onChange={(e) => handleChange(e, "priceExGST")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -895,10 +902,10 @@ const EditableContract: React.FC<ContractProps> = ({
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Seller Contract
                     </label>
-                    {contract.attachSellerContracts ? (
+                    {contract.attachedSellerContract ? (
                       <div className="flex items-center gap-2">
                         <a
-                          href={contract.attachSellerContracts}
+                          href={contract.attachedBuyerContract}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
@@ -908,7 +915,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachSellerContracts")
+                            handleRemoveAttachment("attachedSellerContracts")
                           }
                           className="text-red-500 hover:text-red-700"
                         >
@@ -921,7 +928,7 @@ const EditableContract: React.FC<ContractProps> = ({
                           type="file"
                           accept="application/pdf"
                           onChange={(e) =>
-                            handleFileUpload(e, "attachSellerContracts")
+                            handleFileUpload(e, "attachedSellerContracts")
                           }
                           className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
@@ -939,10 +946,10 @@ const EditableContract: React.FC<ContractProps> = ({
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Buyer Contract
                     </label>
-                    {contract.attachBuyersContracts ? (
+                    {contract.attachedBuyerContract ? (
                       <div className="flex items-center gap-2">
                         <a
-                          href={contract.attachBuyersContracts}
+                          href={contract.attachedBuyerContract}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
@@ -952,7 +959,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachBuyersContracts")
+                            handleRemoveAttachment("attachedBuyersContracts")
                           }
                           className="text-red-500 hover:text-red-700"
                         >
@@ -965,7 +972,7 @@ const EditableContract: React.FC<ContractProps> = ({
                           type="file"
                           accept="application/pdf"
                           onChange={(e) =>
-                            handleFileUpload(e, "attachBuyersContracts")
+                            handleFileUpload(e, "attachedBuyersContracts")
                           }
                           className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4

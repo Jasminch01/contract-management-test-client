@@ -2,10 +2,9 @@ import { TContract, TUpdateContract } from "@/types/types";
 import { instance } from "./api";
 import axios from "axios";
 
-export const createContract = async (contract: TContract) => {
+export const createContract = async (contract: TUpdateContract) => {
   try {
     const res = await instance.post("contracts", contract);
-    console.log(res);
     return res;
   } catch (error) {
     console.log(error);

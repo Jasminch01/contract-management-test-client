@@ -9,7 +9,13 @@ import { addDays } from "date-fns";
 import { useState, useEffect } from "react";
 import SelectBuyerSeller from "./SelectBuyerSeller";
 import SelectContractType from "./SelectContractType";
-import { Buyer, Contract, ContractType, Seller } from "@/types/types";
+import {
+  Buyer,
+  ContractType,
+  Seller,
+  TContract,
+  TUpdateContract,
+} from "@/types/types";
 import toast from "react-hot-toast";
 import ConveyanceSelect from "./ConveyanceSelect";
 import { createContract } from "@/api/ContractAPi";
@@ -21,40 +27,45 @@ const CreateContractForm = () => {
     null,
     null,
   ]);
-  const [formData, setFormData] = useState<Contract>({
-    deliveryDestination: "",
-    tonnes: "",
-    certificationScheme: "",
-    termsAndConditions: "",
+  const [formData, setFormData] = useState<TUpdateContract>({
+    buyerContractReference: "",
+    sellerContractReference: "",
+    grade: "",
+    buyer: "",
+    seller: "",
+    contractType: "",
+    deliveryOption: "",
     deliveryPeriod: {
       start: "",
       end: "",
     },
-    deliveryOption: "",
-    paymentTerms: "",
-    commodity: "",
     freight: "",
-    brokerRate: "",
-    specialCondition: " ",
-    grade: "",
     weights: "",
-    buyerContractReference: "",
-    notes: "",
-    buyer: "",
-    seller: "",
     priceExGST: "",
     conveyance: "",
-    ngrNumber: "",
-    sellerContractReference: "",
-    attachSellersContract: "",
-    attachBuyersContract: "",
-    contractType: "",
+    attachedSellerContract: "",
+    attachedBuyerContract: "",
+    commodity: "",
+    certificationScheme: "",
+    paymentTerms: "",
+    brokerRate: "",
+    deliveryDestination: "",
     brokeragePayableBy: "",
-    season: "",
+    specialCondition: "",
+    termsAndConditions: "",
+    notes: "",
+    tonnes: 0,
+    ngrNumber: "",
     tolerance: "",
+    season: "",
   });
 
   const [isGrowerContract, setIsGrowerContract] = useState(false);
+  const [notification, setNotification] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
   const [startDate, endDate] = dateRange;
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -65,11 +76,15 @@ const CreateContractForm = () => {
       // Invalidate and refetch contracts list
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
 
-      // Or optimistically update the cache
-      queryClient.setQueryData(["contracts"], (old: Contract[]) => [
-        data,
-        ...old,
-      ]);
+      // Or optimistically update the cache - with null check
+      queryClient.setQueryData(
+        ["contracts"],
+        (old: TContract[] | undefined) => {
+          // Handle case where old data doesn't exist
+          const existingContracts = old || [];
+          return [data, ...existingContracts];
+        }
+      );
       toast.success("Contract created successfully!");
       router.push("/contract-management");
     },
@@ -166,13 +181,49 @@ const CreateContractForm = () => {
     }));
   };
 
+  const showNotification = (
+    message: string,
+    type: "success" | "error" | "info"
+  ) => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => {
+      setNotification({ message: "", type: "", visible: false });
+    }, 4000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const newContract: Contract = {
+    e.preventDefault(); // Prevent form submission first
+
+    let hasError = false;
+
+    if (!formData.seller) {
+      showNotification("Please select a seller", "error");
+      hasError = true;
+    }
+
+    if (!formData.buyer) {
+      showNotification("Please select a buyer", "error");
+      hasError = true;
+    }
+
+    if (!formData.brokeragePayableBy) {
+      showNotification(
+        "Please select who the brokerage is payable by",
+        "error"
+      );
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
+    // Only proceed if all validations pass
+    const newContract: TUpdateContract = {
       ...formData,
     };
+
     createContractMutation.mutate(newContract);
-    console.log(newContract);
   };
 
   return (
@@ -250,12 +301,13 @@ const CreateContractForm = () => {
               BROKER RATE
             </label>
             <input
-              type="text"
+              type="number"
               name="brokerRate"
               value={formData.brokerRate}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
+              required
             />
           </div>
 
@@ -296,6 +348,7 @@ const CreateContractForm = () => {
               value={formData.freight}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
           <div>
@@ -322,6 +375,7 @@ const CreateContractForm = () => {
               type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
+              required
             />
           </div>
 
@@ -333,9 +387,10 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="weights"
               value={formData.weights}
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              type="number"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
+              required
             />
           </div>
           <div className="md:row-start-4">
@@ -366,9 +421,10 @@ const CreateContractForm = () => {
               value={formData.priceExGST}
               onChange={handleChange}
               name="priceExGST"
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              type="number"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
+              required
             />
           </div>
 
@@ -379,8 +435,8 @@ const CreateContractForm = () => {
             <input
               type="file"
               accept="application/pdf"
-              name="attachBuyersContract"
-              value={formData.attachBuyersContract}
+              name="attachedBuyersContract"
+              value={formData.attachedBuyerContract}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -432,8 +488,8 @@ const CreateContractForm = () => {
             <input
               type="file"
               accept="application/pdf"
-              name="attachSellersContract"
-              value={formData.attachSellersContract}
+              name="attachedSellersContract"
+              value={formData.attachedSellerContract}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
@@ -462,8 +518,8 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="tonnes"
               value={formData.tonnes}
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              type="number"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
               required
             />
@@ -514,8 +570,8 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="tolerance"
               value={formData.tolerance}
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              type="number"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
               required
             />
@@ -546,6 +602,50 @@ const CreateContractForm = () => {
           </button>
         </div>
       </form>
+      {notification.visible && (
+        <div className="fixed top-4 right-4 max-w-md z-50">
+          <div
+            className={`rounded-md shadow-lg p-4 ${
+              notification.type === "success"
+                ? "bg-green-50 border-l-4 border-green-500"
+                : notification.type === "error"
+                ? "bg-red-50 border-l-4 border-red-500"
+                : "bg-blue-50 border-l-4 border-blue-500"
+            }`}
+          >
+            <div className="flex items-center">
+              <div
+                className={`mr-3 ${
+                  notification.type === "success"
+                    ? "text-green-500"
+                    : notification.type === "error"
+                    ? "text-red-500"
+                    : "text-blue-500"
+                }`}
+              >
+                {notification.type === "error" && (
+                  <svg
+                    className="h-5 w-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  {notification.message}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -19,7 +19,11 @@ import { TContract } from "@/types/types";
 const columns = [
   {
     name: "DATE",
-    selector: (row: TContract) => row?.createdAt || "",
+    selector: (row: TContract) => {
+      if (!row?.createdAt) return "";
+      const date = new Date(row.createdAt);
+      return date.toLocaleDateString();
+    },
     sortable: true,
   },
   {
@@ -189,18 +193,22 @@ const ContractManagementPage = () => {
 
   // Handle row click to view details
   const handleRowClicked = (row: TContract) => {
-    if (row._id) {
+    if (row?._id) {
       router.push(`/contract-management/${row._id}`);
     }
   };
 
-  // Handle row selection
+  // Handle row selection - Add validation to filter out undefined/invalid rows
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
     selectedRows: TContract[];
   }) => {
-    setSelectedRows(selected.selectedRows);
+    // Filter out any undefined or invalid rows
+    const validSelectedRows = selected.selectedRows.filter(
+      (row): row is TContract => row != null && row._id != null
+    );
+    setSelectedRows(validSelectedRows);
   };
 
   // Handle filter change from search filter bar
@@ -224,11 +232,7 @@ const ContractManagementPage = () => {
     setSelectedStatus(value);
     setIsFilterActive(value !== "all");
     setIsFilterOpen(false);
-    const filtered = searchFilteredData.filter(
-      (contract) => contract.status?.toLowerCase() === value.toLowerCase()
-    );
 
-    console.log(filtered);
     if (value === "all") {
       // Show all the data that matches current search criteria
       setData(searchFilteredData);
@@ -248,7 +252,7 @@ const ContractManagementPage = () => {
     setData(searchFilteredData);
   };
 
-  // Handle delete selected contracts
+  // Handle delete selected contracts - Fixed the main issue here
   const handleDelete = () => {
     if (selectedRows.length === 0) {
       toast.error("Please select at least one contract to delete");
@@ -258,9 +262,16 @@ const ContractManagementPage = () => {
   };
 
   const confirmDelete = () => {
+    // Filter out any undefined/null rows and extract valid IDs
     const selectedIds = selectedRows
-      .map((row) => row._id)
-      .filter((id): id is string => id !== undefined);
+      .filter((row): row is TContract => row != null && row._id != null)
+      .map((row) => row._id!)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    if (selectedIds.length === 0) {
+      toast.error("No valid contracts selected for deletion");
+      return;
+    }
 
     if (selectedIds.length > 0) {
       deleteMutation.mutate(selectedIds);
@@ -273,8 +284,12 @@ const ContractManagementPage = () => {
       toast.error("Please select exactly one contract to edit");
       return;
     }
-    if (selectedRows[0]._id) {
-      router.push(`/contract-management/edit/${selectedRows[0]._id}`);
+
+    const contract = selectedRows[0];
+    if (contract?._id) {
+      router.push(`/contract-management/edit/${contract._id}`);
+    } else {
+      toast.error("Selected contract is invalid");
     }
   };
 
@@ -283,8 +298,12 @@ const ContractManagementPage = () => {
       toast.error("Please select exactly one contract to duplicate");
       return;
     }
-    if (selectedRows[0]._id) {
-      router.push(`/contract-management/duplicate/${selectedRows[0]._id}`);
+
+    const contract = selectedRows[0];
+    if (contract?._id) {
+      router.push(`/contract-management/duplicate/${contract._id}`);
+    } else {
+      toast.error("Selected contract is invalid");
     }
   };
 
@@ -297,8 +316,12 @@ const ContractManagementPage = () => {
     }
 
     try {
-      // Create email recipients
-      const recipients = selectedRows
+      // Filter out invalid rows and create email recipients
+      const validRows = selectedRows.filter(
+        (row): row is TContract => row != null
+      );
+
+      const recipients = validRows
         .map((row) =>
           recipientType === "buyer" ? row.buyer?.email : row.seller?.email
         )
@@ -313,9 +336,9 @@ const ContractManagementPage = () => {
 
       // Create subject based on recipient type
       let subject;
-      if (recipientType === "seller" && selectedRows.length === 1) {
+      if (recipientType === "seller" && validRows.length === 1) {
         // For single seller email, use the specific format
-        const contract = selectedRows[0];
+        const contract = validRows[0];
         subject = `Broker Note - ${contract.contractNumber || ""} ${
           contract.tonnes || 0
         }mt ${contract.grade || ""} ${contract.deliveryOption || "Delivered"} ${
@@ -323,7 +346,7 @@ const ContractManagementPage = () => {
         }`;
       } else {
         // For buyer emails, keep the original format
-        subject = `${selectedRows.length} Contract(s) - ${
+        subject = `${validRows.length} Contract(s) - ${
           recipientType === "buyer" ? "Buyer" : "Seller"
         } Documents`;
       }

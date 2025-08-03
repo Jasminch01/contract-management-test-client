@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
+
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -32,6 +33,19 @@ import toast from "react-hot-toast";
 interface ContractProps {
   contract: TContract;
 }
+
+const generateSeasons = (yearsAhead = 10) => {
+  const currentYear = new Date().getFullYear();
+  const seasons = [];
+
+  for (let i = 0; i < yearsAhead; i++) {
+    const startYear = currentYear + i;
+    const endYear = startYear + 1;
+    seasons.push(`${startYear}/${endYear}`);
+  }
+
+  return seasons;
+};
 
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
@@ -110,7 +124,7 @@ const EditableContract: React.FC<ContractProps> = ({
 
   // Updated file removal handler
   const handleRemoveAttachment = (
-    field: "attachBuyersContracts" | "attachSellerContracts"
+    field: "attachedBuyersContracts" | "attachedSellerContracts"
   ) => {
     setContract((prev) => ({
       ...prev,
@@ -236,50 +250,21 @@ const EditableContract: React.FC<ContractProps> = ({
   const updateContractMutation = useMutation({
     mutationFn: (updatedContract: TUpdateContract) =>
       updateContract(updatedContract, contractId),
-
-    onMutate: async (updatedContract) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["contracts", contractId] });
-
-      // Snapshot the previous value
-      const previousContract = queryClient.getQueryData([
-        "contracts",
-        contractId,
-      ]);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(["contracts", contractId], updatedContract);
-
-      return { previousContract };
+    onSuccess: () => {
+      // Refetch the specific contract
+      queryClient.invalidateQueries({ queryKey: ["contract", contractId] });
+      // Also refetch the contracts list if you have one
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      router.push("/contract-management")
     },
-
-    onError: (error, updatedContract, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (error, variables, context) => {
+      // Rollback on error if you were doing optimistic updates
       if (context?.previousContract) {
         queryClient.setQueryData(
-          ["contracts", contractId],
+          ["contract", contractId],
           context.previousContract
         );
       }
-      console.error("Update contract error:", error);
-      toast.error("Failed to update contract information");
-    },
-
-    onSuccess: (data) => {
-      toast.success("Contract information updated successfully");
-      setHasChanges(false);
-
-      // Update the cache with the actual response data
-      queryClient.setQueryData(["contracts", contractId], data);
-
-      // Also invalidate the contracts list
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      router.push(`/contract-management`);
-    },
-
-    onSettled: () => {
-      // Always refetch after error or success to ensure server state consistency
-      queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
     },
   });
 
@@ -306,7 +291,8 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, ...updatedContract } = contractToSave;
+    const { _id, createdAt, contractNumber, ...updatedContract } =
+      contractToSave;
     updateContractMutation.mutate(updatedContract);
   };
 
@@ -366,7 +352,8 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="text"
                   value={contract.contractNumber || ""}
-                  onChange={(e) => handleChange(e, "contractNumber")}
+                  // onChange={(e) => handleChange(e, "contractNumber")}
+                  readOnly
                   className="w-full border border-gray-300 p-1 rounded"
                 />
               </div>
@@ -406,10 +393,11 @@ const EditableContract: React.FC<ContractProps> = ({
                   className="w-full border border-gray-300 p-1 rounded"
                 >
                   <option value="">Select Season</option>
-                  <option value="2023/2024">2023/2024</option>
-                  <option value="2024/2025">2024/2025</option>
-                  <option value="2025/2026">2025/2026</option>
-                  <option value="2026/2027">2026/2027</option>
+                  {generateSeasons(10).map((season) => (
+                    <option key={season} value={season}>
+                      {season}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -419,10 +407,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.tolerance || ""}
                   onChange={(e) => handleChange(e, "tolerance")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -430,10 +418,10 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Tonnes</div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.tonnes || ""}
                   onChange={(e) => handleChange(e, "tonnes")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -454,10 +442,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.weights || ""}
                   onChange={(e) => handleChange(e, "weights")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -583,10 +571,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="number"
                   value={contract.brokerRate || ""}
                   onChange={(e) => handleChange(e, "brokerRate")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -935,10 +923,10 @@ const EditableContract: React.FC<ContractProps> = ({
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Seller Contract
                     </label>
-                    {contract.attachSellerContracts ? (
+                    {contract.attachedSellerContract ? (
                       <div className="flex items-center gap-2">
                         <a
-                          href={contract.attachSellerContracts}
+                          href={contract.attachedSellerContract}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
@@ -948,7 +936,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachSellerContracts")
+                            handleRemoveAttachment("attachedSellerContracts")
                           }
                           className="text-red-500 hover:text-red-700"
                         >
@@ -979,10 +967,10 @@ const EditableContract: React.FC<ContractProps> = ({
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Buyer Contract
                     </label>
-                    {contract.attachBuyersContracts ? (
+                    {contract.attachedBuyerContract ? (
                       <div className="flex items-center gap-2">
                         <a
-                          href={contract.attachBuyersContracts}
+                          href={contract.attachedBuyerContract}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
@@ -992,7 +980,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachBuyersContracts")
+                            handleRemoveAttachment("attachedBuyersContracts")
                           }
                           className="text-red-500 hover:text-red-700"
                         >

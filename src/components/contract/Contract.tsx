@@ -53,7 +53,11 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                   <span className="w-1/4 font-semibold">Broker Ref:</span>
                   <span className="w-1/4">{contract.contractNumber}</span>
                   <span className="w-1/4 font-semibold">Contract Date:</span>
-                  <span className="w-1/4">{contract.createdAt}</span>
+                  <span className="w-1/4">
+                    {contract.createdAt
+                      ? new Date(contract.createdAt).toISOString().split("T")[0]
+                      : ""}
+                  </span>
                 </div>
               </div>
             </div>
@@ -262,13 +266,17 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Broker</div>
-              <div className="w-1/2 p-3">{contract.seller.legalName || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                {contract.seller.legalName || "N/A"}
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Brokerage Payable By
               </div>
-              <div className="w-1/2 p-3">{contract.brokeragePayableBy || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                {contract.brokeragePayableBy || "N/A"}
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -415,15 +423,16 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               </div>
               <div className="w-1/2 p-3">
                 <div className="flex flex-col gap-1">
-                  {contract.attachedBuyerContract ? 
-                  
-                <a
-                    href={contract.attachedBuyerContract}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Seller&apos;s Contract
-                  </a> : <p>N/A</p>
-                }
+                  {contract.attachedBuyerContract ? (
+                    <a
+                      href={contract.attachedBuyerContract}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Seller&apos;s Contract
+                    </a>
+                  ) : (
+                    <p>N/A</p>
+                  )}
                   {contract.attachedSellerContract ? (
                     <a
                       href={contract.attachedSellerContract}
