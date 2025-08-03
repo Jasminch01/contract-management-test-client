@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+
 "use client";
-import { Buyer, Contract, Seller } from "@/types/types";
-import React, { useEffect, useState } from "react";
+import { Buyer, Seller, TContract, TrashData } from "@/types/types";
+import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoFilterSharp } from "react-icons/io5";
 import { RiDeleteBin6Fill, RiResetLeftFill } from "react-icons/ri";
@@ -9,18 +12,14 @@ import {
   emptyTrashBin,
   getTrashData,
   permanentlyDeleteTrashItems,
+  restoreTrashItems,
 } from "@/api/rubbishBinApi";
 
 type DeletedItem =
   | (Buyer & { type: "Buyer" })
   | (Seller & { type: "Seller" })
-  | (Contract & { type: "Contract" });
+  | (TContract & { type: "Contract" });
 
-interface TrashData {
-  buyers: Buyer[];
-  sellers: Seller[];
-  contracts: Contract[];
-}
 // API functions
 const fetchDeletedItems = async (): Promise<TrashData> => {
   const response = await getTrashData();
@@ -34,10 +33,6 @@ const permanentlyDeleteItems = async (itemIds: string[]): Promise<void> => {
 const emptyTrash = async (): Promise<void> => {
   await emptyTrashBin();
 };
-
-// const restoreItems = async (items: DeletedItem[]): Promise<void> => {
-//   // await restoreTrashItems(items);
-// };
 
 const RubbishBin = () => {
   const [filteredItems, setFilteredItems] = useState<DeletedItem[]>([]);
@@ -114,18 +109,21 @@ const RubbishBin = () => {
   });
 
   // Restore items mutation
-  // const restoreItemsMutation = useMutation({
-  //   mutationFn: restoreItems,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
-  //     setSelectedRows([]);
-  //     showNotification("Selected items restored successfully", "success");
-  //   },
-  //   onError: (error) => {
-  //     console.error("Error restoring items:", error);
-  //     showNotification("Error restoring items", "error");
-  //   },
-  // });
+  const restoreItemsMutation = useMutation({
+    mutationFn: restoreTrashItems,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      setSelectedRows([]);
+      showNotification("Selected items restored successfully", "success");
+    },
+    onError: (error) => {
+      console.error("Error restoring items:", error);
+      showNotification("Error restoring items", "error");
+    },
+  });
 
   // Process deleted items data
   const deletedItems: DeletedItem[] = React.useMemo(() => {
@@ -136,7 +134,7 @@ const RubbishBin = () => {
     const deletedContracts = deletedData.contracts || [];
 
     return [
-      ...deletedContracts.map((c: Contract) => ({
+      ...deletedContracts.map((c: TContract) => ({
         ...c,
         type: "Contract" as const,
       })),
@@ -158,7 +156,10 @@ const RubbishBin = () => {
     }
   }, [error]);
 
-  // Filter items based on active filters
+  // Filter dropdown ref for outside click detection
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Filter effect
   useEffect(() => {
     if (activeFilters.length === 0) {
       setFilteredItems(deletedItems);
@@ -169,12 +170,41 @@ const RubbishBin = () => {
     }
   }, [activeFilters, deletedItems]);
 
+  // Outside click effect to close filter dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    // Add event listener when filter is open
+    if (showFilterDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFilterDropdown]);
+
   const toggleFilter = (type: "Contract" | "Seller" | "Buyer") => {
     if (activeFilters.includes(type)) {
       setActiveFilters(activeFilters.filter((t) => t !== type));
     } else {
       setActiveFilters([...activeFilters, type]);
     }
+    // Close dropdown after selection
+    setShowFilterDropdown(false);
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters([]);
+    setShowFilterDropdown(false);
   };
 
   const handleRowSelected = (state: { selectedRows: DeletedItem[] }) => {
@@ -218,14 +248,24 @@ const RubbishBin = () => {
     setShowEmptyModal(false);
   };
 
-  // const handleRestore = () => {
-  //   if (selectedRows.length === 0) {
-  //     showNotification("No valid items selected for restoration", "error");
-  //     return;
-  //   }
+  const handleRestore = () => {
+    if (selectedRows.length === 0) {
+      showNotification("No valid items selected for restoration", "error");
+      return;
+    }
 
-  //   restoreItemsMutation.mutate(selectedRows); // Pass the full objects instead of just IDs
-  // };
+    // Extract IDs from selectedRows if they are objects, or use them directly if they are strings
+    const itemIds = selectedRows
+      .map((item) => (typeof item === "string" ? item : item._id))
+      .filter((id): id is string => id !== undefined);
+
+    if (itemIds.length === 0) {
+      showNotification("No valid items with IDs found", "error");
+      return;
+    }
+
+    restoreItemsMutation.mutate(itemIds);
+  };
 
   const columns = [
     {
@@ -236,7 +276,7 @@ const RubbishBin = () => {
         } else if (row.type === "Seller") {
           return (row as Seller).legalName;
         } else {
-          return (row as Contract).contractNumber || "Contract";
+          return (row as TContract).contractNumber || "Contract";
         }
       },
       sortable: true,
@@ -283,12 +323,16 @@ const RubbishBin = () => {
       name: "DELETED AT",
       selector: (row: DeletedItem) => {
         const deletedAt = row.deletedAt;
-        return deletedAt ? new Date(deletedAt).toLocaleDateString() : "N/A";
+        return deletedAt
+          ? new Date(deletedAt).toISOString().split("T")[0]
+          : "N/A";
       },
       sortable: true,
       format: (row: DeletedItem) => {
         const deletedAt = row.deletedAt;
-        return deletedAt ? new Date(deletedAt).toLocaleString() : "N/A";
+        return deletedAt
+          ? new Date(deletedAt).toISOString().split("T")[0]
+          : "N/A";
       },
       width: "150px",
     },
@@ -307,6 +351,10 @@ const RubbishBin = () => {
       style: {
         borderRight: "1px solid #ddd",
         padding: "12px",
+        textAlign: "center",
+        justifyContent: "center",
+        alignItems: "center",
+        display: "flex",
       },
     },
     headCells: {
@@ -315,14 +363,16 @@ const RubbishBin = () => {
         fontWeight: "bold",
         color: "gray",
         padding: "12px",
+        textAlign: "center",
+        justifyContent: "center",
+        alignItems: "center",
+        display: "flex",
       },
     },
   };
 
   const isAnyMutationLoading =
-    permanentDeleteMutation.isPending ||
-    emptyTrashMutation.isPending 
-    // restoreItemsMutation.isPending;
+    permanentDeleteMutation.isPending || emptyTrashMutation.isPending;
 
   return (
     <div className="mt-20">
@@ -414,11 +464,11 @@ const RubbishBin = () => {
                   ? "cursor-pointer hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed"
               }`}
-              // onClick={handleRestore}
+              onClick={handleRestore}
               disabled={selectedRows.length === 0 || isAnyMutationLoading}
             >
               <RiResetLeftFill />
-              {/* {restoreItemsMutation.isPending ? "Restoring..." : "Restore"}? */}
+              {restoreItemsMutation.isPending ? "Restoring..." : "Restore"}
             </button>
             <button
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm transition-colors shadow-sm ${
@@ -434,7 +484,7 @@ const RubbishBin = () => {
                 ? "Deleting..."
                 : "Permanent Delete"}
             </button>
-            <div className="relative">
+            <div className="relative" ref={filterRef}>
               <button
                 className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -480,7 +530,7 @@ const RubbishBin = () => {
                     {activeFilters.length > 0 && (
                       <div
                         className="px-4 py-2 text-sm cursor-pointer rounded hover:bg-gray-100 text-blue-500"
-                        onClick={() => setActiveFilters([])}
+                        onClick={clearAllFilters}
                       >
                         Clear all filters
                       </div>
@@ -521,7 +571,7 @@ const RubbishBin = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
                 Permanently Delete Items
@@ -555,7 +605,7 @@ const RubbishBin = () => {
 
         {/* Empty Trash Confirmation Modal */}
         {showEmptyModal && (
-          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
                 Empty Rubbish Bin

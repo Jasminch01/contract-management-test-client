@@ -173,6 +173,7 @@ const ContractManagementPage = () => {
     onSuccess: () => {
       // Invalidate and refetch contracts
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 
       // Clear selected rows and close modal
       setSelectedRows([]);

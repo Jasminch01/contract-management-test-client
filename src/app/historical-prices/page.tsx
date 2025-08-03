@@ -1,22 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
 import PortZoneBidsTable from "@/components/Dashboard/PortZoneBidsTable";
 import DateRangeModal from "@/components/DateRangeModal";
-import axios from "axios";
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { RiArrowDropDownLine } from "react-icons/ri";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createPortZoneBid,
+  fetchPortZoneBids,
+  updatePortZoneBid,
+} from "@/api/portZoneApi";
+import {
+  createDeliveredBid,
+  fetchDeliveredBids,
+  updateDeliveredBid,
+  type DeliveredBid, // Import the DeliveredBid type from API
+} from "@/api/deliverdBidsApi";
 
-// Types
-interface DeliveredBid {
-  location: string;
-}
-
-// Port Zone Bid type - matching backend schema
-export interface PortZoneBid {
-  _id?: string; // MongoDB _id mapped to this
+// Backend schema types for Port Zone Bids
+interface PortZoneBid {
+  _id?: string;
   label:
     | "Outer Harbor"
     | "Port Lincoln"
@@ -25,10 +32,33 @@ export interface PortZoneBid {
     | "Lucky Bay"
     | "Thevenard"
     | "Wallaroo Tports";
-  season: string;
-  date: string; // Adding date field
+  season: string; // format: "24/25"
+  date: string; // ISO date string
+  APW1?: number | null;
+  H1?: number | null;
+  H2?: number | null;
+  AUH2?: number | null;
+  ASW1?: number | null;
+  AGP1?: number | null;
+  SFW1?: number | null;
+  BAR1?: number | null;
+  MA1?: number | null;
+  CM1?: number | null;
+  COMD?: number | null;
+  CANS?: number | null;
+  FIEV?: number | null;
+  "NIP/HAL"?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-  // Bid types - matching backend schema exactly
+// Import the DeliveredBid type from your API file instead of defining it here
+// Remove the local interface and use the imported one
+
+// For Port Zone table display - combines static labels with fetched data
+interface PortZoneTableRow {
+  id: string;
+  label: string;
   APW1: number | null;
   H1: number | null;
   H2: number | null;
@@ -43,28 +73,32 @@ export interface PortZoneBid {
   CANS: number | null;
   FIEV: number | null;
   "NIP/HAL": number | null;
-
-  // Timestamps (handled by MongoDB)
-  createdAt?: Date;
-  updatedAt?: Date;
+  hasData: boolean; // to track if this row has existing data
+  _id?: string; // for updates
 }
 
-// For display in the table - simplified for form usage
-interface PortZoneBidsDisplay {
+// For Delivered Bids table display
+interface DeliveredBidTableRow {
   id: string;
-  label: string;
-  [key: string]: string | number; // grain type prices as strings for form input
+  location: string;
+  january: number | null;
+  february: number | null;
+  march: number | null;
+  april: number | null;
+  may: number | null;
+  june: number | null;
+  july: number | null;
+  august: number | null;
+  september: number | null;
+  october: number | null;
+  november: number | null;
+  december: number | null;
+  hasData: boolean;
+  _id?: string;
 }
 
-// For Delivered Bids (keeping original structure)
-interface DeliveredBids {
-  id: string;
-  locations: DeliveredBid[];
-  [key: string]: string | DeliveredBid[];
-}
-
-// Sample data
-const portzones: PortZoneBid["label"][] = [
+// Static data
+const portZoneLabels = [
   "Outer Harbor",
   "Port Lincoln",
   "Port Giles",
@@ -72,7 +106,7 @@ const portzones: PortZoneBid["label"][] = [
   "Lucky Bay",
   "Thevenard",
   "Wallaroo Tports",
-];
+] as const;
 
 const grainTypes = [
   "APW1",
@@ -89,9 +123,9 @@ const grainTypes = [
   "CANS",
   "FIEV",
   "NIP/HAL",
-];
+] as const;
 
-const deliveredBids = [
+const deliveredBidsLocations = [
   "Delivered Murray Bridge BAR1",
   "Delivered Murray Bridge Canola",
   "Delivered Waslays SFW1",
@@ -106,6 +140,21 @@ const deliveredBids = [
   "Delivered Sempahore Containers NIP/HAL1",
   "Delivered Sempahore Containers APW1",
 ];
+
+const monthFields = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+] as const;
 
 const months = [
   "January",
@@ -122,7 +171,35 @@ const months = [
   "December",
 ];
 
+// Helper functions
+// Season logic: A season runs from July 1st to June 30th of the following year
+// For example:
+// - Season 24/25 runs from July 1, 2024 to June 30, 2025
+// - Season 25/26 runs from July 1, 2025 to June 30, 2026
+
+const getSeasonFromDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 1-12
+
+  if (month >= 1 && month <= 6) {
+    // January to June: we're in the season that started last July
+    const startYear = year - 1;
+    const endYear = year;
+    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
+  } else {
+    // July to December: we're in the season that started this July
+    const startYear = year;
+    const endYear = year + 1;
+    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
+  }
+};
+
 const getFormattedDates = () => {
+  if (typeof window === "undefined") {
+    // Return empty array during SSR to avoid hydration mismatch
+    return [];
+  }
+
   const today = new Date();
   return Array.from({ length: 10 }, (_, i) => {
     const date = new Date(today);
@@ -135,20 +212,52 @@ const getFormattedDates = () => {
 };
 
 const getFormattedSeasons = () => {
+  if (typeof window === "undefined") {
+    // Return empty array during SSR to avoid hydration mismatch
+    return [];
+  }
+
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+
+  // Determine the current season year based on the month
+  let currentSeasonStartYear;
+  if (currentMonth >= 1 && currentMonth <= 6) {
+    // January to June: current season started last year
+    currentSeasonStartYear = currentYear - 1;
+  } else {
+    // July to December: current season started this year
+    currentSeasonStartYear = currentYear;
+  }
+
+  // Generate seasons: current season + 9 previous seasons (10 total)
   return Array.from({ length: 10 }, (_, i) => {
-    const startYear = currentYear - i - 1;
+    const startYear = currentSeasonStartYear - i;
     const endYear = startYear + 1;
     return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
   });
 };
 
 const getCurrentDateInputValue = () => {
+  if (typeof window === "undefined") {
+    // Return a static value during SSR
+    return "";
+  }
+
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const getCurrentSeason = () => {
+  if (typeof window === "undefined") {
+    // Return a static value during SSR
+    return "";
+  }
+
+  return getSeasonFromDate(new Date());
 };
 
 const formatDateForFilename = (dateStr: string) => {
@@ -159,13 +268,82 @@ const formatDateForFilename = (dateStr: string) => {
   return `${day}-${month}-${year}`;
 };
 
-// Convert date input to display format
-const formatDateForDisplay = (dateStr: string) => {
-  const date = new Date(dateStr);
-  const day = date.getDate();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear()).slice(-2);
-  return `${day}/${month}/${year}`;
+// Create empty Port Zone table rows with static labels
+const createEmptyPortZoneRows = (
+  fetchedData: PortZoneBid[] = []
+): PortZoneTableRow[] => {
+  return portZoneLabels.map((label, index) => {
+    // Find matching data for this label
+    const existingData = fetchedData.find((bid) => bid.label === label);
+
+    return {
+      id: `pz-${index}`,
+      label,
+      APW1: existingData?.APW1 || null,
+      H1: existingData?.H1 || null,
+      H2: existingData?.H2 || null,
+      AUH2: existingData?.AUH2 || null,
+      ASW1: existingData?.ASW1 || null,
+      AGP1: existingData?.AGP1 || null,
+      SFW1: existingData?.SFW1 || null,
+      BAR1: existingData?.BAR1 || null,
+      MA1: existingData?.MA1 || null,
+      CM1: existingData?.CM1 || null,
+      COMD: existingData?.COMD || null,
+      CANS: existingData?.CANS || null,
+      FIEV: existingData?.FIEV || null,
+      "NIP/HAL": existingData?.["NIP/HAL"] || null,
+      hasData: !!existingData,
+      _id: existingData?._id,
+    };
+  });
+};
+
+// Create empty Delivered Bids table rows with static locations
+const createEmptyDeliveredBidsRows = (
+  fetchedData: DeliveredBid[] = []
+): DeliveredBidTableRow[] => {
+  return deliveredBidsLocations.map((location, index) => {
+    // Find matching data for this location
+    // Handle both possible field names: label (new API) or location (old API)
+    const existingData = fetchedData.find(
+      (bid) =>
+        (bid as any).label === location || (bid as any).location === location
+    );
+
+    // Handle both possible data structures
+    const getMonthValue = (monthName: string) => {
+      if (!existingData) return null;
+
+      // Try monthlyValues structure first (new API format)
+      if ((existingData as any).monthlyValues) {
+        return (existingData as any).monthlyValues[monthName] || null;
+      }
+
+      // Fallback to direct property access (old API format)
+      const lowercaseMonth = monthName.toLowerCase();
+      return (existingData as any)[lowercaseMonth] || null;
+    };
+
+    return {
+      id: `db-${index}`,
+      location,
+      january: getMonthValue("January"),
+      february: getMonthValue("February"),
+      march: getMonthValue("March"),
+      april: getMonthValue("April"),
+      may: getMonthValue("May"),
+      june: getMonthValue("June"),
+      july: getMonthValue("July"),
+      august: getMonthValue("August"),
+      september: getMonthValue("September"),
+      october: getMonthValue("October"),
+      november: getMonthValue("November"),
+      december: getMonthValue("December"),
+      hasData: !!existingData,
+      _id: (existingData as any)?._id,
+    };
+  });
 };
 
 const HistoricalPricesPage = () => {
@@ -173,242 +351,199 @@ const HistoricalPricesPage = () => {
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSeason, setSelectedSeason] = useState(
-    getFormattedSeasons()[0]
-  );
-  const [portZoneData, setPortZoneData] = useState<PortZoneBidsDisplay[]>([]);
-  const [deliveredBidsData, setDeliveredBidsData] = useState<DeliveredBids[]>(
-    []
-  );
-  const [hasDataToExport, setHasDataToExport] = useState(false);
-  const [currentDateInputValue, setCurrentDateInputValue] = useState(
-    getCurrentDateInputValue()
-  );
+  const [selectedSeason, setSelectedSeason] = useState("");
+  const [currentDateInputValue, setCurrentDateInputValue] = useState("");
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
   const [exportDateRange, setExportDateRange] = useState<{
     start: string;
     end: string;
   } | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Create empty form structure for port zones
-  const createEmptyPortZoneForm = (): PortZoneBidsDisplay[] => {
-    return portzones.map((port, index) => ({
-      id: `hp-${index}`,
-      label: port,
-      ...grainTypes.reduce((acc, grain) => ({ ...acc, [grain]: "" }), {}),
-    }));
-  };
+  // Add state to track if component is mounted (client-side)
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Convert PortZoneBid to display format
-  const convertToDisplayFormat = (
-    backendData: PortZoneBid[]
-  ): PortZoneBidsDisplay[] => {
-    const currentDate = formatDateForDisplay(currentDateInputValue);
+  const queryClient = useQueryClient();
 
-    return portzones.map((port, index) => {
-      const portBid = backendData.find(
-        (bid) =>
-          bid.label === port &&
-          bid.date === currentDate &&
-          bid.season === selectedSeason
-      );
-
-      const displayRow: PortZoneBidsDisplay = {
-        id: portBid?._id || `hp-${index}`,
-        label: port,
-      };
-
-      // Convert each grain type from backend format
-      grainTypes.forEach((grain) => {
-        const value = portBid?.[grain as keyof PortZoneBid];
-        displayRow[grain] =
-          value !== null && value !== undefined ? value.toString() : "";
-      });
-
-      return displayRow;
-    });
-  };
-
-  // Convert display format to PortZoneBid for backend
-  const convertToBackendFormat = (
-    displayData: PortZoneBidsDisplay[],
-    date: string,
-    season: string
-  ): PortZoneBid[] => {
-    return displayData.map((row) => {
-      const backendRow: PortZoneBid = {
-        _id: row.id.startsWith("hp-") ? undefined : row.id, // Only include _id if it's from MongoDB
-        label: row.label as PortZoneBid["label"],
-        date,
-        season,
-        APW1: null,
-        H1: null,
-        H2: null,
-        AUH2: null,
-        ASW1: null,
-        AGP1: null,
-        SFW1: null,
-        BAR1: null,
-        MA1: null,
-        CM1: null,
-        COMD: null,
-        CANS: null,
-        FIEV: null,
-        "NIP/HAL": null,
-      };
-
-      // Convert each grain type to number or null
-      grainTypes.forEach((grain) => {
-        const value = row[grain];
-        if (typeof value === "string" && value.trim() !== "") {
-          const numValue = parseFloat(value);
-          if (!isNaN(numValue)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (backendRow as any)[grain] = numValue;
-          }
-        }
-      });
-
-      return backendRow;
-    });
-  };
-
-  // Initialize empty delivered bids data
-  const initializeEmptyDeliveredBidsData = (): DeliveredBids[] => {
-    const emptyData = deliveredBids.map((location, index) => ({
-      id: `db-${index}`,
-      locations: [{ location }],
-      ...months.reduce(
-        (acc, month) => ({ ...acc, [month.toLowerCase()]: "" }),
-        {}
-      ),
-    }));
-    return emptyData;
-  };
-
-  // Initialize data on component mount
+  // Set mounted state to true after component mounts
   useEffect(() => {
-    fetchPortZoneData()
-    setPortZoneData(createEmptyPortZoneForm());
-    setDeliveredBidsData(initializeEmptyDeliveredBidsData());
-    // Load all data from API on component mount
-    // loadAllPortZoneData();
+    setIsMounted(true);
   }, []);
 
-  // Load all port zone data from API
-  // const loadAllPortZoneData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get(
-  //       "http://localhost:8000/api/portZone-bids"
-  //     );
-  //     console.log("all data ", response.data);
-  //   } catch (error) {
-  //     console.error("Error loading all port zone data:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Update display data when date or season changes
+  // Initialize with current date and season only after mounting
   useEffect(() => {
-    const currentDate = formatDateForDisplay(currentDateInputValue);
-  }, [currentDateInputValue, selectedSeason]);
-
-  // API Functions
-  const fetchPortZoneData = async () => {
-    // If not found locally, fetch from API
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `http://localhost:8000/api/portZone-bids`
-      );
-      setPortZoneData(response.data)
-    } catch (error) {
-      console.error("Error fetching port zone data:", error);
-      setPortZoneData(createEmptyPortZoneForm());
-      toast.error("Failed to fetch data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const savePortZoneData = async (data: PortZoneBidsDisplay) => {
-    const currentDate = formatDateForDisplay(currentDateInputValue);
-    const backendData = convertToBackendFormat(
-      data,
-      currentDate,
-      selectedSeason
-    );
-    console.log(backendData);
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        "http://localhost:8000/api/portZone-bids",
-        backendData
-      );
-      console.log(response.data);
-      if (response) {
-        toast.success("Port zone prices saved successfully");
-        // console.log("Saved port zone prices:", savedData);
-      } else {
-        toast.error("Failed to save port zone prices");
+    if (isMounted) {
+      if (!selectedDate) {
+        const currentDate = getCurrentDateInputValue();
+        setSelectedDate(currentDate);
+        setCurrentDateInputValue(currentDate);
       }
-    } catch (error) {
-      console.error("Error saving port zone data:", error);
-      toast.error("Failed to save port zone prices");
-    } finally {
-      setLoading(false);
+      if (!selectedSeason) {
+        setSelectedSeason(getCurrentSeason());
+      }
+    }
+  }, [isMounted, selectedDate, selectedSeason]);
+
+  // Fetch port zone bids
+  const {
+    data: fetchedPortZoneBids = [],
+    isLoading: isLoadingPortZoneBids,
+    error: portZoneBidsError,
+  } = useQuery({
+    queryKey: ["portZoneBids", selectedDate, selectedSeason],
+    queryFn: () => fetchPortZoneBids(selectedDate, selectedSeason),
+    enabled: !!selectedDate && !!selectedSeason && isMounted,
+  });
+
+  // Fetch delivered bids
+  const {
+    data: fetchedDeliveredBids = [],
+    isLoading: isLoadingDeliveredBids,
+    error: deliveredBidsError,
+  } = useQuery({
+    queryKey: ["deliveredBids", selectedDate, selectedSeason],
+    queryFn: () => fetchDeliveredBids(selectedDate, selectedSeason),
+    enabled: !!selectedDate && !!selectedSeason && isMounted,
+  });
+
+  // Use useMemo to ensure data is recalculated when fetched data changes
+  const portZoneTableData = useMemo(() => {
+    return createEmptyPortZoneRows(fetchedPortZoneBids);
+  }, [fetchedPortZoneBids]);
+
+  const deliveredBidsTableData = useMemo(() => {
+    return createEmptyDeliveredBidsRows(fetchedDeliveredBids);
+  }, [fetchedDeliveredBids]);
+
+  // Port Zone Bid Mutations
+  const updatePortZoneBidMutation = useMutation({
+    mutationFn: updatePortZoneBid,
+    onSuccess: () => {
+      toast.success("Port zone bid updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["portZoneBids", selectedDate, selectedSeason],
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to update port zone bid");
+      console.error("Port zone update error:", error);
+    },
+  });
+
+  const createPortZoneBidMutation = useMutation({
+    mutationFn: createPortZoneBid,
+    onSuccess: () => {
+      toast.success("Port zone bid created successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["portZoneBids", selectedDate, selectedSeason],
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to create port zone bid");
+      console.error("Port zone create error:", error);
+    },
+  });
+
+  // Delivered Bid Mutations
+  const updateDeliveredBidMutation = useMutation({
+    mutationFn: updateDeliveredBid,
+    onSuccess: () => {
+      toast.success("Delivered bid updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["deliveredBids", selectedDate, selectedSeason],
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to update delivered bid");
+      console.error("Delivered bid update error:", error);
+    },
+  });
+
+  const createDeliveredBidMutation = useMutation({
+    mutationFn: createDeliveredBid,
+    onSuccess: () => {
+      toast.success("Delivered bid created successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["deliveredBids", selectedDate, selectedSeason],
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to create delivered bid");
+      console.error("Delivered bid create error:", error);
+    },
+  });
+
+  // Handle Port Zone data changes
+  const handlePortZoneDataChange = (
+    updatedRow: PortZoneTableRow,
+    grainType: string,
+    value: number | null
+  ) => {
+    // Prepare the bid data for API call
+    const bidData = {
+      label: updatedRow.label as PortZoneBid["label"],
+      date: selectedDate,
+      season: selectedSeason,
+      [grainType]: value,
+    };
+
+    if (updatedRow.hasData && updatedRow._id) {
+      // Update existing bid
+      updatePortZoneBidMutation.mutate({
+        ...bidData,
+        _id: updatedRow._id,
+      });
+    } else {
+      // Create new bid
+      createPortZoneBidMutation.mutate(bidData);
     }
   };
 
-  // Check if there is data to export
-  useEffect(() => {
-    const currentData =
-      activeTab === "historicalPrices" ? portZoneData : deliveredBidsData;
-    const keysToCheck =
-      activeTab === "historicalPrices"
-        ? grainTypes
-        : months.map((m) => m.toLowerCase());
+  // Handle Delivered Bids data changes
+  const handleDeliveredBidsDataChange = (
+    updatedRow: DeliveredBidTableRow,
+    month: string,
+    value: number | null
+  ) => {
+    // Convert month field names to match API format (capitalize first letter)
+    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
 
-    // Check if any data exists
-    const hasData = currentData.some((row) => {
-      return keysToCheck.some((key) => {
-        const value = row[key];
-        return typeof value === "string" && value.trim() !== "";
+    // Prepare the bid data for API call
+    // Use the structure that matches your API expectations
+    const bidData: any = {
+      date: selectedDate,
+      season: selectedSeason,
+    };
+
+    // Check if your API expects 'label' or 'location' field
+    // Based on your data structure, it seems to use 'label'
+    bidData.label = updatedRow.location;
+
+    // Check if your API expects monthlyValues structure or direct properties
+    // Based on your response, it uses monthlyValues
+    bidData.monthlyValues = {
+      [capitalizedMonth]: value,
+    };
+
+    if (updatedRow.hasData && updatedRow._id) {
+      // Update existing delivered bid
+      updateDeliveredBidMutation.mutate({
+        ...bidData,
+        _id: updatedRow._id,
       });
-    });
-
-    setHasDataToExport(hasData);
-  }, [activeTab, portZoneData, deliveredBidsData]);
-
-  const handleSavePortZones = (data: PortZoneBidsDisplay[]) => {
-    setPortZoneData(data);
-    savePortZoneData(data);
+    } else {
+      // Create new delivered bid
+      createDeliveredBidMutation.mutate(bidData);
+    }
   };
 
-  const handleSaveDeliveredBids = (data: DeliveredBids[]) => {
-    setDeliveredBidsData(data);
-    toast.success("Delivered bids saved successfully");
-    console.log("Saved delivered bids:", data);
+  const handleSavePortZones = (data: PortZoneTableRow[]) => {
+    // This is handled automatically by individual cell updates
+    toast.success("All port zone changes saved successfully");
   };
 
-  const handlePortZoneDataChange = (data: PortZoneBidsDisplay[]) => {
-    setPortZoneData(data);
-  };
-
-  const handleDeliveredBidsDataChange = (data: DeliveredBids[]) => {
-    setDeliveredBidsData(data);
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentDateInputValue(e.target.value);
-  };
-
-  const handleSeasonChange = (season: string) => {
-    setSelectedSeason(season);
-    setShowSeasonDropdown(false);
+  const handleSaveDeliveredBids = (data: DeliveredBidTableRow[]) => {
+    // This is handled automatically by individual cell updates
+    toast.success("All delivered bid changes saved successfully");
   };
 
   const handleExportClick = () => {
@@ -418,33 +553,67 @@ const HistoricalPricesPage = () => {
   const handleDateRangeConfirm = (startDate: string, endDate: string) => {
     setExportDateRange({ start: startDate, end: endDate });
 
-    // Generate filename with date range
     const startFormatted = formatDateForFilename(startDate);
     const endFormatted = formatDateForFilename(endDate);
     const filename = `${
       activeTab === "historicalPrices" ? "port-zone-bids" : "delivered-bids"
     }-${startFormatted}-to-${endFormatted}.csv`;
 
-    // Show confirmation toast
     toast.success(`Exporting data from ${startFormatted} to ${endFormatted}`);
 
-    // Here you would trigger the actual CSV export
     console.log(`Exporting CSV: ${filename}`, {
       startDate,
       endDate,
-      data: activeTab === "historicalPrices" ? portZoneData : deliveredBidsData,
+      data:
+        activeTab === "historicalPrices"
+          ? portZoneTableData
+          : deliveredBidsTableData,
       type: activeTab,
     });
   };
 
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+    setCurrentDateInputValue(newDate);
+
+    // Auto-update season based on selected date
+    if (newDate) {
+      const selectedDateObj = new Date(newDate);
+      const seasonForDate = getSeasonFromDate(selectedDateObj);
+      setSelectedSeason(seasonForDate);
+    }
+  };
+
+  const handleSeasonChange = (newSeason: string) => {
+    setSelectedSeason(newSeason);
+    setShowSeasonDropdown(false);
+  };
+
   const tabButtonClass = "py-3 uppercase w-44 text-center relative";
   const tabTextClass = "font-medium";
+
+  // Don't render the component until it's mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="mt-20">
+        <div className="text-center mb-10">
+          <p className="text-xl">Historical Daily Prices</p>
+        </div>
+        <div className="text-center py-8">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-20">
       <Toaster />
       <div className="text-center mb-10">
         <p className="text-xl">Historical Daily Prices</p>
+        {isMounted && (
+          <p className="text-sm text-gray-600 mt-2">
+            Current Season: {getCurrentSeason()} (July - June)
+          </p>
+        )}
       </div>
 
       <div className="">
@@ -475,7 +644,6 @@ const HistoricalPricesPage = () => {
             <button
               onClick={handleExportClick}
               className="px-2 py-1 bg-white border-gray-300 border rounded-md hover:bg-gray-50 transition-colors font-medium text-gray-700"
-              disabled={!hasDataToExport}
             >
               Export CSV
             </button>
@@ -485,7 +653,7 @@ const HistoricalPricesPage = () => {
               <input
                 type="date"
                 value={currentDateInputValue}
-                onChange={handleDateChange}
+                onChange={(e) => handleDateChange(e.target.value)}
                 className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
               />
             </div>
@@ -497,20 +665,33 @@ const HistoricalPricesPage = () => {
                   setShowSeasonDropdown(!showSeasonDropdown);
                   setShowDateDropdown(false);
                 }}
-                className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 min-w-[80px]"
+                title="Season runs from July to June (e.g., 24/25 = July 2024 to June 2025)"
               >
-                {selectedSeason}
+                {selectedSeason || getCurrentSeason()}
                 <RiArrowDropDownLine className={"text-2xl"} />
               </button>
               {showSeasonDropdown && (
-                <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                <div className="absolute right-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+                  <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200">
+                    Season: July - June
+                  </div>
                   {getFormattedSeasons().map((season, index) => (
                     <div
                       key={index}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                      className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm ${
+                        season === getCurrentSeason()
+                          ? "bg-blue-50 font-medium"
+                          : ""
+                      }`}
                       onClick={() => handleSeasonChange(season)}
                     >
                       {season}
+                      {season === getCurrentSeason() && (
+                        <span className="text-xs text-blue-600 ml-1">
+                          (Current)
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -519,24 +700,51 @@ const HistoricalPricesPage = () => {
           </div>
         </div>
 
-        {loading && (
-          <div className="text-center py-4">
-            <p>Loading...</p>
+        {/* Loading and Error states for Port Zone Bids */}
+        {isLoadingPortZoneBids && activeTab === "historicalPrices" && (
+          <div className="text-center py-8">Loading port zone bids...</div>
+        )}
+
+        {portZoneBidsError && activeTab === "historicalPrices" && (
+          <div className="text-center py-8 text-red-500">
+            Error loading port zone bids: {(portZoneBidsError as Error).message}
           </div>
         )}
 
+        {/* Loading and Error states for Delivered Bids */}
+        {isLoadingDeliveredBids && activeTab === "deliveredBids" && (
+          <div className="text-center py-8">Loading delivered bids...</div>
+        )}
+
+        {deliveredBidsError && activeTab === "deliveredBids" && (
+          <div className="text-center py-8 text-red-500">
+            Error loading delivered bids:{" "}
+            {(deliveredBidsError as Error).message}
+          </div>
+        )}
+
+        {/* Render appropriate table based on active tab */}
         {activeTab === "historicalPrices" ? (
           <PortZoneBidsTable
-            data={portZoneData}
+            data={portZoneTableData}
             onDataChange={handlePortZoneDataChange}
             onSave={handleSavePortZones}
-            loading={loading}
+            isLoading={
+              isLoadingPortZoneBids ||
+              updatePortZoneBidMutation.isPending ||
+              createPortZoneBidMutation.isPending
+            }
           />
         ) : (
           <DeliveredBidsTable
-            data={deliveredBidsData}
+            data={deliveredBidsTableData}
             onDataChange={handleDeliveredBidsDataChange}
             onSave={handleSaveDeliveredBids}
+            isLoading={
+              isLoadingDeliveredBids ||
+              updateDeliveredBidMutation.isPending ||
+              createDeliveredBidMutation.isPending
+            }
           />
         )}
       </div>

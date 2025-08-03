@@ -1,25 +1,43 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Seller } from "@/types/types";
+import { BulkHandlerCredential, Seller } from "@/types/types";
 import { createSeller } from "@/api/sellerApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+const handlerNames = [
+  "Viterra",
+  "Graincorp",
+  "GrainFlow",
+  "Tports",
+  "CBH",
+  "Louis Dreyfus",
+] as const;
+
+const initialCredentials: BulkHandlerCredential[] = handlerNames.map(
+  (name) => ({
+    handlerName: name,
+    identifier: "",
+    password: "",
+  })
+);
 
 const CreateSellerPage = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    bulkItemId: "",
-    viewItem: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    company: "",
-    loremIpsum: "",
-  });
+  const [bulkHandlerCredentials, setBulkHandlerCredentials] =
+    useState<BulkHandlerCredential[]>(initialCredentials);
+
+  // State for password visibility - track each row separately
+  const [passwordVisibility, setPasswordVisibility] = useState<boolean[]>(
+    new Array(handlerNames.length).fill(false)
+  );
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<Seller>({
     legalName: "",
@@ -36,14 +54,14 @@ const CreateSellerPage = () => {
     authorityToAct: "",
   });
 
-  // TanStack Query mutation for creating buyer
+  // TanStack Query mutation for creating seller
   const createSellerMutation = useMutation({
     mutationFn: createSeller,
     onSuccess: (data) => {
       // Invalidate and refetch the sellers list
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
       // This provides instant feedback without waiting for refetch
-      queryClient.setQueryData(["sellers"], (oldData: Seller[] | undefined) => {
+      queryClient.setQueryData(["seller"], (oldData: Seller[] | undefined) => {
         if (oldData) {
           return [data, ...oldData];
         }
@@ -55,8 +73,8 @@ const CreateSellerPage = () => {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      console.error("Create buyer error:", error);
-      toast.error(error?.message || "Failed to create buyer");
+      console.error("Create seller error:", error);
+      toast.error(error?.message || "Failed to create seller");
     },
   });
 
@@ -145,48 +163,61 @@ const CreateSellerPage = () => {
     }));
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handlePasswordDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleCredentialChange = (
+    index: number,
+    field: keyof Omit<BulkHandlerCredential, "handlerName">,
+    value: string
+  ) => {
+    setBulkHandlerCredentials((prev) =>
+      prev.map((item, idx) =>
+        idx === index ? { ...item, [field]: value } : item
+      )
+    );
   };
 
-  const handleProcessPassword = () => {
-    console.log("Password data processed:", passwordData);
-    toast.success("Passwords processed successfully!");
-    setIsModalOpen(false);
+  // Toggle password visibility for a specific row
+  const togglePasswordVisibility = (index: number) => {
+    setPasswordVisibility((prev) =>
+      prev.map((visible, idx) => (idx === index ? !visible : visible))
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     // Basic validation
     if (!formData.legalName || !formData.abn || !formData.contactName) {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    // Filter out credentials that have both identifier and password filled
+    const validCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" && cred.password.trim() !== ""
+    );
+
     const newSeller: Seller = {
       ...formData,
+      bulkHandlerCredentials: validCredentials,
     };
+
+    // console.log("Submitting seller with credentials:", newSeller);
     createSellerMutation.mutate(newSeller);
+  };
+
+  // Save credentials and close modal
+  const saveCredentials = () => {
+    const filledCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" || cred.password.trim() !== ""
+    );
+
+    if (filledCredentials.length > 0) {
+      toast.success(
+        `${filledCredentials.length} bulk handler credentials saved`
+      );
+    }
+
+    setIsModalOpen(false);
   };
 
   return (
@@ -201,11 +232,12 @@ const CreateSellerPage = () => {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition- cursor-pointer"
+              className="bg-[#2A5D36] py-2 px-6 text-white rounded hover:bg-[#1e4728] transition-colors cursor-pointer"
             >
               Bulk Handler Passwords
             </button>
           </div>
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="w-full">
             <div className="space-y-6">
@@ -431,7 +463,7 @@ const CreateSellerPage = () => {
                               onClick={() => {
                                 setFormData((prev) => ({
                                   ...prev,
-                                  sellerLocationZone: [],
+                                  locationZone: [],
                                 }));
                               }}
                               className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
@@ -443,7 +475,7 @@ const CreateSellerPage = () => {
                               onClick={() => {
                                 setFormData((prev) => ({
                                   ...prev,
-                                  sellerLocationZone: [...locationZones],
+                                  locationZone: [...locationZones],
                                 }));
                               }}
                               className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
@@ -494,9 +526,10 @@ const CreateSellerPage = () => {
             <div className="mt-10 text-center md:text-left">
               <button
                 type="submit"
-                className="bg-[#2A5D36] py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors"
+                disabled={createSellerMutation.isPending}
+                className="bg-[#2A5D36] py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create
+                {createSellerMutation.isPending ? "Creating..." : "Create"}
               </button>
             </div>
           </form>
@@ -505,66 +538,123 @@ const CreateSellerPage = () => {
 
       {/* Bulk Password Handler Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 my-8 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white p-4 flex justify-end items-center rounded-t-lg">
+            <div className="sticky top-0 bg-white p-4 flex justify-between items-center border-b rounded-t-lg">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Bulk Handler Passwords
+              </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-xl focus:outline-none cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 text-xl focus:outline-none cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body with Scrollable Content */}
-            <div className="flex-1 px-20 overflow-y-auto">
-              <h3 className="text-base mb-3 text-[#737373]">
-                BULK HANDLER PASSWORD
-              </h3>
+            <div className="flex-1 px-6 py-4 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                Enter credentials for bulk handlers (optional - only filled
+                credentials will be saved)
+              </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-300 text-sm">
                   <thead>
-                    <tr className="text-center">
-                      <th className="border border-gray-300 px-4 py-2">
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
                         Bulk Handler
                       </th>
-                      <th className="border border-gray-300 px-4 py-2">
+                      <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
                         Username/Email/PAN No
                       </th>
-                      <th className="border border-gray-300 px-4 py-2">
+                      <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
                         Password
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      "Viterra",
-                      "Graincorp",
-                      "GrainFlow",
-                      "Tports",
-                      "CBH",
-                      "Louis Dreyfus",
-                    ].map((handler, idx) => (
-                      <tr key={idx}>
-                        <td className="border border-gray-300 px-4 py-2">
-                          {handler}
+                    {bulkHandlerCredentials.map((handler, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-3 font-medium">
+                          {handler.handlerName}
                         </td>
-                        <td className="border border-gray-300 px-4 py-2">
+                        <td className="border border-gray-300 px-4 py-3">
                           <input
                             type="text"
-                            name={`username-${idx}`}
-                            onChange={handlePasswordDataChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-gray-500"
+                            value={handler.identifier}
+                            onChange={(e) =>
+                              handleCredentialChange(
+                                idx,
+                                "identifier",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                            placeholder="Enter username/email/PAN"
                           />
                         </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <input
-                            type="password"
-                            name={`password-${idx}`}
-                            onChange={handlePasswordDataChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-gray-500"
-                          />
+                        <td className="border border-gray-300 px-4 py-3">
+                          <div className="relative">
+                            <input
+                              type={
+                                passwordVisibility[idx] ? "text" : "password"
+                              }
+                              value={handler.password}
+                              onChange={(e) =>
+                                handleCredentialChange(
+                                  idx,
+                                  "password",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                              placeholder="Enter password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(idx)}
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            >
+                              {passwordVisibility[idx] ? (
+                                // Eye slash icon (hide)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                                  />
+                                </svg>
+                              ) : (
+                                // Eye icon (show)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.275 4.057-5.065 7-9.543 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -574,9 +664,15 @@ const CreateSellerPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white p-4 flex justify-center rounded-b-lg">
+            <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3 border-t rounded-b-lg">
               <button
-                onClick={handleProcessPassword}
+                onClick={() => setIsModalOpen(false)}
+                className="py-2 px-4 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCredentials}
                 className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-700 hover:bg-[#1e4728]"
               >
                 Save Changes

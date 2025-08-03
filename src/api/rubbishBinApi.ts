@@ -1,23 +1,22 @@
-import { Buyer, Contract, Seller } from "@/types/types";
+import { Buyer, Seller, TContract } from "@/types/types";
 import { instance } from "./api";
 
 interface TrashData {
   buyers: Buyer[];
   sellers: Seller[];
-  contracts: Contract[];
+  contracts: TContract[];
 }
 
-// Updated function with better error handling and typing
 export const getTrashData = async (): Promise<TrashData> => {
   try {
     const response = await instance.get("trash");
     return response.data;
   } catch (error) {
     console.error("Error fetching trash data:", error);
-    throw error; // Re-throw the error instead of returning it
+    throw error;
   }
 };
-// Additional functions for trash operations
+
 export const permanentlyDeleteTrashItems = async (itemIds: string[]) => {
   try {
     const data = await instance.delete("trash/permanent", {
@@ -32,6 +31,15 @@ export const permanentlyDeleteTrashItems = async (itemIds: string[]) => {
 export const emptyTrashBin = async () => {
   try {
     const data = await instance.delete("trash/bulk");
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const restoreTrashItems = async (itemIds: string[]) => {
+  try {
+    const data = await instance.post(`trash/bulk/restore`, { itemIds });
     return data;
   } catch (error) {
     throw error;

@@ -1,11 +1,28 @@
 "use client";
-import { Seller } from "@/types/types";
+import { BulkHandlerCredential, Seller } from "@/types/types";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
 import { getseller, updateSeller } from "@/api/sellerApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+const handlerNames = [
+  "Viterra",
+  "Graincorp",
+  "GrainFlow",
+  "Tports",
+  "CBH",
+  "Louis Dreyfus",
+] as const;
+
+const initialCredentials: BulkHandlerCredential[] = handlerNames.map(
+  (name) => ({
+    handlerName: name,
+    identifier: "",
+    password: "",
+  })
+);
 
 const SellerInformationEditPage = () => {
   const { sellerId } = useParams();
@@ -15,6 +32,16 @@ const SellerInformationEditPage = () => {
   const [originalSellerData, setOriginalSellerData] = useState<Seller | null>(
     null
   );
+  const [bulkHandlerCredentials, setBulkHandlerCredentials] =
+    useState<BulkHandlerCredential[]>(initialCredentials);
+  const [originalCredentials, setOriginalCredentials] =
+    useState<BulkHandlerCredential[]>(initialCredentials);
+
+  // State for password visibility - track each row separately
+  const [passwordVisibility, setPasswordVisibility] = useState<boolean[]>(
+    new Array(handlerNames.length).fill(false)
+  );
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,18 +67,6 @@ const SellerInformationEditPage = () => {
     enabled: !!sellerIdStr,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
-  });
-
-  // Bulk Handler Password state
-  const [passwordData, setPasswordData] = useState<{
-    [key: string]: { username: string; password: string };
-  }>({
-    Viterra: { username: "", password: "" },
-    Graincorp: { username: "", password: "" },
-    GrainFlow: { username: "", password: "" },
-    Tports: { username: "", password: "" },
-    CBH: { username: "", password: "" },
-    "Local Depots": { username: "", password: "" },
   });
 
   const locationZones = [
@@ -91,10 +106,10 @@ const SellerInformationEditPage = () => {
       await queryClient.cancelQueries({ queryKey: ["sellers", sellerIdStr] });
 
       // Snapshot the previous value
-      const previousSeller = queryClient.getQueryData(["sellers", sellerIdStr]);
+      const previousSeller = queryClient.getQueryData(["seller", sellerIdStr]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(["sellers", sellerIdStr], updatedSeller);
+      queryClient.setQueryData(["seller", sellerIdStr], updatedSeller);
 
       return { previousSeller };
     },
@@ -103,7 +118,7 @@ const SellerInformationEditPage = () => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousSeller) {
         queryClient.setQueryData(
-          ["sellers", sellerIdStr],
+          ["seller", sellerIdStr],
           context.previousSeller
         );
       }
@@ -116,7 +131,7 @@ const SellerInformationEditPage = () => {
       setHasChanges(false);
 
       // Invalidate and refetch seller data to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["sellers", sellerIdStr] });
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
 
       // Also invalidate the sellers list if you have one
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
@@ -128,10 +143,11 @@ const SellerInformationEditPage = () => {
     },
     onSettled: () => {
       // Always refetch after error or success to ensure server state consistency
-      queryClient.invalidateQueries({ queryKey: ["sellers", sellerIdStr] });
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
     },
   });
 
+  // Initialize data when fetched
   useEffect(() => {
     if (fetchSellerData) {
       // Fix: Ensure proper initialization with default values
@@ -142,17 +158,56 @@ const SellerInformationEditPage = () => {
         accountNumber: fetchSellerData.accountNumber || "",
         contactName:
           fetchSellerData.contactName || fetchSellerData.legalName || "",
+        bulkHandlerCredentials: fetchSellerData.bulkHandlerCredentials || [],
       };
 
       setSellerData(initializedData);
       setOriginalSellerData(initializedData);
+
+      // Initialize bulk handler credentials
+      const existingCredentials = fetchSellerData.bulkHandlerCredentials || [];
+      const mergedCredentials = handlerNames.map((handlerName) => {
+        const existing = existingCredentials.find(
+          (cred) => cred.handlerName === handlerName
+        );
+        return (
+          existing || {
+            handlerName,
+            identifier: "",
+            password: "",
+          }
+        );
+      });
+
+      setBulkHandlerCredentials(mergedCredentials);
+      setOriginalCredentials(JSON.parse(JSON.stringify(mergedCredentials)));
     }
   }, [fetchSellerData]);
 
-  // Fix: Utility function to check for changes
-  const checkForChanges = (updatedData: Seller) => {
+  // Fix: Utility function to check for changes (including credentials)
+  const checkForChanges = (
+    updatedData: Seller,
+    updatedCredentials?: BulkHandlerCredential[]
+  ) => {
     if (!originalSellerData) return false;
-    return JSON.stringify(updatedData) !== JSON.stringify(originalSellerData);
+
+    const credentialsToCheck = updatedCredentials || bulkHandlerCredentials;
+
+    const dataChanged =
+      JSON.stringify({
+        ...updatedData,
+        bulkHandlerCredentials: undefined, // Exclude credentials from seller data comparison
+      }) !==
+      JSON.stringify({
+        ...originalSellerData,
+        bulkHandlerCredentials: undefined,
+      });
+
+    const credentialsChanged =
+      JSON.stringify(credentialsToCheck) !==
+      JSON.stringify(originalCredentials);
+
+    return dataChanged || credentialsChanged;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,30 +271,37 @@ const SellerInformationEditPage = () => {
     });
   };
 
-  const handlePasswordDataChange = (
-    handler: string,
-    field: "username" | "password",
+  const handleCredentialChange = (
+    index: number,
+    field: keyof Omit<BulkHandlerCredential, "handlerName">,
     value: string
   ) => {
-    setPasswordData((prev) => ({
-      ...prev,
-      [handler]: {
-        ...prev[handler],
-        [field]: value,
-      },
-    }));
+    setBulkHandlerCredentials((prev) => {
+      const updated = prev.map((item, idx) =>
+        idx === index ? { ...item, [field]: value } : item
+      );
+
+      // Check for changes whenever credentials are updated
+      if (sellerData) {
+        setHasChanges(checkForChanges(sellerData, updated));
+      }
+
+      return updated;
+    });
   };
 
-  const handleProcessPassword = () => {
-    console.log("Password data processed:", passwordData);
-    toast.success("Bulk handler passwords updated successfully!");
-    setIsModalOpen(false);
+  // Toggle password visibility for a specific row
+  const togglePasswordVisibility = (index: number) => {
+    setPasswordVisibility((prev) =>
+      prev.map((visible, idx) => (idx === index ? !visible : visible))
+    );
   };
 
   const handleCancel = () => {
     if (originalSellerData) {
       setSellerData({ ...originalSellerData });
     }
+    setBulkHandlerCredentials(JSON.parse(JSON.stringify(originalCredentials)));
     setHasChanges(false);
     setSaveStatus("idle");
   };
@@ -257,7 +319,34 @@ const SellerInformationEditPage = () => {
 
   const handleSave = async () => {
     if (!sellerData || !sellerIdStr) return;
-    updateSellerMutation.mutate(sellerData);
+
+    // Filter out credentials that have both identifier and password filled
+    const validCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" && cred.password.trim() !== ""
+    );
+
+    const sellerDataWithCredentials: Seller = {
+      ...sellerData,
+      bulkHandlerCredentials: validCredentials,
+    };
+
+    console.log("Updating seller with data:", sellerDataWithCredentials);
+    updateSellerMutation.mutate(sellerDataWithCredentials);
+  };
+
+  // Save credentials and close modal
+  const saveCredentials = () => {
+    const filledCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" || cred.password.trim() !== ""
+    );
+
+    if (filledCredentials.length > 0) {
+      toast.success(
+        `${filledCredentials.length} bulk handler credentials updated`
+      );
+    }
+
+    setIsModalOpen(false);
   };
 
   // Loading state
@@ -331,7 +420,7 @@ const SellerInformationEditPage = () => {
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
-        <div className="mx-auto max-w-6xl flex justify-between items-center">
+        <div className="mx-auto max-w-6xl flex justify-between items-center px-4">
           <div className="flex items-center gap-5">
             <button
               type="button"
@@ -351,7 +440,7 @@ const SellerInformationEditPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl mt-10">
+      <div className="mx-auto max-w-6xl mt-10 px-4">
         <div className="flex flex-col items-center mx-auto max-w-6xl w-full mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 w-full border border-gray-300 rounded-md p-6 gap-5 bg-white">
             <Field
@@ -494,6 +583,43 @@ const SellerInformationEditPage = () => {
                         </label>
                       ))}
                     </div>
+
+                    {/* Clear All & Select All Actions */}
+                    <div className="border-t border-gray-200 px-3 py-2 bg-gray-50">
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = { ...prev, locationZone: [] };
+                              setHasChanges(checkForChanges(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                        >
+                          Clear All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = {
+                                ...prev,
+                                locationZone: [...locationZones],
+                              };
+                              setHasChanges(checkForChanges(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
+                        >
+                          Select All
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -553,23 +679,26 @@ const SellerInformationEditPage = () => {
 
       {/* Bulk Password Handler Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/20 bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 my-8 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white p-4 flex justify-between items-center rounded-t-lg border-b">
-              <h3 className="text-lg font-semibold text-center text-gray-900">
+            <div className="sticky top-0 bg-white p-4 flex justify-between items-center border-b rounded-t-lg">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Bulk Handler Passwords
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-2xl text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 text-xl focus:outline-none cursor-pointer"
               >
-                ×
+                ✕
               </button>
             </div>
 
-            {/* Modal Body with Scrollable Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 px-6 py-4 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                Update credentials for bulk handlers (optional - only filled
+                credentials will be saved)
+              </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-300 text-sm">
                   <thead>
@@ -578,7 +707,7 @@ const SellerInformationEditPage = () => {
                         Bulk Handler
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
-                        Username/Email/Regos No
+                        Username/Email/PAN No
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
                         Password
@@ -586,40 +715,87 @@ const SellerInformationEditPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.keys(passwordData).map((handler) => (
-                      <tr key={handler} className="hover:bg-gray-50">
+                    {bulkHandlerCredentials.map((handler, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
                         <td className="border border-gray-300 px-4 py-3 font-medium">
-                          {handler}
+                          {handler.handlerName}
                         </td>
                         <td className="border border-gray-300 px-4 py-3">
                           <input
                             type="text"
-                            value={passwordData[handler].username}
+                            value={handler.identifier}
                             onChange={(e) =>
-                              handlePasswordDataChange(
-                                handler,
-                                "username",
+                              handleCredentialChange(
+                                idx,
+                                "identifier",
                                 e.target.value
                               )
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
-                            placeholder="Enter username/email"
+                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                            placeholder="Enter username/email/PAN"
                           />
                         </td>
                         <td className="border border-gray-300 px-4 py-3">
-                          <input
-                            type="password"
-                            value={passwordData[handler].password}
-                            onChange={(e) =>
-                              handlePasswordDataChange(
-                                handler,
-                                "password",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
-                            placeholder="Enter password"
-                          />
+                          <div className="relative">
+                            <input
+                              type={
+                                passwordVisibility[idx] ? "text" : "password"
+                              }
+                              value={handler.password}
+                              onChange={(e) =>
+                                handleCredentialChange(
+                                  idx,
+                                  "password",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                              placeholder="Enter password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(idx)}
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            >
+                              {passwordVisibility[idx] ? (
+                                // Eye slash icon (hide)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                                  />
+                                </svg>
+                              ) : (
+                                // Eye icon (show)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.275 4.057-5.065 7-9.543 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -629,10 +805,16 @@ const SellerInformationEditPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white p-4 flex justify-center rounded-b-lg border-t">
+            <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3 border-t rounded-b-lg">
               <button
-                onClick={handleProcessPassword}
-                className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded hover:bg-[#1e4728] transition-colors focus:outline-none focus:ring-2 focus:ring-green-700"
+                onClick={() => setIsModalOpen(false)}
+                className="py-2 px-4 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCredentials}
+                className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-700 hover:bg-[#1e4728]"
               >
                 Save Changes
               </button>

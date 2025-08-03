@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -107,6 +109,7 @@ const SellerManagementPage = () => {
     onSuccess: (data, variables) => {
       // Invalidate and refetch buyers data
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 
       setToggleCleared(!toggleCleared);
       setIsDeleteConfirmOpen(false);

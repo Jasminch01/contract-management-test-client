@@ -1,9 +1,8 @@
-// app/login/page.tsx
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -167,7 +166,7 @@ export default function LoginPage() {
           </p>
 
           {/* Sign in with Google */}
-          <div className="mt-4 sm:mt-6 flex justify-center">
+          {/* <div className="mt-4 sm:mt-6 flex justify-center">
             <button
               type="button"
               className="flex items-center justify-center gap-2 py-1.5 px-3 sm:py-2 sm:px-4 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2A5D36]"
@@ -175,10 +174,10 @@ export default function LoginPage() {
               <FcGoogle className="text-sm sm:text-base" />
               Google
             </button>
-          </div>
+          </div> */}
 
           {/* Registration Link */}
-          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
+          {/* <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
             <p className="text-gray-600">
               Don&apos;t have an account?{" "}
               <button
@@ -189,7 +188,7 @@ export default function LoginPage() {
                 Register now
               </button>
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Right decorative image - hidden on mobile */}

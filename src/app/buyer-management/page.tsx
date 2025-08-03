@@ -107,6 +107,7 @@ const BuyerManagementPage = () => {
     onSuccess: (data, variables) => {
       // Invalidate and refetch buyers data
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 
       setToggleCleared(!toggleCleared);
       setIsDeleteConfirmOpen(false);

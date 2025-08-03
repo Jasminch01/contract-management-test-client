@@ -23,8 +23,6 @@ const ContractProgress = () => {
     queryKey: ["contractProgress"],
     queryFn: getProgressReport,
   });
-
-  console.log(data);
   if (isLoading) {
     return (
       <div className="w-full h-[22rem] min-2xl:h-[25rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4 flex items-center justify-center">
