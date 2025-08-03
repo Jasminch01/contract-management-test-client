@@ -118,6 +118,19 @@ const EditableContract: React.FC<ContractProps> = ({
     setHasChanges(true);
   };
 
+  const generateSeasons = (yearsAhead = 10) => {
+    const currentYear = new Date().getFullYear();
+    const seasons = [];
+
+    for (let i = 0; i < yearsAhead; i++) {
+      const startYear = currentYear + i;
+      const endYear = startYear + 1;
+      seasons.push(`${startYear}/${endYear}`);
+    }
+
+    return seasons;
+  };
+
   const brokeragePayableOptions = [
     { name: "Buyer", value: "Buyer" },
     { name: "Seller", value: "Seller" },
@@ -320,7 +333,7 @@ const EditableContract: React.FC<ContractProps> = ({
         <div></div> {/* Empty div to balance the grid */}
       </div>
 
-      <div className="flex flex-col items-center mx-auto max-w-6xl gap-6 xl:overflow-y-scroll xl:h-[40rem]">
+      <div className="flex flex-col items-center mx-auto max-w-6xl gap-6 xl:overflow-y-scroll xl:h-[40rem] xl:scrollbar-hide ">
         {/* Main Contract Details */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column */}
@@ -333,8 +346,9 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="text"
                   value={contract.contractNumber || ""}
-                  onChange={(e) => handleChange(e, "contractNumber")}
+                  // onChange={(e) => handleChange(e, "contractNumber")}
                   className="w-full border border-gray-300 p-1 rounded"
+                  readOnly
                 />
               </div>
             </div>
@@ -345,7 +359,10 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3">
                 <input
                   type="text"
-                  value={contract.createdAt || ""}
+                  value={
+                    new Date(contract.createdAt).toISOString().split("T")[0] ||
+                    ""
+                  }
                   onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
                 />
@@ -373,10 +390,11 @@ const EditableContract: React.FC<ContractProps> = ({
                   className="w-full border border-gray-300 p-1 rounded"
                 >
                   <option value="">Select Season</option>
-                  <option value="2023/2024">2023/2024</option>
-                  <option value="2024/2025">2024/2025</option>
-                  <option value="2025/2026">2025/2026</option>
-                  <option value="2026/2027">2026/2027</option>
+                  {generateSeasons(10).map((season) => (
+                    <option key={season} value={season}>
+                      {season}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -461,6 +479,20 @@ const EditableContract: React.FC<ContractProps> = ({
             <div className="flex border-b border-gray-300 w-full">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivery Period
+                <div>
+                  <p className="text-sm">
+                    Start :{" "}
+                    {new Date(contract?.deliveryPeriod?.start)
+                      .toISOString()
+                      .split("T")[0] || "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    End :{" "}
+                    {new Date(contract?.deliveryPeriod?.end)
+                      .toISOString()
+                      .split("T")[0] || "N/A"}
+                  </p>
+                </div>
               </div>
               <div className="w-1/2 p-3">
                 <DatePicker

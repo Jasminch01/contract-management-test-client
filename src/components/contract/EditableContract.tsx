@@ -255,7 +255,7 @@ const EditableContract: React.FC<ContractProps> = ({
       queryClient.invalidateQueries({ queryKey: ["contract", contractId] });
       // Also refetch the contracts list if you have one
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      router.push("/contract-management")
+      router.push("/contract-management");
     },
     onError: (error, variables, context) => {
       // Rollback on error if you were doing optimistic updates
@@ -365,9 +365,11 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3">
                 <input
                   type="text"
-                  value={contract.createdAt || ""}
-                  onChange={(e) => handleChange(e, "contractDate")}
+                  value={new Date(contract.createdAt).toISOString().split("T")[0] || ""}
+                  // value={new Date(contract.createdAt).toISOString().split("T")[0] || ""}
+                  // onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
+                  readOnly
                 />
               </div>
             </div>
@@ -482,6 +484,20 @@ const EditableContract: React.FC<ContractProps> = ({
             <div className="flex border-b border-gray-300 w-full">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivery Period
+              <div>
+                <p className="text-sm">
+                  Start :{" "}
+                  {new Date(contract?.deliveryPeriod?.start)
+                    .toISOString()
+                    .split("T")[0] || "N/A"}
+                </p>
+                <p className="text-sm">
+                  End :{" "}
+                  {new Date(contract?.deliveryPeriod?.end)
+                    .toISOString()
+                    .split("T")[0] || "N/A"}
+                </p>
+              </div>
               </div>
               <div className="w-1/2 p-3">
                 <DatePicker

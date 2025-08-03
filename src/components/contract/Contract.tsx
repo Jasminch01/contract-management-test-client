@@ -186,7 +186,10 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Contract Date
               </div>
-              <div className="w-1/2 p-3">{contract.createdAt || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                {new Date(contract.createdAt).toISOString().split("T")[0] ||
+                  "N/A"}
+              </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
@@ -233,7 +236,18 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Delivery Period
               </div>
               <div className="w-1/2 p-3">
-                {contract?.deliveryPeriod?.start || "N/A"}
+                <p>
+                  start :{" "}
+                  {new Date(contract?.deliveryPeriod?.start)
+                    .toISOString()
+                    .split("T")[0] || "N/A"}
+                </p>
+                <p>
+                  end :{" "}
+                  {new Date(contract?.deliveryPeriod?.end)
+                    .toISOString()
+                    .split("T")[0] || "N/A"}
+                </p>
               </div>
             </div>
             <div className="flex border-b border-gray-300">

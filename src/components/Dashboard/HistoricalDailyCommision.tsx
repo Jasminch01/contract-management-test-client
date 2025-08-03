@@ -3,7 +3,6 @@
 import React from "react";
 
 const HistoricalDailyCommision = ({ data = [] }) => {
-
   return (
     <div>
       <div className="2xl:p-10 p-5 rounded border-t-5 border-purple-500 shadow-sm h-[22rem] min-2xl:h-[25rem] w-full flex flex-col">
@@ -12,8 +11,8 @@ const HistoricalDailyCommision = ({ data = [] }) => {
           <p className="text-lg">Historical Daily Commission</p>
         </div>
 
-        {/* Scrollable Content with bottom padding */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable Content with hidden scrollbar */}
+        <div className="flex-1 overflow-y-auto hidden-scrollbar">
           <div className="mt-5">
             {data.length === 0 ? (
               <div className="text-center text-gray-500 mt-8">
@@ -42,7 +41,7 @@ const HistoricalDailyCommision = ({ data = [] }) => {
                           #{commission.contractNumber}
                         </p>
                       </div>
-                      <div className="flex items-center  justify-between">
+                      <div className="flex items-center justify-between">
                         <p className="text-green-500 font-bold">
                           ${commission.commission}
                         </p>
