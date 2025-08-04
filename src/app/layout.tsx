@@ -42,14 +42,14 @@ export default function RootLayout({
 
   useEffect(() => {
     // Check auth status from cookies
-    const authToken = document.cookie.includes("auth-token");
+    const authToken = document.cookie.includes("token");
     setIsAuthenticated(authToken);
 
     // Redirect logic
     if (!authToken && !pathname.startsWith("/login")) {
       router.push("/login");
     } else if (authToken && pathname.startsWith("/login")) {
-      router.push("/dashboard");
+      router.push("/");
     }
   }, [pathname, router]);
 

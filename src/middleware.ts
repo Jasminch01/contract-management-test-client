@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get("auth-token")?.value;
+  const authToken = request.cookies.get("token")?.value;
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
 
   // Skip middleware for static files

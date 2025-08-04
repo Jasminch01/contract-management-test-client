@@ -2,17 +2,17 @@ import axios, { AxiosInstance } from "axios";
 
 export const instance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+  withCredentials: true,
 });
 
 // Add request interceptor
 instance.interceptors.request.use(
   (config) => {
     // You can modify the request config here (e.g., add auth token)
-    // const token = localStorage.getItem("authToken");
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    // console.log(config);
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers.Authorization = `${token}`;
+    }
     return config;
   },
   (error) => {

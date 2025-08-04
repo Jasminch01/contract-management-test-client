@@ -1,30 +1,32 @@
 "use client";
+import { userLogin } from "@/api/Auth";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-// import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      // Simulate API call - replace with actual authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // On successful login:
-      document.cookie = `auth-token=example-token; path=/; max-age=3600`;
-      router.push("/");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+      if (!email || !password) {
+        throw new Error("Email and password are required");
+      }
+      const data = await userLogin(email, password);
+      if (data.data) {
+        router.push("/");
+      }
     } catch (err) {
-      setError("Invalid credentials");
+      setError(err instanceof Error ? err.message : "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -73,9 +75,8 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2A5D36] focus:ring-[#2A5D36] text-xs sm:text-sm p-2 sm:p-2.5 border"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -91,9 +92,8 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2A5D36] focus:ring-[#2A5D36] text-xs sm:text-sm p-2 sm:p-2.5 border"
+                placeholder="Enter your password"
               />
             </div>
 
@@ -115,20 +115,26 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="text-xs text-[#2A5D36] hover:text-[#1e4a2a]"
+                onClick={() => {
+                  // Handle forgot password
+                  console.log("Forgot password clicked");
+                }}
               >
                 Forgot password?
               </button>
             </div>
 
             {error && (
-              <div className="text-red-500 text-xs sm:text-sm">{error}</div>
+              <div className="text-red-500 text-xs sm:text-sm bg-red-50 p-2 rounded-md border border-red-200">
+                {error}
+              </div>
             )}
 
             <div className="pt-1 sm:pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 sm:py-2.5 sm:px-4 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-[#2A5D36] hover:bg-[#1e4a2a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2A5D36] disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 sm:py-2.5 sm:px-4 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-[#2A5D36] hover:bg-[#1e4a2a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2A5D36] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {loading ? (
                   <>
@@ -160,35 +166,6 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
-
-          <p className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            Or <span className="text-xs sm:text-sm">Sign in with</span>
-          </p>
-
-          {/* Sign in with Google */}
-          {/* <div className="mt-4 sm:mt-6 flex justify-center">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 py-1.5 px-3 sm:py-2 sm:px-4 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2A5D36]"
-            >
-              <FcGoogle className="text-sm sm:text-base" />
-              Google
-            </button>
-          </div> */}
-
-          {/* Registration Link */}
-          {/* <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            <p className="text-gray-600">
-              Don&apos;t have an account?{" "}
-              <button
-                type="button"
-                className="font-medium text-[#2A5D36] hover:text-[#1e4a2a] focus:outline-none"
-                onClick={() => router.push("/register")}
-              >
-                Register now
-              </button>
-            </p>
-          </div> */}
         </div>
 
         {/* Right decorative image - hidden on mobile */}
