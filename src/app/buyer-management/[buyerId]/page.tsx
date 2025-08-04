@@ -1,130 +1,227 @@
 "use client";
-import { initialBuyers } from "@/data/data";
 import { Buyer } from "@/types/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
+import React from "react";
+import { MdKeyboardBackspace, MdOutlineEdit, MdRefresh } from "react-icons/md";
+import { getBuyer } from "@/api/buyerApi";
+import { useQuery } from "@tanstack/react-query";
 
 const BuyerInformationPage = () => {
-  const { buyerId } = useParams(); // Get the ID from URL params
-  const [buyerData, setBuyerData] = useState<Buyer | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { buyerId } = useParams();
   const router = useRouter();
+  const buyerIdString = buyerId?.toString() as string;
+
+  // Query to fetch buyer data
+  const {
+    data: buyerData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["buyer", buyerIdString],
+    queryFn: () => getBuyer(buyerIdString) as Promise<Buyer>,
+    enabled: !!buyerIdString,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnMount: true, // Always refetch on component mount
+  });
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
+    router.back()
   };
 
-  useEffect(() => {
-    const fetchBuyerData = () => {
-      setLoading(true);
+  const handleRefresh = () => {
+    refetch();
+  };
 
-      const foundBuyer = initialBuyers.find(
-        (buyer) => buyer.id.toString() === buyerId
-      );
-
-      if (foundBuyer) {
-        setBuyerData(foundBuyer);
-        setError(null);
-      } else {
-        setError(`Buyer with ID ${buyerId} not found`);
-      }
-
-      setLoading(false);
-    };
-
-    fetchBuyerData();
-  }, [buyerId]);
-
-  if (loading) {
+  // Loading state
+  if (isLoading) {
     return (
-      <div className="text-center py-10">Loading buyer information...</div>
+      <div className="pb-10">
+        <div className="border-b border-gray-300 py-10">
+          <div className="mx-auto max-w-6xl flex items-center gap-5">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="cursor-pointer"
+            >
+              <MdKeyboardBackspace size={24} />
+            </button>
+            <p className="text-xl font-semibold">Buyer Information</p>
+          </div>
+        </div>
+
+        <div className="flex justify-center items-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+            <p className="text-gray-600">Loading buyer information...</p>
+          </div>
+        </div>
+      </div>
     );
   }
 
-  if (error) {
-    return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  // Error state
+  if (isError) {
+    return (
+      <div className="pb-10">
+        <div className="border-b border-gray-300 py-10">
+          <div className="mx-auto max-w-6xl flex items-center gap-5">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="cursor-pointer"
+            >
+              <MdKeyboardBackspace size={24} />
+            </button>
+            <p className="text-xl font-semibold">Buyer Information</p>
+          </div>
+        </div>
+
+        <div className="text-center py-10 mx-auto max-w-6xl">
+          <div className="text-red-500 mb-4 text-lg">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load buyer information"}
+          </div>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <MdRefresh className={isFetching ? "animate-spin" : ""} />
+              {isFetching ? "Retrying..." : "Try Again"}
+            </button>
+            <button
+              onClick={handleBack}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // No data state
   if (!buyerData) {
-    return <div className="text-center py-10">No buyer data found</div>;
+    return (
+      <div className="pb-10">
+        <div className="border-b border-gray-300 py-10">
+          <div className="mx-auto max-w-6xl flex items-center gap-5">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="cursor-pointer"
+            >
+              <MdKeyboardBackspace size={24} />
+            </button>
+            <p className="text-xl font-semibold">Buyer Information</p>
+          </div>
+        </div>
+
+        <div className="text-center py-10 mx-auto max-w-6xl">
+          <div className="mb-4 text-lg">No buyer data found</div>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+            >
+              <MdRefresh />
+              Refresh
+            </button>
+            <button
+              onClick={handleBack}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className="pb-10">
       <div className="border-b border-gray-300 py-10">
         <div className="mx-auto max-w-6xl flex items-center gap-5">
           <button type="button" onClick={handleBack} className="cursor-pointer">
             <MdKeyboardBackspace size={24} />
           </button>
           <p className="text-xl font-semibold">Buyer Information</p>
+
+          {/* Refresh button for manual updates */}
+          <div className="ml-auto">
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors disabled:opacity-50"
+              title="Refresh buyer information"
+            >
+              <MdRefresh
+                className={`text-lg ${isFetching ? "animate-spin" : ""}`}
+              />
+            </button>
+          </div>
         </div>
       </div>
-      <div>
+
+      <div className="mx-auto max-w-6xl">
         <div className="my-10 text-center">
-          <p className="text-lg">{buyerData.name}</p>
+          <h2 className="text-2xl font-semibold">{buyerData.name}</h2>
+          {isFetching && (
+            <p className="text-sm text-gray-500 mt-2">
+              Updating information...
+            </p>
+          )}
         </div>
 
-        <div className="flex flex-col items-center mx-auto max-w-6xl w-full">
-          <div className="grid grid-cols-2 w-full border border-gray-300 rounded-md">
-            {/* Row 1 */}
-            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer Legal Name
-            </div>
-            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-              {buyerData.name}
-            </div>
-
-            {/* Row 2 */}
-            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer ABN
-            </div>
-            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-              {buyerData.abn}
-            </div>
-
-            {/* Row 3 */}
-            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer Email
-            </div>
-            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-              {buyerData.email}
-            </div>
-
-            {/* Row 4 */}
-            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer Office Address
-            </div>
-            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-              {buyerData.officeAddress}
-            </div>
-
-            {/* Row 5 */}
-            <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer Contact Name
-            </div>
-            <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-              {buyerData.contactName}
-            </div>
-
-            {/* Row 6 */}
-            <div className="p-3 border-r border-gray-300 text-[#1A1A1A] flex items-center min-h-[60px]">
-              Buyer Phone Number
-            </div>
-            <div className="p-3 flex items-center min-h-[60px]">
-              {buyerData.phone}
-            </div>
+        <div className="flex flex-col items-center w-full">
+          <div className="grid grid-cols-2 w-full border border-gray-300 rounded-md overflow-hidden">
+            {/* Information Rows */}
+            {[
+              { label: "Legal Name", value: buyerData.name },
+              { label: "ABN", value: buyerData.abn },
+              { label: "Email", value: buyerData.email },
+              { label: "Office Address", value: buyerData.officeAddress },
+              { label: "Contact Name", value: buyerData.contactName },
+              { label: "Phone Number", value: buyerData.phoneNumber },
+              { label: "Account Number", value: buyerData?.accountNumber || "" },
+            ].map((item, index) => (
+              <React.Fragment key={index}>
+                <div className="border-b border-r border-gray-300 p-4 bg-gray-50 text-gray-700 font-medium">
+                  {item.label}
+                </div>
+                <div className="border-b border-gray-300 p-4">
+                  {item.value || "-"}
+                </div>
+              </React.Fragment>
+            ))}
           </div>
 
-          {/* Edit Button */}
-          <div className="mt-10">
-            <Link href={`/buyer-management/edit/${buyerId?.toString()}`}>
-              <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] hover:bg-[#1e4728]  text-white rounded flex items-center gap-2">
+          {/* Action Buttons */}
+          <div className="mt-10 flex gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="py-2 px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+            >
+              <MdRefresh className={isFetching ? "animate-spin" : ""} />
+              {isFetching ? "Refreshing..." : "Refresh"}
+            </button>
+
+            <Link href={`/buyer-management/edit/${buyerId}`}>
+              <button className="py-2 px-5 bg-[#2A5D36] hover:bg-[#1e4728] text-white rounded flex items-center gap-2 transition-colors">
                 <MdOutlineEdit className="text-lg" />
-                Edit
+                Edit Buyer Information
               </button>
             </Link>
           </div>

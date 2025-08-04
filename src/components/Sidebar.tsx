@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import usePathname
+import { usePathname, useRouter } from "next/navigation"; // Import usePathname
 import { MdOutlineLogout } from "react-icons/md";
 import { useState } from "react"; // Import useState
 import { FaBars, FaTrash } from "react-icons/fa"; // Import hamburger icon
 import Image from "next/image";
+import { userLogOut } from "@/api/Auth";
 
 const menus = [
   {
@@ -23,10 +24,6 @@ const menus = [
     page: "Seller Management",
     link: "/seller-management",
   },
-  // {
-  //   page: "Notes",
-  //   link: "/notes",
-  // },
   {
     page: "Historical Daily Prices",
     link: "/historical-prices",
@@ -40,12 +37,13 @@ const menus = [
 const Sidebar = () => {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to manage sidebar visibility
+  const router = useRouter();
 
-  const handleLogout = () => {
-    // This only works for non-HttpOnly cookies
-    document.cookie = 'auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    console.log("User logged out");
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    const res = await userLogOut();
+    if (res) {
+      router.push("/login");
+    }
   };
 
   const toggleSidebar = () => {

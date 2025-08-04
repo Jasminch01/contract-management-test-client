@@ -1,143 +1,50 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+
 "use client";
-import { Buyer, Contract, Note, Seller } from "@/types/types";
-import React, { useEffect, useState } from "react";
+import { Buyer, Seller, TContract, TrashData } from "@/types/types";
+import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoFilterSharp } from "react-icons/io5";
 import { RiDeleteBin6Fill, RiResetLeftFill } from "react-icons/ri";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  emptyTrashBin,
+  getTrashData,
+  permanentlyDeleteTrashItems,
+  restoreTrashItems,
+} from "@/api/rubbishBinApi";
 
-interface DeletedItem {
-  id: string;
-  name: string;
-  noteName: string;
-  sellerLegalName: string;
-  contractNumber: string;
-  type: "Contract" | "Note" | "Seller" | "Buyer";
-  isDeleted: boolean;
-  deletedAt: string;
-}
+type DeletedItem =
+  | (Buyer & { type: "Buyer" })
+  | (Seller & { type: "Seller" })
+  | (TContract & { type: "Contract" });
+
+// API functions
+const fetchDeletedItems = async (): Promise<TrashData> => {
+  const response = await getTrashData();
+  return response;
+};
+
+const permanentlyDeleteItems = async (itemIds: string[]): Promise<void> => {
+  await permanentlyDeleteTrashItems(itemIds);
+};
+
+const emptyTrash = async (): Promise<void> => {
+  await emptyTrashBin();
+};
 
 const RubbishBin = () => {
-  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<DeletedItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [activeFilters, setActiveFilters] = useState<
-    ("Contract" | "Note" | "Seller" | "Buyer")[]
+    ("Contract" | "Seller" | "Buyer")[]
   >([]);
   const [selectedRows, setSelectedRows] = useState<DeletedItem[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteInProgress, setDeleteInProgress] = useState(false);
+  const [showEmptyModal, setShowEmptyModal] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch contracts data
-        const contractsRes = await fetch("contracts.json");
-        const contracts = await contractsRes.json();
-
-        // Fetch notes data
-        const notesRes = await fetch("notes.json");
-        const notes = await notesRes.json();
-
-        // Fetch sellers data
-        const sellersRes = await fetch("seller.json");
-        const sellers = await sellersRes.json();
-
-        // Fetch buyers data
-        const buyersRes = await fetch("buyer.json");
-        const buyers = await buyersRes.json();
-
-        // Process and combine all data
-        const allItems = [
-          ...contracts.map((c: Contract) => ({ ...c, type: "Contract" })),
-          ...notes.map((n: Note) => ({ ...n, type: "Note" })),
-          ...sellers.map((s: Seller) => ({ ...s, type: "Seller" })),
-          ...buyers.map((b: Buyer) => ({ ...b, type: "Buyer" })),
-        ];
-
-        // Filter only deleted items
-        const deleted = allItems.filter((item) => item.isDeleted);
-        setDeletedItems(deleted);
-        setFilteredItems(deleted);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (activeFilters.length === 0) {
-      setFilteredItems(deletedItems);
-    } else {
-      setFilteredItems(
-        deletedItems.filter((item) => activeFilters.includes(item.type))
-      );
-    }
-  }, [activeFilters, deletedItems]);
-
-  const toggleFilter = (type: "Contract" | "Note" | "Seller" | "Buyer") => {
-    if (activeFilters.includes(type)) {
-      setActiveFilters(activeFilters.filter((t) => t !== type));
-    } else {
-      setActiveFilters([...activeFilters, type]);
-    }
-  };
-
-  const handleRowSelected = (state: { selectedRows: DeletedItem[] }) => {
-    setSelectedRows(state.selectedRows);
-  };
-
-  const handlePermanentDelete = () => {
-    setShowDeleteModal(true);
-  };
-
-  const confirmPermanentDelete = () => {
-    setDeleteInProgress(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      // Filter out the selected rows from the deletedItems
-      const updatedItems = deletedItems.filter(
-        (item) =>
-          !selectedRows.some((selectedItem) => selectedItem.id === item.id)
-      );
-
-      setDeletedItems(updatedItems);
-      setSelectedRows([]);
-      setDeleteInProgress(false);
-      setShowDeleteModal(false);
-
-      // Show success notification
-      showNotification(
-        "Selected items permanently deleted successfully",
-        "success"
-      );
-    }, 1500);
-  };
-
-  const cancelPermanentDelete = () => {
-    setShowDeleteModal(false);
-  };
-
-  const emptyRubbishBin = () => {
-    if (deletedItems.length === 0) {
-      showNotification("Rubbish bin is already empty", "info");
-      return;
-    }
-
-    // Simulate API call delay
-    setTimeout(() => {
-      setDeletedItems([]);
-      setSelectedRows([]);
-      showNotification("Rubbish bin emptied successfully", "success");
-    }, 1000);
-  };
+  const queryClient = useQueryClient();
 
   // Simple notification system
   const [notification, setNotification] = useState({
@@ -153,23 +60,281 @@ const RubbishBin = () => {
     }, 3000);
   };
 
+  // Fetch deleted items using TanStack Query
+  const {
+    data: deletedData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["deletedItems"],
+    queryFn: fetchDeletedItems,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: 60000, // Refetch every minute for live updates
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  // Permanent delete mutation
+  const permanentDeleteMutation = useMutation({
+    mutationFn: permanentlyDeleteItems,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      setSelectedRows([]);
+      setShowDeleteModal(false);
+      showNotification(
+        "Selected items permanently deleted successfully",
+        "success"
+      );
+    },
+    onError: (error) => {
+      console.error("Error permanently deleting items:", error);
+      showNotification("Error permanently deleting items", "error");
+    },
+  });
+
+  // Empty trash mutation
+  const emptyTrashMutation = useMutation({
+    mutationFn: emptyTrash,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      setShowEmptyModal(false);
+      showNotification("Rubbish bin emptied successfully", "success");
+    },
+    onError: (error) => {
+      console.error("Error emptying trash:", error);
+      showNotification("Error emptying rubbish bin", "error");
+    },
+  });
+
+  // Restore items mutation
+  const restoreItemsMutation = useMutation({
+    mutationFn: restoreTrashItems,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      setSelectedRows([]);
+      showNotification("Selected items restored successfully", "success");
+    },
+    onError: (error) => {
+      console.error("Error restoring items:", error);
+      showNotification("Error restoring items", "error");
+    },
+  });
+
+  // Process deleted items data
+  const deletedItems: DeletedItem[] = React.useMemo(() => {
+    if (!deletedData) return [];
+
+    const deletedBuyers = deletedData.buyers || [];
+    const deletedSellers = deletedData.sellers || [];
+    const deletedContracts = deletedData.contracts || [];
+
+    return [
+      ...deletedContracts.map((c: TContract) => ({
+        ...c,
+        type: "Contract" as const,
+      })),
+      ...deletedSellers.map((s: Seller) => ({
+        ...s,
+        type: "Seller" as const,
+      })),
+      ...deletedBuyers.map((b: Buyer) => ({
+        ...b,
+        type: "Buyer" as const,
+      })),
+    ];
+  }, [deletedData]);
+
+  // Handle error state
+  useEffect(() => {
+    if (error) {
+      showNotification("Error loading deleted items", "error");
+    }
+  }, [error]);
+
+  // Filter dropdown ref for outside click detection
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Filter effect
+  useEffect(() => {
+    if (activeFilters.length === 0) {
+      setFilteredItems(deletedItems);
+    } else {
+      setFilteredItems(
+        deletedItems.filter((item) => activeFilters.includes(item.type))
+      );
+    }
+  }, [activeFilters, deletedItems]);
+
+  // Outside click effect to close filter dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    // Add event listener when filter is open
+    if (showFilterDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFilterDropdown]);
+
+  const toggleFilter = (type: "Contract" | "Seller" | "Buyer") => {
+    if (activeFilters.includes(type)) {
+      setActiveFilters(activeFilters.filter((t) => t !== type));
+    } else {
+      setActiveFilters([...activeFilters, type]);
+    }
+    // Close dropdown after selection
+    setShowFilterDropdown(false);
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters([]);
+    setShowFilterDropdown(false);
+  };
+
+  const handleRowSelected = (state: { selectedRows: DeletedItem[] }) => {
+    setSelectedRows(state.selectedRows);
+  };
+
+  const handlePermanentDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmPermanentDelete = () => {
+    const itemIds = selectedRows
+      .map((item) => item._id)
+      .filter((id): id is string => id !== undefined);
+
+    if (itemIds.length === 0) {
+      showNotification("No valid items selected for deletion", "error");
+      return;
+    }
+
+    permanentDeleteMutation.mutate(itemIds);
+  };
+
+  const cancelPermanentDelete = () => {
+    setShowDeleteModal(false);
+  };
+
+  const handleEmptyRubbishBin = () => {
+    if (deletedItems.length === 0) {
+      showNotification("Rubbish bin is already empty", "info");
+      return;
+    }
+    setShowEmptyModal(true);
+  };
+
+  const confirmEmptyTrash = () => {
+    emptyTrashMutation.mutate();
+  };
+
+  const cancelEmptyTrash = () => {
+    setShowEmptyModal(false);
+  };
+
+  const handleRestore = () => {
+    if (selectedRows.length === 0) {
+      showNotification("No valid items selected for restoration", "error");
+      return;
+    }
+
+    // Extract IDs from selectedRows if they are objects, or use them directly if they are strings
+    const itemIds = selectedRows
+      .map((item) => (typeof item === "string" ? item : item._id))
+      .filter((id): id is string => id !== undefined);
+
+    if (itemIds.length === 0) {
+      showNotification("No valid items with IDs found", "error");
+      return;
+    }
+
+    restoreItemsMutation.mutate(itemIds);
+  };
+
   const columns = [
     {
       name: "NAME",
-      selector: (row: DeletedItem) =>
-        row.name || row.sellerLegalName || row.contractNumber || row.noteName,
+      selector: (row: DeletedItem) => {
+        if (row.type === "Buyer") {
+          return (row as Buyer).name;
+        } else if (row.type === "Seller") {
+          return (row as Seller).legalName;
+        } else {
+          return (row as TContract).contractNumber || "Contract";
+        }
+      },
       sortable: true,
+      wrap: true,
     },
     {
       name: "TYPE",
       selector: (row: DeletedItem) => row.type,
       sortable: true,
+      width: "100px",
     },
     {
-      name: "DATE ADDED",
-      selector: (row: DeletedItem) =>
-        new Date(row.deletedAt).toLocaleDateString(),
+      name: "EMAIL",
+      selector: (row: DeletedItem) => {
+        if (row.type === "Buyer" || row.type === "Seller") {
+          return (row as Buyer | Seller).email;
+        }
+        return "N/A";
+      },
       sortable: true,
+      wrap: true,
+    },
+    {
+      name: "PHONE",
+      selector: (row: DeletedItem) => {
+        if (row.type === "Buyer" || row.type === "Seller") {
+          return (row as Buyer | Seller).phoneNumber || "N/A";
+        }
+        return "N/A";
+      },
+      sortable: true,
+    },
+    {
+      name: "ABN",
+      selector: (row: DeletedItem) => {
+        if (row.type === "Buyer" || row.type === "Seller") {
+          return (row as Buyer | Seller).abn;
+        }
+        return "N/A";
+      },
+      sortable: true,
+    },
+    {
+      name: "DELETED AT",
+      selector: (row: DeletedItem) => {
+        const deletedAt = row.deletedAt;
+        return deletedAt
+          ? new Date(deletedAt).toISOString().split("T")[0]
+          : "N/A";
+      },
+      sortable: true,
+      format: (row: DeletedItem) => {
+        const deletedAt = row.deletedAt;
+        return deletedAt
+          ? new Date(deletedAt).toISOString().split("T")[0]
+          : "N/A";
+      },
+      width: "150px",
     },
   ];
 
@@ -186,6 +351,10 @@ const RubbishBin = () => {
       style: {
         borderRight: "1px solid #ddd",
         padding: "12px",
+        textAlign: "center",
+        justifyContent: "center",
+        alignItems: "center",
+        display: "flex",
       },
     },
     headCells: {
@@ -194,31 +363,85 @@ const RubbishBin = () => {
         fontWeight: "bold",
         color: "gray",
         padding: "12px",
+        textAlign: "center",
+        justifyContent: "center",
+        alignItems: "center",
+        display: "flex",
       },
     },
   };
+
+  const isAnyMutationLoading =
+    permanentDeleteMutation.isPending || emptyTrashMutation.isPending;
 
   return (
     <div className="mt-20">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
-        {/* Create New Buyer Button */}
+        {/* Title */}
         <div className="w-full md:w-auto">
           <p className="text-lg font-semibold text-gray-800">Rubbish bin</p>
+          {isLoading && <p className="text-sm text-blue-500">Loading...</p>}
         </div>
 
-        {/* Empty Bin Button */}
-        <div className="w-full md:w-auto">
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex gap-2">
           <button
-            onClick={emptyRubbishBin}
-            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50"
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
+            disabled={isLoading}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Refresh
+          </button>
+          <button
+            onClick={handleEmptyRubbishBin}
+            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
+            disabled={emptyTrashMutation.isPending || deletedItems.length === 0}
           >
             <RiDeleteBin6Fill className="text-red-500" />
-            Empty Rubbish Bin
+            {emptyTrashMutation.isPending ? "Emptying..." : "Empty Rubbish Bin"}
           </button>
         </div>
       </div>
-      <div className="mt-3">
+
+      <div className="">
+        {/* Summary Cards */}
+        <div className="mb-4 p-4 bg-gray-50">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-blue-600">
+                {deletedItems.filter((item) => item.type === "Buyer").length}
+              </div>
+              <div className="text-sm text-gray-600">Deleted Buyers</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-600">
+                {deletedItems.filter((item) => item.type === "Seller").length}
+              </div>
+              <div className="text-sm text-gray-600">Deleted Sellers</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-purple-600">
+                {deletedItems.filter((item) => item.type === "Contract").length}
+              </div>
+              <div className="text-sm text-gray-600">Deleted Contracts</div>
+            </div>
+          </div>
+        </div>
+
         {/* Table Controls */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
           {/* Title */}
@@ -229,7 +452,7 @@ const RubbishBin = () => {
             <p className="text-sm text-gray-500">
               {filteredItems.length} deleted items found
               {activeFilters.length > 0 &&
-                ` (filtered by ${activeFilters.join(", ")})`}
+                ` (filtered by ${activeFilters?.join(", ")})`}
             </p>
           </div>
 
@@ -237,28 +460,31 @@ const RubbishBin = () => {
           <div className="w-full md:w-auto flex gap-2 relative">
             <button
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !isAnyMutationLoading
                   ? "cursor-pointer hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed"
               }`}
-              disabled={selectedRows.length === 0}
+              onClick={handleRestore}
+              disabled={selectedRows.length === 0 || isAnyMutationLoading}
             >
               <RiResetLeftFill />
-              Restore
+              {restoreItemsMutation.isPending ? "Restoring..." : "Restore"}
             </button>
             <button
               className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !isAnyMutationLoading
                   ? "cursor-pointer hover:bg-gray-50"
                   : "opacity-50 cursor-not-allowed"
               }`}
               onClick={handlePermanentDelete}
-              disabled={selectedRows.length === 0}
+              disabled={selectedRows.length === 0 || isAnyMutationLoading}
             >
               <RiDeleteBin6Fill className="text-red-500" />
-              Permanent Delete
+              {permanentDeleteMutation.isPending
+                ? "Deleting..."
+                : "Permanent Delete"}
             </button>
-            <div className="relative">
+            <div className="relative" ref={filterRef}>
               <button
                 className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -280,16 +506,7 @@ const RubbishBin = () => {
                     >
                       Contracts
                     </div>
-                    <div
-                      className={`px-4 py-2 text-sm cursor-pointer rounded ${
-                        activeFilters.includes("Note")
-                          ? "bg-blue-100"
-                          : "hover:bg-gray-100"
-                      }`}
-                      onClick={() => toggleFilter("Note")}
-                    >
-                      Notes
-                    </div>
+
                     <div
                       className={`px-4 py-2 text-sm cursor-pointer rounded ${
                         activeFilters.includes("Seller")
@@ -313,7 +530,7 @@ const RubbishBin = () => {
                     {activeFilters.length > 0 && (
                       <div
                         className="px-4 py-2 text-sm cursor-pointer rounded hover:bg-gray-100 text-blue-500"
-                        onClick={() => setActiveFilters([])}
+                        onClick={clearAllFilters}
                       >
                         Clear all filters
                       </div>
@@ -330,11 +547,17 @@ const RubbishBin = () => {
           <DataTable
             columns={columns}
             data={filteredItems}
-            progressPending={loading}
+            progressPending={isLoading}
             selectableRows
             pagination
             highlightOnHover
-            noDataComponent={<div className="p-4">No deleted items found</div>}
+            noDataComponent={
+              <div className="p-4">
+                {error
+                  ? "Error loading deleted items"
+                  : "No deleted items found"}
+              </div>
+            }
             fixedHeader
             fixedHeaderScrollHeight="500px"
             selectableRowsHighlight
@@ -342,141 +565,146 @@ const RubbishBin = () => {
             pointerOnHover
             customStyles={customStyles}
             onSelectedRowsChange={handleRowSelected}
-            clearSelectedRows={deleteInProgress}
+            clearSelectedRows={isAnyMutationLoading}
           />
         </div>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Confirm Permanent Delete
-            </h3>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to permanently delete {selectedRows.length}{" "}
-              selected item{selectedRows.length !== 1 ? "s" : ""}? This action
-              cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={cancelPermanentDelete}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                disabled={deleteInProgress}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmPermanentDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
-                disabled={deleteInProgress}
-              >
-                {deleteInProgress ? (
-                  <>
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
+                Permanently Delete Items
+              </h3>
+              <p className="text-gray-600 mb-6 text-center">
+                Are you sure you want to permanently delete{" "}
+                {selectedRows.length} selected item(s)? This action cannot be
+                undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={cancelPermanentDelete}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  disabled={permanentDeleteMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmPermanentDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                  disabled={permanentDeleteMutation.isPending}
+                >
+                  {permanentDeleteMutation.isPending
+                    ? "Deleting..."
+                    : "Delete Permanently"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty Trash Confirmation Modal */}
+        {showEmptyModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
+                Empty Rubbish Bin
+              </h3>
+              <p className="text-gray-600 mb-6 text-center">
+                Are you sure you want to empty the entire rubbish bin? This will
+                permanently delete all {deletedItems.length} items and cannot be
+                undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={cancelEmptyTrash}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  disabled={emptyTrashMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmEmptyTrash}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                  disabled={emptyTrashMutation.isPending}
+                >
+                  {emptyTrashMutation.isPending ? "Emptying..." : "Empty Bin"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notification */}
+        {notification.visible && (
+          <div className="fixed bottom-4 right-4 max-w-md z-50">
+            <div
+              className={`rounded-md shadow-lg p-4 ${
+                notification.type === "success"
+                  ? "bg-green-50 border-l-4 border-green-500"
+                  : notification.type === "error"
+                  ? "bg-red-50 border-l-4 border-red-500"
+                  : "bg-blue-50 border-l-4 border-blue-500"
+              }`}
+            >
+              <div className="flex items-center">
+                <div
+                  className={`mr-3 ${
+                    notification.type === "success"
+                      ? "text-green-500"
+                      : notification.type === "error"
+                      ? "text-red-500"
+                      : "text-blue-500"
+                  }`}
+                >
+                  {notification.type === "success" ? (
                     <svg
-                      className="animate-spin h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
                       <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <RiDeleteBin6Fill />
-                    Delete Permanently
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notification Toast */}
-      {notification.visible && (
-        <div className="fixed bottom-4 right-4 max-w-md z-50">
-          <div
-            className={`rounded-md shadow-lg p-4 ${
-              notification.type === "success"
-                ? "bg-green-50 border-l-4 border-green-500"
-                : notification.type === "error"
-                ? "bg-red-50 border-l-4 border-red-500"
-                : "bg-blue-50 border-l-4 border-blue-500"
-            }`}
-          >
-            <div className="flex items-center">
-              <div
-                className={`mr-3 ${
-                  notification.type === "success"
-                    ? "text-green-500"
-                    : notification.type === "error"
-                    ? "text-red-500"
-                    : "text-blue-500"
-                }`}
-              >
-                {notification.type === "success" ? (
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : notification.type === "error" ? (
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">
-                  {notification.message}
-                </p>
+                  ) : notification.type === "error" ? (
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    {notification.message}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

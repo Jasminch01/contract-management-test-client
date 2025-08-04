@@ -1,4 +1,5 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   PieChart,
   Pie,
@@ -7,15 +8,42 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import { getProgressReport } from "@/api/dashboardApi";
+
+// Define the type for your API response
+interface ContractProgressData {
+  done: number;
+  notDone: number;
+}
+
+const COLORS = ["#9D8EE4", "#EDB348"]; // Purple for Done, Yellow for Not Done
 
 const ContractProgress = () => {
-  // Sample data
-  const data = [
-    { name: "Done", value: 25 },
-    { name: "Not Done", value: 75 },
-  ];
+  const { data, isLoading, error } = useQuery<ContractProgressData>({
+    queryKey: ["contractProgress"],
+    queryFn: getProgressReport,
+  });
+  if (isLoading) {
+    return (
+      <div className="w-full h-[22rem] min-2xl:h-[25rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4 flex items-center justify-center">
+        <div>Loading contract progress...</div>
+      </div>
+    );
+  }
 
-  const COLORS = ["#9D8EE4", "#EDB348"]; // Purple for Done, Yellow for Not Done
+  if (error) {
+    return (
+      <div className="w-full h-[22rem] min-2xl:h-[25rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4 flex items-center justify-center">
+        <div>Error loading contract progress</div>
+      </div>
+    );
+  }
+
+  // Transform the API data to match the chart format
+  const chartData = [
+    { name: "Done", value: data?.done || 0 },
+    { name: "Not Done", value: data?.notDone || 0 },
+  ];
 
   return (
     <div className="w-full h-[22rem] min-2xl:h-[25rem] bg-white rounded-lg shadow-sm border-t-5 border-purple-500 p-4">
@@ -26,7 +54,7 @@ const ContractProgress = () => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -34,7 +62,7 @@ const ContractProgress = () => {
               fill="#EDB348"
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

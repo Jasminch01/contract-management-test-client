@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+import { TContract } from "@/types/types";
 import { CSVLink } from "react-csv";
 import { IoDocumentText } from "react-icons/io5";
-import { Contract } from "@/types/types";
-
 interface ExportCSVButtonProps {
-  selectedRows: Contract[];
+  selectedRows: TContract[];
 }
 
 const ExportCsv: React.FC<ExportCSVButtonProps> = ({ selectedRows }) => {

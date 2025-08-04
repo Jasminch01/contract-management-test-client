@@ -1,6 +1,7 @@
 "use client";
-import { initialBuyers } from "@/data/data";
+import { getBuyers, moveBuyersToTrash } from "@/api/buyerApi";
 import { Buyer } from "@/types/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -35,13 +36,13 @@ const columns = [
   },
   {
     name: "PHONE",
-    selector: (row: Buyer) => row.phone,
+    selector: (row: Buyer) => row.phoneNumber,
     sortable: true,
   },
   {
     name: "CREATED DATE",
     selector: (row: Buyer) =>
-      row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
+      row?.createdAt ? new Date(row?.createdAt).toLocaleDateString() : "N/A",
     sortable: true,
   },
 ];
@@ -77,20 +78,7 @@ const customStyles = {
 };
 
 const BuyerManagementPage = () => {
-  // Adding createdAt field to initial buyers for demo purposes
-  const buyersWithDates = initialBuyers
-    .filter((b) => !b.isDeleted)
-    .map((buyer) => ({
-      ...buyer,
-      createdAt:
-        buyer.createdAt ||
-        new Date(
-          Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-        ).toISOString(),
-    }));
-
-  const [data, setData] = useState<Buyer[]>(buyersWithDates);
-  const [filteredData, setFilteredData] = useState<Buyer[]>(buyersWithDates);
+  const [filteredData, setFilteredData] = useState<Buyer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
@@ -98,6 +86,41 @@ const BuyerManagementPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "lastWeek"
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // TanStack Query for fetching buyers
+  const {
+    data: data = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["buyers"],
+    queryFn: getBuyers,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  });
+
+  // Mutation for deleting buyers
+  const deleteBuyersMutation = useMutation({
+    mutationFn: moveBuyersToTrash,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch buyers data
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+
+      setToggleCleared(!toggleCleared);
+      setIsDeleteConfirmOpen(false);
+      toast.success(`${variables.length} buyer(s) moved to trash`);
+
+      // Clear selected rows
+      setSelectedRows([]);
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete buyers");
+    },
+  });
 
   // Filter options for date filter dropdown
   const dateFilterOptions = [
@@ -115,6 +138,7 @@ const BuyerManagementPage = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       result = result.filter((buyer) => {
+        if (!buyer.createdAt) return false;
         const createdDate = new Date(buyer.createdAt);
         return createdDate >= today;
       });
@@ -122,6 +146,7 @@ const BuyerManagementPage = () => {
       const lastWeek = new Date();
       lastWeek.setDate(lastWeek.getDate() - 7);
       result = result.filter((buyer) => {
+        if (!buyer.createdAt) return false;
         const createdDate = new Date(buyer.createdAt);
         return createdDate >= lastWeek;
       });
@@ -135,7 +160,7 @@ const BuyerManagementPage = () => {
           buyer.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.phone.toLowerCase().includes(searchTerm.toLowerCase())
+          buyer.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
     }
@@ -144,7 +169,7 @@ const BuyerManagementPage = () => {
   }, [searchTerm, dateFilter, data]);
 
   const handleRowClicked = (row: Buyer) => {
-    router.push(`/buyer-management/${row.id}`);
+    router.push(`/buyer-management/${row?._id}`);
   };
 
   const handleChange = (selected: {
@@ -164,7 +189,7 @@ const BuyerManagementPage = () => {
       toast.error("Please select only one buyer to edit");
       return;
     }
-    router.push(`/buyer-management/edit/${selectedRows[0].id}`);
+    router.push(`/buyer-management/edit/${selectedRows[0]._id}`);
   };
 
   const handleDelete = () => {
@@ -175,20 +200,18 @@ const BuyerManagementPage = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    // Soft delete by setting isDeleted to true
-    const updatedData = data.map((buyer) =>
-      selectedRows.some((row) => row.id === buyer.id)
-        ? { ...buyer, isDeleted: true }
-        : buyer
-    );
+  const confirmDelete = async () => {
+    if (selectedRows.length === 0) return;
 
-    setData(updatedData.filter((b) => !b.isDeleted));
-    setFilteredData(updatedData.filter((b) => !b.isDeleted));
-    setSelectedRows([]);
-    setToggleCleared(!toggleCleared);
-    setIsDeleteConfirmOpen(false);
-    toast.success(`${selectedRows.length} buyer(s) deleted successfully`);
+    const idsToDelete = selectedRows.reduce<string[]>((acc, row) => {
+      if (row._id) acc.push(row._id);
+      return acc;
+    }, []);
+
+    if (idsToDelete.length === 0) return;
+
+    // Use the mutation instead of direct API call
+    deleteBuyersMutation.mutate(idsToDelete);
   };
 
   const handleFilter = () => {
@@ -204,6 +227,37 @@ const BuyerManagementPage = () => {
     setDateFilter("all");
     setIsFilterOpen(false);
   };
+
+  // Handle loading and error states
+  if (isLoading) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2A5D36] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading buyers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-64">
+        <div className="text-center text-red-600">
+          <p className="text-lg font-semibold">Error loading buyers</p>
+          <p>{error?.message || "Something went wrong"}</p>
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["buyers"] })
+            }
+            className="mt-4 px-4 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-20">
@@ -221,7 +275,6 @@ const BuyerManagementPage = () => {
         </div>
 
         {/* Search Input */}
-
         <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
@@ -242,7 +295,7 @@ const BuyerManagementPage = () => {
               List of Buyers
             </h2>
             <p className="text-sm text-gray-500">
-              {filteredData.length} buyer(s) found
+              {filteredData?.length} buyer(s) found
               {dateFilter !== "all" && (
                 <span>
                   {" "}
@@ -272,13 +325,19 @@ const BuyerManagementPage = () => {
             <button
               onClick={handleDelete}
               className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
-                selectedRows.length > 0
+                selectedRows.length > 0 && !deleteBuyersMutation.isPending
                   ? "cursor-pointer"
                   : "cursor-not-allowed opacity-50"
               }`}
-              disabled={selectedRows.length === 0}
+              disabled={
+                selectedRows.length === 0 || deleteBuyersMutation.isPending
+              }
             >
-              <RiDeleteBin6Fill className="text-red-500" />
+              {deleteBuyersMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+              ) : (
+                <RiDeleteBin6Fill className="text-red-500" />
+              )}
               Delete
             </button>
 
@@ -381,8 +440,8 @@ const BuyerManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
@@ -398,13 +457,18 @@ const BuyerManagementPage = () => {
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={deleteBuyersMutation.isPending}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e] flex items-center gap-2"
+                  disabled={deleteBuyersMutation.isPending}
                 >
+                  {deleteBuyersMutation.isPending && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
                   Delete
                 </button>
               </div>

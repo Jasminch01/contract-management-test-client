@@ -1,19 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from "react";
-import { Contract } from "@/types/types";
 import { IoIosClose } from "react-icons/io";
 import { FaCheck } from "react-icons/fa";
 import { LuSearch } from "react-icons/lu";
+import { TContract } from "@/types/types";
 
 type FilterOption = {
   id: string;
   label: string;
-  field: keyof Contract | ((contract: Contract) => string);
+  field: keyof TContract | ((contract: TContract) => string);
 };
 
 interface SearchFilterBarProps {
-  data: Contract[];
-  onFilterChange: (filteredData: Contract[]) => void;
+  data: TContract[];
+  onFilterChange: (filteredData: TContract[]) => void;
 }
 
 export default function SearchFilterBar({
@@ -30,17 +30,17 @@ export default function SearchFilterBar({
     {
       id: "ngr",
       label: "NGR",
-      field: (contract) => contract.seller.sellerMainNGR,
+      field: (contract) => contract.seller?.mainNgr || "",
     },
     {
       id: "commodity",
       label: "Commodity",
-      field: "commoditySeason",
+      field: "season",
     },
     {
       id: "seller",
       label: "Seller",
-      field: (contract) => contract.seller.sellerLegalName,
+      field: (contract) => contract.seller?.legalName || "",
     },
     {
       id: "grade",

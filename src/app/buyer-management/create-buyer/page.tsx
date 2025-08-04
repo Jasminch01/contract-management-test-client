@@ -2,20 +2,46 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { initialBuyers } from "@/data/data";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Buyer } from "@/types/types"; // Import from types
+import { createBuyer } from "@/api/buyerApi";
 
 const CreateBuyerPage = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState<
-    Omit<Buyer, "id" | "isDeleted" | "createdAt" | "updatedAt">
-  >({
+  const queryClient = useQueryClient();
+
+  const [formData, setFormData] = useState<Buyer>({
     name: "",
     abn: "",
     officeAddress: "",
     contactName: "",
     email: "",
-    phone: "", // Keep this field even though it's optional in the interface
+    phoneNumber: "",
+    accountNumber: "",
+  });
+
+  // TanStack Query mutation for creating buyer
+  const createBuyerMutation = useMutation({
+    mutationFn: createBuyer,
+    onSuccess: (data) => {
+      // Invalidate and refetch the buyers list
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      // This provides instant feedback without waiting for refetch
+      queryClient.setQueryData(["buyers"], (oldData: Buyer[] | undefined) => {
+        if (oldData) {
+          return [data, ...oldData];
+        }
+        return [data];
+      });
+
+      toast.success("Buyer created successfully!");
+      router.push("/buyer-management");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.error("Create buyer error:", error);
+      toast.error(error?.message || "Failed to create buyer");
+    },
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,44 +52,35 @@ const CreateBuyerPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
-    if (!formData.name || !formData.abn || !formData.contactName) {
+    if (
+      !formData.name ||
+      !formData.abn ||
+      !formData.contactName ||
+      !formData.email ||
+      !formData.phoneNumber ||
+      !formData.officeAddress
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const currentTimestamp = new Date().toISOString();
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
 
-    // Generate a new ID (in a real app, this would come from your backend)
-    const newId = (
-      Math.max(...initialBuyers.map((b) => parseInt(b.id))) + 1
-    ).toString();
-
-    // Create new buyer object with required timestamp fields
     const newBuyer: Buyer = {
-      id: newId,
       ...formData,
-      isDeleted: false,
-      createdAt: currentTimestamp,
-      updatedAt: currentTimestamp,
     };
 
-    initialBuyers.push(newBuyer);
-
-    // In a real app, you would send this to your API
-    console.log("New buyer to be added:", newBuyer);
-    console.log(initialBuyers);
-
-    // For demo purposes, we'll just show a success message
-    toast.success("Buyer created successfully!");
-
-    // Redirect to buyer list page after creation
-    setTimeout(() => {
-      router.push("/buyer-management");
-    }, 1000);
+    // Use the mutation instead of direct API call
+    createBuyerMutation.mutate(newBuyer);
   };
 
   return (
@@ -89,9 +106,9 @@ const CreateBuyerPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder="BUYER LEGAL NAME"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
               <div className="w-full md:w-1/2">
@@ -103,9 +120,9 @@ const CreateBuyerPage = () => {
                   name="officeAddress"
                   value={formData.officeAddress}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder="48 Pirrama Rd, Pyrmont Sydney NSW 2009"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
             </div>
@@ -121,9 +138,9 @@ const CreateBuyerPage = () => {
                   name="abn"
                   value={formData.abn}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder=""
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
               <div className="w-full md:w-1/2">
@@ -135,9 +152,9 @@ const CreateBuyerPage = () => {
                   name="contactName"
                   value={formData.contactName}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder=""
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
             </div>
@@ -153,9 +170,9 @@ const CreateBuyerPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder=""
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
               <div className="w-full md:w-1/2">
@@ -164,15 +181,17 @@ const CreateBuyerPage = () => {
                 </label>
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  placeholder=""
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                   required
+                  disabled={createBuyerMutation.isPending}
                 />
               </div>
             </div>
+
+            {/* Row 4 - Account Number */}
             <div className="w-full md:w-1/2">
               <label className="block text-sm font-medium text-gray-700">
                 ACCOUNT NUMBER
@@ -180,22 +199,47 @@ const CreateBuyerPage = () => {
               <input
                 type="text"
                 name="accountNumber"
+                value={formData.accountNumber}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                placeholder=""
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
+                disabled={createBuyerMutation.isPending}
               />
             </div>
           </div>
 
           {/* Submit Button */}
           <div className="mt-10 text-center md:text-left">
-            <button
-              type="submit"
-              className="bg-[#2A5D36] cursor-pointer py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors"
-            >
-              Create
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => router.push("/buyer-management")}
+                className="bg-gray-500 cursor-pointer py-2 px-6 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={createBuyerMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-[#2A5D36] cursor-pointer py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={createBuyerMutation.isPending}
+              >
+                {createBuyerMutation.isPending && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {createBuyerMutation.isPending ? "Creating..." : "Create"}
+              </button>
+            </div>
           </div>
+
+          {/* Error Display */}
+          {createBuyerMutation.isError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">
+                {createBuyerMutation.error?.message ||
+                  "An error occurred while creating the buyer"}
+              </p>
+            </div>
+          )}
         </form>
       </div>
     </div>

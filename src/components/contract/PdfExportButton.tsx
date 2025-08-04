@@ -1,15 +1,13 @@
 "use client";
-
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { Contract } from "@/types/types";
 import { IoDocumentText } from "react-icons/io5";
 import ExportContractPdf from "./ExportContractPdf";
 import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
-
+import { TContract } from "@/types/types";
 interface PdfExportButtonProps {
-  selectedRows: Contract[];
+  selectedRows: TContract[];
 }
 
 const PdfExportButton = ({ selectedRows }: PdfExportButtonProps) => {

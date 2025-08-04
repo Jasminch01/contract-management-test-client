@@ -1,68 +1,72 @@
 "use client";
-import { Seller } from "@/types/types";
+import { BulkHandlerCredential, Seller } from "@/types/types";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
 import toast from "react-hot-toast";
-import { sellers } from "@/data/data";
+import { getseller, updateSeller } from "@/api/sellerApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+const handlerNames = [
+  "Viterra",
+  "Graincorp",
+  "GrainFlow",
+  "Tports",
+  "CBH",
+  "Louis Dreyfus",
+] as const;
+
+const initialCredentials: BulkHandlerCredential[] = handlerNames.map(
+  (name) => ({
+    handlerName: name,
+    identifier: "",
+    password: "",
+  })
+);
 
 const SellerInformationEditPage = () => {
   const { sellerId } = useParams();
+  const queryClient = useQueryClient();
   const router = useRouter();
+  const [sellerData, setSellerData] = useState<Seller | null>(null);
+  const [originalSellerData, setOriginalSellerData] = useState<Seller | null>(
+    null
+  );
+  const [bulkHandlerCredentials, setBulkHandlerCredentials] =
+    useState<BulkHandlerCredential[]>(initialCredentials);
+  const [originalCredentials, setOriginalCredentials] =
+    useState<BulkHandlerCredential[]>(initialCredentials);
+
+  // State for password visibility - track each row separately
+  const [passwordVisibility, setPasswordVisibility] = useState<boolean[]>(
+    new Array(handlerNames.length).fill(false)
+  );
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const foundSeller = sellers.find(
-    (seller) => seller.id.toString() === sellerId
-  );
-
-  const [sellerData, setSellerData] = useState<
-    Seller & {
-      sellerLocationZone: string[];
-      accountNumber: string;
-    }
-  >(
-    foundSeller
-      ? {
-          ...foundSeller,
-          sellerLocationZone: foundSeller.sellerLocationZone || [],
-          accountNumber: foundSeller.accountNumber || "",
-        }
-      : {
-          id: 0,
-          sellerLegalName: "",
-          sellerOfficeAddress: "",
-          sellerABN: "",
-          sellerMainNGR: "",
-          sellerAdditionalNGRs: [],
-          sellerContactName: "",
-          sellerEmail: "",
-          sellerPhoneNumber: "",
-          sellerLocationZone: [],
-          accountNumber: "",
-          isDeleted: false,
-          createdAt: "",
-          updatedAt: "",
-        }
-  );
-
-  const [originalSellerData] = useState<Seller | null>(foundSeller || null);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Bulk Handler Password state
-  const [passwordData, setPasswordData] = useState<{
-    [key: string]: { username: string; password: string };
-  }>({
-    Viterra: { username: "", password: "" },
-    Graincorp: { username: "", password: "" },
-    GrainFlow: { username: "", password: "" },
-    Tports: { username: "", password: "" },
-    CBH: { username: "", password: "" },
-    "Local Depots": { username: "", password: "" },
+  // Fix: Ensure sellerId is properly handled
+  const sellerIdStr = Array.isArray(sellerId)
+    ? sellerId[0]
+    : sellerId?.toString();
+
+  const {
+    data: fetchSellerData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["seller", sellerIdStr],
+    queryFn: () => getseller(sellerIdStr!) as Promise<Seller>,
+    enabled: !!sellerIdStr,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
   });
 
   const locationZones = [
@@ -92,24 +96,131 @@ const SellerInformationEditPage = () => {
     };
   }, []);
 
-  if (!sellerData) {
-    toast.error(`Seller with ID ${sellerId} not found`);
-    router.push("/seller-management");
-    return null;
-  }
+  // Mutation to update seller data
+  const updateSellerMutation = useMutation({
+    mutationFn: (updatedSeller: Seller) =>
+      updateSeller(updatedSeller, sellerIdStr!),
+    onMutate: async (updatedSeller) => {
+      setSaveStatus("saving");
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["sellers", sellerIdStr] });
+
+      // Snapshot the previous value
+      const previousSeller = queryClient.getQueryData(["seller", sellerIdStr]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["seller", sellerIdStr], updatedSeller);
+
+      return { previousSeller };
+    },
+    onError: (error, updatedSeller, context) => {
+      setSaveStatus("error");
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousSeller) {
+        queryClient.setQueryData(
+          ["seller", sellerIdStr],
+          context.previousSeller
+        );
+      }
+      console.error("Update seller error:", error);
+      toast.error("Failed to update seller information");
+    },
+    onSuccess: () => {
+      setSaveStatus("success");
+      toast.success("Seller information updated successfully");
+      setHasChanges(false);
+
+      // Invalidate and refetch seller data to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+
+      // Also invalidate the sellers list if you have one
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+
+      // Navigate back to seller management after a short delay
+      setTimeout(() => {
+        router.push(`/seller-management`);
+      }, 1000);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure server state consistency
+      queryClient.invalidateQueries({ queryKey: ["seller", sellerIdStr] });
+    },
+  });
+
+  // Initialize data when fetched
+  useEffect(() => {
+    if (fetchSellerData) {
+      // Fix: Ensure proper initialization with default values
+      const initializedData = {
+        ...fetchSellerData,
+        locationZone: fetchSellerData.locationZone || [],
+        additionalNgrs: fetchSellerData.additionalNgrs || [],
+        accountNumber: fetchSellerData.accountNumber || "",
+        contactName:
+          fetchSellerData.contactName || fetchSellerData.legalName || "",
+        bulkHandlerCredentials: fetchSellerData.bulkHandlerCredentials || [],
+      };
+
+      setSellerData(initializedData);
+      setOriginalSellerData(initializedData);
+
+      // Initialize bulk handler credentials
+      const existingCredentials = fetchSellerData.bulkHandlerCredentials || [];
+      const mergedCredentials = handlerNames.map((handlerName) => {
+        const existing = existingCredentials.find(
+          (cred) => cred.handlerName === handlerName
+        );
+        return (
+          existing || {
+            handlerName,
+            identifier: "",
+            password: "",
+          }
+        );
+      });
+
+      setBulkHandlerCredentials(mergedCredentials);
+      setOriginalCredentials(JSON.parse(JSON.stringify(mergedCredentials)));
+    }
+  }, [fetchSellerData]);
+
+  // Fix: Utility function to check for changes (including credentials)
+  const checkForChanges = (
+    updatedData: Seller,
+    updatedCredentials?: BulkHandlerCredential[]
+  ) => {
+    if (!originalSellerData) return false;
+
+    const credentialsToCheck = updatedCredentials || bulkHandlerCredentials;
+
+    const dataChanged =
+      JSON.stringify({
+        ...updatedData,
+        bulkHandlerCredentials: undefined, // Exclude credentials from seller data comparison
+      }) !==
+      JSON.stringify({
+        ...originalSellerData,
+        bulkHandlerCredentials: undefined,
+      });
+
+    const credentialsChanged =
+      JSON.stringify(credentialsToCheck) !==
+      JSON.stringify(originalCredentials);
+
+    return dataChanged || credentialsChanged;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSellerData((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, [name]: value };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
 
+  // Fix: Handle Additional NGRs change properly
   const handleAdditionalNGRChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -118,27 +229,30 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        sellerAdditionalNGRs: value.split(",").map((s) => s.trim()),
+        additionalNgrs: value
+          ? value
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s)
+          : [],
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
 
+  // Fix: Handle Location Zone change properly
   const handleLocationZoneChange = (zone: string) => {
     setSellerData((prev) => {
       if (!prev) return prev;
+      const currentZones = prev.locationZone || [];
       const updated = {
         ...prev,
-        sellerLocationZone: prev.sellerLocationZone.includes(zone)
-          ? prev.sellerLocationZone.filter((z) => z !== zone)
-          : [...prev.sellerLocationZone, zone],
+        locationZone: currentZones.includes(zone)
+          ? currentZones.filter((z) => z !== zone)
+          : [...currentZones, zone],
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
@@ -148,80 +262,165 @@ const SellerInformationEditPage = () => {
       if (!prev) return prev;
       const updated = {
         ...prev,
-        sellerLocationZone: prev.sellerLocationZone.filter(
+        locationZone: (prev.locationZone || []).filter(
           (z) => z !== zoneToRemove
         ),
       };
-      if (JSON.stringify(updated) !== JSON.stringify(originalSellerData)) {
-        setHasChanges(true);
-      }
+      setHasChanges(checkForChanges(updated));
       return updated;
     });
   };
 
-  const handlePasswordDataChange = (
-    handler: string,
-    field: "username" | "password",
+  const handleCredentialChange = (
+    index: number,
+    field: keyof Omit<BulkHandlerCredential, "handlerName">,
     value: string
   ) => {
-    setPasswordData((prev) => ({
-      ...prev,
-      [handler]: {
-        ...prev[handler],
-        [field]: value,
-      },
-    }));
+    setBulkHandlerCredentials((prev) => {
+      const updated = prev.map((item, idx) =>
+        idx === index ? { ...item, [field]: value } : item
+      );
+
+      // Check for changes whenever credentials are updated
+      if (sellerData) {
+        setHasChanges(checkForChanges(sellerData, updated));
+      }
+
+      return updated;
+    });
   };
 
-  const handleProcessPassword = () => {
-    console.log("Password data processed:", passwordData);
-    toast.success("Bulk handler passwords updated successfully!");
-    setIsModalOpen(false);
+  // Toggle password visibility for a specific row
+  const togglePasswordVisibility = (index: number) => {
+    setPasswordVisibility((prev) =>
+      prev.map((visible, idx) => (idx === index ? !visible : visible))
+    );
   };
 
   const handleCancel = () => {
     if (originalSellerData) {
-      setSellerData({
-        ...originalSellerData,
-        sellerLocationZone: originalSellerData.sellerLocationZone || [],
-        accountNumber: originalSellerData.accountNumber || "",
-      });
+      setSellerData({ ...originalSellerData });
     }
+    setBulkHandlerCredentials(JSON.parse(JSON.stringify(originalCredentials)));
     setHasChanges(false);
     setSaveStatus("idle");
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/contract-management");
-  };
-
-  const handleSave = () => {
-    if (!sellerData) return;
-
-    setSaveStatus("saving");
-    try {
-      const index = sellers.findIndex((s) => s.id === sellerData.id);
-      if (index !== -1) {
-        sellers[index] = { ...sellerData };
-      }
-
-      setHasChanges(false);
-      setSaveStatus("success");
-      toast.success("Seller updated successfully!");
-      router.push("/seller-management");
-      setTimeout(() => setSaveStatus("idle"), 2000);
-    } catch (err) {
-      console.error("Error saving seller:", err);
-      setSaveStatus("error");
-      toast.error("Failed to update seller");
+    if (hasChanges) {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (!confirmLeave) return;
     }
+    router.push("/seller-management");
   };
+
+  const handleSave = async () => {
+    if (!sellerData || !sellerIdStr) return;
+
+    // Filter out credentials that have both identifier and password filled
+    const validCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" && cred.password.trim() !== ""
+    );
+
+    const sellerDataWithCredentials: Seller = {
+      ...sellerData,
+      bulkHandlerCredentials: validCredentials,
+    };
+
+    console.log("Updating seller with data:", sellerDataWithCredentials);
+    updateSellerMutation.mutate(sellerDataWithCredentials);
+  };
+
+  // Save credentials and close modal
+  const saveCredentials = () => {
+    const filledCredentials = bulkHandlerCredentials.filter(
+      (cred) => cred.identifier.trim() !== "" || cred.password.trim() !== ""
+    );
+
+    if (filledCredentials.length > 0) {
+      toast.success(
+        `${filledCredentials.length} bulk handler credentials updated`
+      );
+    }
+
+    setIsModalOpen(false);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+          <p className="text-gray-600">Loading seller data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load seller data"}
+          </p>
+          <div className="space-x-4">
+            <button
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["seller", sellerIdStr],
+                })
+              }
+              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => router.push("/seller-management")}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Back to Seller Management
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fix: Better handling of seller not found case
+  if (!sellerData && !isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">
+            Seller with ID {sellerId} not found
+          </p>
+          <button
+            onClick={() => router.push("/seller-management")}
+            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+          >
+            Back to Seller Management
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sellerData) {
+    return null;
+  }
 
   return (
     <div>
       <div className="border-b border-gray-300 py-10">
-        <div className="mx-auto max-w-6xl flex justify-between items-center">
+        <div className="mx-auto max-w-6xl flex justify-between items-center px-4">
           <div className="flex items-center gap-5">
             <button
               type="button"
@@ -241,89 +440,76 @@ const SellerInformationEditPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl mt-10">
+      <div className="mx-auto max-w-6xl mt-10 px-4">
         <div className="flex flex-col items-center mx-auto max-w-6xl w-full mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 w-full border border-gray-300 rounded-md p-6 gap-5 bg-white">
             <Field
               label="Seller Legal Name"
-              name="sellerLegalName"
-              value={sellerData.sellerLegalName}
+              name="legalName"
+              value={sellerData?.legalName || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Office Address"
-              name="sellerOfficeAddress"
-              value={sellerData.sellerOfficeAddress}
+              name="address"
+              value={sellerData.address || ""}
               onChange={handleInputChange}
             />
             <Field
               label="ABN"
-              name="sellerABN"
-              value={sellerData.sellerABN}
+              name="abn"
+              value={sellerData.abn || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Main NGR"
-              name="sellerMainNGR"
-              value={sellerData.sellerMainNGR}
+              name="mainNgr"
+              value={sellerData.mainNgr || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Contact Name"
-              name="sellerContactName"
-              value={sellerData.sellerContactName}
+              name="contactName"
+              value={sellerData.contactName || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Email"
-              name="sellerEmail"
-              value={sellerData.sellerEmail}
+              name="email"
+              value={sellerData.email || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Phone Number"
-              name="sellerPhoneNumber"
-              value={sellerData.sellerPhoneNumber}
+              name="phoneNumber"
+              value={sellerData.phoneNumber || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Account Number"
               name="accountNumber"
-              value={sellerData.accountNumber}
+              value={sellerData.accountNumber || ""}
               onChange={handleInputChange}
             />
 
-            {/* Additional NGRs */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Additional NGRs
-              </label>
-              <input
-                type="text"
-                value={sellerData.sellerAdditionalNGRs.join(",")}
-                onChange={handleAdditionalNGRChange}
-                className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
-                placeholder="Enter NGRs separated by commas"
-              />
-            </div>
-
-            {/* Location Zone */}
-            <div>
+            {/* Fix: Location Zone Selector */}
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SELLER LOCATION ZONE
+                SELLER LOCATION ZONE (Multiple Select)
               </label>
               <div className="relative" ref={dropdownRef}>
+                {/* Dropdown Button with Selected Items Inside */}
                 <div
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] cursor-pointer min-h-[42px] flex items-center justify-between"
                 >
                   <div className="flex-1 flex flex-wrap gap-1 mr-2">
-                    {sellerData.sellerLocationZone.length === 0 ? (
+                    {(sellerData.locationZone || []).length === 0 ? (
                       <span className="text-gray-500 text-sm">
                         Select location zones...
                       </span>
                     ) : (
-                      sellerData.sellerLocationZone.map((zone) => (
+                      (sellerData.locationZone || []).map((zone) => (
                         <span
                           key={zone}
                           className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#2A5D36] text-white"
@@ -361,6 +547,7 @@ const SellerInformationEditPage = () => {
                   </svg>
                 </div>
 
+                {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                     <div className="py-1">
@@ -371,7 +558,7 @@ const SellerInformationEditPage = () => {
                         >
                           <input
                             type="checkbox"
-                            checked={sellerData.sellerLocationZone.includes(
+                            checked={(sellerData.locationZone || []).includes(
                               zone
                             )}
                             onChange={() => handleLocationZoneChange(zone)}
@@ -380,7 +567,7 @@ const SellerInformationEditPage = () => {
                           <span className="text-sm text-gray-700 flex-1">
                             {zone}
                           </span>
-                          {sellerData.sellerLocationZone.includes(zone) && (
+                          {(sellerData.locationZone || []).includes(zone) && (
                             <svg
                               className="w-4 h-4 text-[#2A5D36]"
                               fill="currentColor"
@@ -397,15 +584,18 @@ const SellerInformationEditPage = () => {
                       ))}
                     </div>
 
+                    {/* Clear All & Select All Actions */}
                     <div className="border-t border-gray-200 px-3 py-2 bg-gray-50">
                       <div className="flex justify-between">
                         <button
                           type="button"
                           onClick={() => {
-                            setSellerData((prev) => ({
-                              ...prev,
-                              sellerLocationZone: [],
-                            }));
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = { ...prev, locationZone: [] };
+                              setHasChanges(checkForChanges(updated));
+                              return updated;
+                            });
                           }}
                           className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
                         >
@@ -414,10 +604,15 @@ const SellerInformationEditPage = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            setSellerData((prev) => ({
-                              ...prev,
-                              sellerLocationZone: [...locationZones],
-                            }));
+                            setSellerData((prev) => {
+                              if (!prev) return prev;
+                              const updated = {
+                                ...prev,
+                                locationZone: [...locationZones],
+                              };
+                              setHasChanges(checkForChanges(updated));
+                              return updated;
+                            });
                           }}
                           className="text-xs text-[#2A5D36] hover:text-[#1e4728] transition-colors"
                         >
@@ -428,6 +623,21 @@ const SellerInformationEditPage = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Fix: Additional NGRs */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Additional NGRs
+              </label>
+              <input
+                type="text"
+                name="additionalNgrs"
+                value={(sellerData.additionalNgrs || []).join(", ")}
+                onChange={handleAdditionalNGRChange}
+                className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+                placeholder="Enter NGRs separated by commas"
+              />
             </div>
 
             {/* Authority to Act Form */}
@@ -448,7 +658,8 @@ const SellerInformationEditPage = () => {
             <div className="mt-10 flex gap-3">
               <button
                 onClick={handleCancel}
-                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                disabled={saveStatus === "saving"}
+                className="py-2 px-5 bg-gray-500 text-white rounded flex items-center gap-2 hover:bg-gray-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdCancel className="text-lg" />
                 Cancel
@@ -468,23 +679,26 @@ const SellerInformationEditPage = () => {
 
       {/* Bulk Password Handler Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/20 bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 my-8 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white p-4 flex justify-between items-center rounded-t-lg border-b">
-              <h3 className="text-lg font-semibold text-center text-gray-900">
+            <div className="sticky top-0 bg-white p-4 flex justify-between items-center border-b rounded-t-lg">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Bulk Handler Passwords
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-2xl text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 text-xl focus:outline-none cursor-pointer"
               >
-                ×
+                ✕
               </button>
             </div>
 
-            {/* Modal Body with Scrollable Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 px-6 py-4 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                Update credentials for bulk handlers (optional - only filled
+                credentials will be saved)
+              </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-300 text-sm">
                   <thead>
@@ -493,7 +707,7 @@ const SellerInformationEditPage = () => {
                         Bulk Handler
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
-                        Username/Email/Regos No
+                        Username/Email/PAN No
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">
                         Password
@@ -501,40 +715,87 @@ const SellerInformationEditPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.keys(passwordData).map((handler) => (
-                      <tr key={handler} className="hover:bg-gray-50">
+                    {bulkHandlerCredentials.map((handler, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
                         <td className="border border-gray-300 px-4 py-3 font-medium">
-                          {handler}
+                          {handler.handlerName}
                         </td>
                         <td className="border border-gray-300 px-4 py-3">
                           <input
                             type="text"
-                            value={passwordData[handler].username}
+                            value={handler.identifier}
                             onChange={(e) =>
-                              handlePasswordDataChange(
-                                handler,
-                                "username",
+                              handleCredentialChange(
+                                idx,
+                                "identifier",
                                 e.target.value
                               )
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
-                            placeholder="Enter username/email"
+                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                            placeholder="Enter username/email/PAN"
                           />
                         </td>
                         <td className="border border-gray-300 px-4 py-3">
-                          <input
-                            type="password"
-                            value={passwordData[handler].password}
-                            onChange={(e) =>
-                              handlePasswordDataChange(
-                                handler,
-                                "password",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
-                            placeholder="Enter password"
-                          />
+                          <div className="relative">
+                            <input
+                              type={
+                                passwordVisibility[idx] ? "text" : "password"
+                              }
+                              value={handler.password}
+                              onChange={(e) =>
+                                handleCredentialChange(
+                                  idx,
+                                  "password",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36] text-sm"
+                              placeholder="Enter password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(idx)}
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            >
+                              {passwordVisibility[idx] ? (
+                                // Eye slash icon (hide)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                                  />
+                                </svg>
+                              ) : (
+                                // Eye icon (show)
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.275 4.057-5.065 7-9.543 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -544,10 +805,16 @@ const SellerInformationEditPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white p-4 flex justify-center rounded-b-lg border-t">
+            <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3 border-t rounded-b-lg">
               <button
-                onClick={handleProcessPassword}
-                className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded hover:bg-[#1e4728] transition-colors focus:outline-none focus:ring-2 focus:ring-green-700"
+                onClick={() => setIsModalOpen(false)}
+                className="py-2 px-4 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCredentials}
+                className="bg-[#2A5D36] py-2 px-6 cursor-pointer text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-700 hover:bg-[#1e4728]"
               >
                 Save Changes
               </button>

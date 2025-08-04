@@ -1,22 +1,18 @@
+import { ContractType } from "@/types/types";
 import React, { useState, useRef, useEffect } from "react";
 
-interface Buyer {
-  id: number;
-  name: string;
-}
-
 interface SelectContractTypeProps {
-  onSelect: (buyer: Buyer) => void;
+  onSelect: (buyer: ContractType) => void;
 }
 
 const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
-  const initialBuyers: Buyer[] = [
+  const initialBuyers: ContractType[] = [
     { id: 1, name: "Grower" },
     { id: 2, name: "Trade" },
   ];
 
   // State management with proper types
-  const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
+  const [selectedBuyer, setSelectedBuyer] = useState<ContractType | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,10 +34,10 @@ const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
   }, []);
 
   // Handle selecting a buyer
-  const handleSelectBuyer = (buyer: Buyer) => {
-    setSelectedBuyer(buyer);
+  const handleSelectBuyer = (contractType: ContractType) => {
+    setSelectedBuyer(contractType);
     setIsDropdownOpen(false);
-    onSelect(buyer); // Pass the selected option to parent
+    onSelect(contractType); // Pass the selected option to parent
   };
 
   return (
@@ -79,15 +75,15 @@ const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
           {/* Contract type options */}
           <div className="max-h-60 overflow-y-auto">
-            {initialBuyers.map((buyer: Buyer) => (
+            {initialBuyers.map((contractType: ContractType) => (
               <div
-                key={buyer.id}
+                key={contractType.id}
                 className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                  selectedBuyer?.id === buyer.id ? "bg-gray-100" : ""
+                  selectedBuyer?.id === contractType.id ? "bg-gray-100" : ""
                 }`}
-                onClick={() => handleSelectBuyer(buyer)}
+                onClick={() => handleSelectBuyer(contractType)}
               >
-                {buyer.name}
+                {contractType.name}
               </div>
             ))}
           </div>

@@ -1,18 +1,13 @@
 "use client";
+import { ConveyanceOption } from "@/types/types";
 import { useState, useRef, useEffect } from "react";
 
-interface ConveyanceOption {
-  id: number;
-  value: string;
-  label: string;
-}
-
 interface ConveyanceSelectProps {
-  onChange: (value: string) => void;
+  onValueChange: (value: string) => void; // Changed from onChange to onValueChange
   value: string;
 }
 
-const ConveyanceSelect = ({ onChange, value }: ConveyanceSelectProps) => {
+const ConveyanceSelect = ({ onValueChange, value }: ConveyanceSelectProps) => {
   // Conveyance options data
   const initialOptions: ConveyanceOption[] = [
     { id: 1, value: "Port Zone", label: "Port Zone" },
@@ -90,11 +85,11 @@ const ConveyanceSelect = ({ onChange, value }: ConveyanceSelectProps) => {
             {initialOptions.map((option: ConveyanceOption) => (
               <div
                 key={option.id}
-                className={`px-4 py-2 cursor-pointer hover:bg-gray-100${
+                className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
                   value === option.value ? "bg-gray-100" : ""
                 }`}
                 onClick={() => {
-                  onChange(option.value);
+                  onValueChange(option.value); // Changed to onValueChange
                   setIsDropdownOpen(false);
                 }}
               >
