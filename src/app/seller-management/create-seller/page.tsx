@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { BulkHandlerCredential, Seller } from "@/types/types";
 import { createSeller } from "@/api/sellerApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const handlerNames = [
   "Viterra",
@@ -37,7 +38,7 @@ const CreateSellerPage = () => {
   const [passwordVisibility, setPasswordVisibility] = useState<boolean[]>(
     new Array(handlerNames.length).fill(false)
   );
-
+  const [uploadingAthAct, setUploadingAthAct] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<Seller>({
     legalName: "",
@@ -53,6 +54,35 @@ const CreateSellerPage = () => {
     authorityActFormPdf: "",
     authorityToAct: "",
   });
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "your_upload_preset"
+    );
+    formData.append("resource_type", "auto");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      throw new Error("Failed to upload file");
+    }
+  };
 
   // TanStack Query mutation for creating seller
   const createSellerMutation = useMutation({
@@ -127,13 +157,47 @@ const CreateSellerPage = () => {
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; // Get the first selected file
-    if (file) {
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0]; // Get the first selected file
+  //   if (file) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       authorityActFormPdf: file, // Store the File object
+  //     }));
+  //   }
+  // };
+
+  const handleAuthorityActFormUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingAthAct(true);
+    try {
+      const url = await uploadToCloudinary(file);
       setFormData((prev) => ({
         ...prev,
-        authorityActFormPdf: file, // Store the File object
+        authorityActFormPdf: url,
       }));
+      toast.success("Buyer contract uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload buyer contract");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingAthAct(false);
     }
   };
 
@@ -513,10 +577,16 @@ const CreateSellerPage = () => {
                   <input
                     type="file"
                     name="authorityActFormPdf"
-                    onChange={handleFileChange}
+                    disabled={uploadingAthAct}
+                    onChange={handleAuthorityActFormUpload}
                     accept="application/pdf"
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
+                  {uploadingAthAct && (
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                    </div>
+                  )}
                 </div>
                 <div className="w-full md:w-1/2"></div>
               </div>
@@ -526,7 +596,7 @@ const CreateSellerPage = () => {
             <div className="mt-10 text-center md:text-left">
               <button
                 type="submit"
-                disabled={createSellerMutation.isPending}
+                disabled={uploadingAthAct || createSellerMutation.isPending}
                 className="bg-[#2A5D36] py-2 px-6 text-white rounded-md hover:bg-[#1e4728] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createSellerMutation.isPending ? "Creating..." : "Create"}
