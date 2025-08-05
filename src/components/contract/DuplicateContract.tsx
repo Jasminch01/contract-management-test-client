@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
+
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -26,6 +27,7 @@ import { getBuyers } from "@/api/buyerApi";
 import PreviewContract from "./PreviewContract";
 import { createContract } from "@/api/ContractAPi";
 import toast from "react-hot-toast";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 // Main Contract Component
 interface ContractProps {
@@ -39,6 +41,8 @@ const EditableContract: React.FC<ContractProps> = ({
     null,
     null,
   ]);
+  const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
+  const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [preview, setPreview] = useState(false);
   const [contract, setContract] = useState(initialContract);
   const [hasChanges, setHasChanges] = useState(false);
@@ -56,6 +60,37 @@ const EditableContract: React.FC<ContractProps> = ({
     "Complete",
     "Invoiced",
   ];
+
+  // Cloudinary upload function
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "your_upload_preset"
+    );
+    formData.append("resource_type", "auto");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      throw new Error("Failed to upload file");
+    }
+  };
 
   const { data: sellers = [] } = useQuery({
     queryKey: ["sellers"],
@@ -86,35 +121,13 @@ const EditableContract: React.FC<ContractProps> = ({
         : contract.seller?._id)
   );
 
-  // Updated file upload handler - directly assigns to contract properties
-  const handleFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: "attachedBuyersContracts" | "attachedSellerContracts"
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // In a real app, you would upload the file to a server here
-      // For demo purposes, we'll create a local URL
-      const fileUrl = URL.createObjectURL(file);
-
-      setContract((prev) => ({
-        ...prev,
-        [field]: fileUrl,
-      }));
-
-      setHasChanges(true);
-    }
-  };
-
-  // Updated file removal handler
   const handleRemoveAttachment = (
-    field: "attachedBuyersContracts" | "attachedSellerContracts"
+    field: "attachedBuyerContract" | "attachedSellerContract"
   ) => {
     setContract((prev) => ({
       ...prev,
       [field]: null,
     }));
-
     setHasChanges(true);
   };
 
@@ -242,6 +255,77 @@ const EditableContract: React.FC<ContractProps> = ({
         ...prev,
         deliveryPeriod: { start: "", end: "" },
       }));
+    }
+  };
+  // Handle buyer contract file upload
+  const handleBuyerContractUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingBuyerContract(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setContract((prev) => ({
+        ...prev,
+        attachedBuyerContract: url,
+      }));
+      setHasChanges(true);
+      toast.success("Buyer contract uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload buyer contract");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingBuyerContract(false);
+    }
+  };
+
+  // Handle seller contract file upload
+  const handleSellerContractUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingSellerContract(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setContract((prev) => ({
+        ...prev,
+        attachedSellerContract: url,
+      }));
+      setHasChanges(true);
+      toast.success("Seller contract uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload seller contract");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingSellerContract(false);
     }
   };
 
@@ -929,7 +1013,7 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <div className="flex flex-col gap-4">
-                  {/* Seller Contract - Direct property */}
+                  {/* Seller Contract */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Seller Contract
@@ -937,7 +1021,7 @@ const EditableContract: React.FC<ContractProps> = ({
                     {contract.attachedSellerContract ? (
                       <div className="flex items-center gap-2">
                         <a
-                          href={contract.attachedBuyerContract}
+                          href={contract.attachedSellerContract}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
@@ -947,7 +1031,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachedSellerContracts")
+                            handleRemoveAttachment("attachedSellerContract")
                           }
                           className="text-red-500 hover:text-red-700"
                         >
@@ -955,25 +1039,29 @@ const EditableContract: React.FC<ContractProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 relative">
                         <input
                           type="file"
                           accept="application/pdf"
-                          onChange={(e) =>
-                            handleFileUpload(e, "attachedSellerContracts")
-                          }
+                          onChange={handleSellerContractUpload}
+                          disabled={uploadingSellerContract}
                           className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-md file:border-0
                 file:text-sm file:font-semibold
                 file:bg-gray-50 file:text-gray-700
-                hover:file:bg-gray-100"
+                hover:file:bg-gray-100 disabled:opacity-50"
                         />
+                        {uploadingSellerContract && (
+                          <div className="absolute right-2">
+                            <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
 
-                  {/* Buyer Contract - Direct property */}
+                  {/* Buyer Contract */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 uppercase mb-1">
                       Buyer Contract
@@ -991,7 +1079,7 @@ const EditableContract: React.FC<ContractProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            handleRemoveAttachment("attachedBuyersContracts")
+                            handleRemoveAttachment("attachedBuyerContract")
                           }
                           className="text-red-500 hover:text-red-700"
                         >
@@ -999,20 +1087,24 @@ const EditableContract: React.FC<ContractProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 relative">
                         <input
                           type="file"
                           accept="application/pdf"
-                          onChange={(e) =>
-                            handleFileUpload(e, "attachedBuyersContracts")
-                          }
+                          onChange={handleBuyerContractUpload}
+                          disabled={uploadingBuyerContract}
                           className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-md file:border-0
                 file:text-sm file:font-semibold
                 file:bg-gray-50 file:text-gray-700
-                hover:file:bg-gray-100"
+                hover:file:bg-gray-100 disabled:opacity-50"
                         />
+                        {uploadingBuyerContract && (
+                          <div className="absolute right-2">
+                            <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1038,6 +1130,11 @@ const EditableContract: React.FC<ContractProps> = ({
             <>
               <button
                 onClick={handleSave}
+                disabled={
+                  uploadingBuyerContract ||
+                  uploadingSellerContract ||
+                  createContractMutation.isPending
+                }
                 className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdSave className="text-lg" />

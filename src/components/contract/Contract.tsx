@@ -440,6 +440,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                   {contract.attachedBuyerContract ? (
                     <a
                       href={contract.attachedBuyerContract}
+                      target="_blank"
                       className="text-blue-600 hover:underline"
                     >
                       Seller&apos;s Contract
@@ -450,6 +451,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                   {contract.attachedSellerContract ? (
                     <a
                       href={contract.attachedSellerContract}
+                      target="_blank"
                       className="text-blue-600 hover:underline"
                     >
                       Buyer&apos;s Contract

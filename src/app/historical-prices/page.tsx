@@ -347,7 +347,9 @@ const createEmptyDeliveredBidsRows = (
 };
 
 const HistoricalPricesPage = () => {
-  const [activeTab, setActiveTab] = useState("historicalPrices");
+  const [activeTab, setActiveTab] = useState<
+    "historicalPrices" | "deliveredBids"
+  >("historicalPrices");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
@@ -754,6 +756,7 @@ const HistoricalPricesPage = () => {
         isOpen={showDateRangeModal}
         onClose={() => setShowDateRangeModal(false)}
         onConfirm={handleDateRangeConfirm}
+        activeTab={activeTab} // Add this line to pass the active tab
       />
     </div>
   );

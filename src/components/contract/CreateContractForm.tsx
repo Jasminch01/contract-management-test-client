@@ -21,6 +21,7 @@ import ConveyanceSelect from "./ConveyanceSelect";
 import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CiExport } from "react-icons/ci";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
@@ -66,6 +67,8 @@ const CreateContractForm = () => {
     type: "",
     visible: false,
   });
+  const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
+  const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [startDate, endDate] = dateRange;
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -93,6 +96,107 @@ const CreateContractForm = () => {
       toast.error("Failed to create contract. Please try again.");
     },
   });
+
+  // Cloudinary upload function
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "your_upload_preset"
+    );
+    formData.append("resource_type", "auto");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      throw new Error("Failed to upload file");
+    }
+  };
+
+  // Handle buyer contract file upload
+  const handleBuyerContractUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingBuyerContract(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData((prev) => ({
+        ...prev,
+        attachedBuyerContract: url,
+      }));
+      toast.success("Buyer contract uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload buyer contract");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingBuyerContract(false);
+    }
+  };
+
+  // Handle seller contract file upload
+  const handleSellerContractUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingSellerContract(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData((prev) => ({
+        ...prev,
+        attachedSellerContract: url,
+      }));
+      toast.success("Seller contract uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload seller contract");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingSellerContract(false);
+    }
+  };
 
   // Update isGrowerContract when contractType changes
   useEffect(() => {
@@ -128,6 +232,7 @@ const CreateContractForm = () => {
       }));
     }
   };
+
   const getFormattedSeasons = () => {
     const currentYear = new Date().getFullYear();
     return Array.from({ length: 10 }, (_, i) => {
@@ -136,6 +241,7 @@ const CreateContractForm = () => {
       return `${startYear}/${endYear}`;
     });
   };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -432,15 +538,32 @@ const CreateContractForm = () => {
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH BUYERS CONTRACT
             </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              name="attachedBuyersContract"
-              value={formData.attachedBuyerContract}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-            />
+            <div className="relative">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleBuyerContractUpload}
+                disabled={uploadingBuyerContract}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              {uploadingBuyerContract && (
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                </div>
+              )}
+            </div>
+            {formData.attachedBuyerContract && (
+              <div className="mt-2">
+                <a
+                  href={formData.attachedBuyerContract}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-sm underline"
+                >
+                  View uploaded contract
+                </a>
+              </div>
+            )}
           </div>
           <div className="md:row-start-6">
             <SellerSelect onSelect={handleSellerSelect} />
@@ -485,15 +608,32 @@ const CreateContractForm = () => {
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH SELLERS CONTRACT
             </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              name="attachedSellersContract"
-              value={formData.attachedSellerContract}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-            />
+            <div className="relative">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleSellerContractUpload}
+                disabled={uploadingSellerContract}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              {uploadingSellerContract && (
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                </div>
+              )}
+            </div>
+            {formData.attachedSellerContract && (
+              <div className="mt-2">
+                <a
+                  href={formData.attachedSellerContract}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-sm underline"
+                >
+                  View uploaded contract
+                </a>
+              </div>
+            )}
           </div>
 
           <div>
@@ -596,9 +736,21 @@ const CreateContractForm = () => {
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+            disabled={
+              uploadingBuyerContract ||
+              uploadingSellerContract ||
+              createContractMutation.isPending
+            }
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Contract
+            {createContractMutation.isPending ? (
+              <div className="flex items-center gap-2">
+                <AiOutlineLoading3Quarters className="animate-spin" />
+                Creating...
+              </div>
+            ) : (
+              "Create Contract"
+            )}
           </button>
         </div>
       </form>

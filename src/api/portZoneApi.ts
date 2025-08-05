@@ -33,7 +33,9 @@ export const fetchPortZoneBids = async (
   date: string,
   season: string
 ): Promise<PortZoneBid[]> => {
-  // console.log(date, season)
+
+  console.log(date, season)
+  console.log(date, season)
   const response = await instance.get(
     `portZone-bids?date=${date}&season=${season}`
   );
