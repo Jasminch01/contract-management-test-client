@@ -218,7 +218,7 @@ const BuyerInformationPage = () => {
               {isFetching ? "Refreshing..." : "Refresh"}
             </button>
 
-            <Link href={`/buyer-management/edit/${buyerId}`}>
+            <Link href={`/dashboard/buyer-management/edit/${buyerId}`}>
               <button className="py-2 px-5 bg-[#2A5D36] hover:bg-[#1e4728] text-white rounded flex items-center gap-2 transition-colors">
                 <MdOutlineEdit className="text-lg" />
                 Edit Buyer Information

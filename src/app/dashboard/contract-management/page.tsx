@@ -194,7 +194,7 @@ const ContractManagementPage = () => {
   // Handle row click to view details
   const handleRowClicked = (row: TContract) => {
     if (row?._id) {
-      router.push(`/contract-management/${row._id}`);
+      router.push(`/dashboard/contract-management/${row._id}`);
     }
   };
 
@@ -287,7 +287,7 @@ const ContractManagementPage = () => {
 
     const contract = selectedRows[0];
     if (contract?._id) {
-      router.push(`/contract-management/edit/${contract._id}`);
+      router.push(`/dashboard/contract-management/edit/${contract._id}`);
     } else {
       toast.error("Selected contract is invalid");
     }
@@ -301,7 +301,7 @@ const ContractManagementPage = () => {
 
     const contract = selectedRows[0];
     if (contract?._id) {
-      router.push(`/contract-management/duplicate/${contract._id}`);
+      router.push(`/dashboard/contract-management/duplicate/${contract._id}`);
     } else {
       toast.error("Selected contract is invalid");
     }
@@ -423,7 +423,7 @@ const ContractManagementPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
         {/* Create New Contract Button and Search Bar in the same row */}
         <div className="w-full md:w-auto">
-          <Link href="/contract-management/create-contract">
+          <Link href="/dashboard/contract-management/create-contract">
             <button className="w-full md:w-auto px-3 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-[#1e4728] transition-colors rounded">
               Create New Contract
               <IoIosPersonAdd className="text-lg" />

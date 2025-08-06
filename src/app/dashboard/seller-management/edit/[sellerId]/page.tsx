@@ -138,7 +138,7 @@ const SellerInformationEditPage = () => {
 
       // Navigate back to seller management after a short delay
       setTimeout(() => {
-        router.push(`/seller-management`);
+        router.push(`/dashboard/seller-management`);
       }, 1000);
     },
     onSettled: () => {
@@ -314,7 +314,7 @@ const SellerInformationEditPage = () => {
       );
       if (!confirmLeave) return;
     }
-    router.push("/seller-management");
+    router.back();
   };
 
   const handleSave = async () => {
@@ -383,7 +383,7 @@ const SellerInformationEditPage = () => {
               Retry
             </button>
             <button
-              onClick={() => router.push("/seller-management")}
+              onClick={() => router.push("/dashboard/seller-management")}
               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
             >
               Back to Seller Management
@@ -403,7 +403,7 @@ const SellerInformationEditPage = () => {
             Seller with ID {sellerId} not found
           </p>
           <button
-            onClick={() => router.push("/seller-management")}
+            onClick={() => router.push("/dashboard/seller-management")}
             className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
           >
             Back to Seller Management

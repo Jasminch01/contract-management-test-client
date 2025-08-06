@@ -1,9 +1,8 @@
-"use client";
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+// "use client";
+// import { useEffect, useState } from "react";
+// import { usePathname, useRouter } from "next/navigation";
 import "./globals.css";
 import localFont from "next/font/local";
-import Sidebar from "@/components/Sidebar";
 import QueryProvider from "@/provider/QueryProvider";
 
 const satoshiFont = localFont({
@@ -36,38 +35,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
-  const pathname = usePathname();
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const router = useRouter();
+  // const pathname = usePathname();
 
-  useEffect(() => {
-    // Check auth status from cookies
-    const authToken = document.cookie.includes("token");
-    setIsAuthenticated(authToken);
+  // useEffect(() => {
+  //   // Check auth status from cookies
+  //   const authToken = document.cookie.includes("token");
+  //   setIsAuthenticated(authToken);
 
-    // Redirect logic
-    if (!authToken && !pathname.startsWith("/login")) {
-      router.push("/login");
-    } else if (authToken && pathname.startsWith("/login")) {
-      router.push("/");
-    }
-  }, [pathname, router]);
+  // //   // Redirect logic
+  //   if (!authToken && !pathname.startsWith("/login")) {
+  //     router.push("/login");
+  //   } else if (authToken && pathname.startsWith("/login")) {
+  //     router.push("/");
+  //   }
+  // }, [pathname, router]);
 
   return (
     <html lang="en">
       <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
       <body className={satoshiFont.className}>
         <QueryProvider>
-          {isAuthenticated ? (
-            <div className="md:flex">
-              <Sidebar />
-              <div className="md:flex-1 h-screen lg:w-[20rem] w-full">
-                {children}
-              </div>
-            </div>
-          ) : (
-            <div className="min-h-screen bg-gray-50">{children}</div>
-          )}
+          <div>{children}</div>
         </QueryProvider>
       </body>
     </html>

@@ -89,7 +89,7 @@ const CreateContractForm = () => {
         }
       );
       toast.success("Contract created successfully!");
-      router.push("/contract-management");
+      router.push("/dashboard/contract-management");
     },
     onError: (error) => {
       console.error("Error creating contract:", error);

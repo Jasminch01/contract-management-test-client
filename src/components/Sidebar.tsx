@@ -10,27 +10,27 @@ import { userLogOut } from "@/api/Auth";
 const menus = [
   {
     page: "Dashboard",
-    link: "/",
+    link: "/dashboard",
   },
   {
     page: "Contract Management",
-    link: "/contract-management",
+    link: "/dashboard/contract-management",
   },
   {
     page: "Buyer Management",
-    link: "/buyer-management",
+    link: "/dashboard/buyer-management",
   },
   {
     page: "Seller Management",
-    link: "/seller-management",
+    link: "/dashboard/seller-management",
   },
   {
     page: "Historical Daily Prices",
-    link: "/historical-prices",
+    link: "/dashboard/historical-prices",
   },
   {
     page: "Rubbish Bin",
-    link: "/rubbish-bin",
+    link: "/dashboard/rubbish-bin",
   },
 ];
 
@@ -42,7 +42,7 @@ const Sidebar = () => {
   const handleLogout = async () => {
     const res = await userLogOut();
     if (res) {
-      router.push("/login");
+      router.push("/auth/login");
     }
   };
 

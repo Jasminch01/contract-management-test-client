@@ -1,8 +1,10 @@
 import { instance } from "./api";
 
 export const userLogin = async (email: string, password: string) => {
+  console.log(email, password)
   try {
     const res = await instance.post(`auth/login`, { email, password });
+    console.log(res)
     return res;
   } catch (error) {
     throw error;

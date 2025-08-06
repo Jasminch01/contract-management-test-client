@@ -1,64 +1,61 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 "use client";
-import { getBuyers, moveBuyersToTrash } from "@/api/buyerApi";
-import { Buyer } from "@/types/types";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
-import toast, { Toaster } from "react-hot-toast";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoFilterSharp, IoWarning } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBin6Fill } from "react-icons/ri";
+import { useRouter } from "next/navigation";
+import { Seller } from "@/types/types";
+import toast, { Toaster } from "react-hot-toast";
+import { getsellers, moveSelllersToTrash } from "@/api/sellerApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const columns = [
   {
-    name: "BUYER NAME",
-    selector: (row: Buyer) => row.name,
+    name: "SELLER NAME",
+    selector: (row: Seller) => row.legalName,
     sortable: true,
   },
   {
     name: "ABN",
-    selector: (row: Buyer) => row.abn,
+    selector: (row: Seller) => row.abn,
     sortable: true,
   },
   {
     name: "MAIN CONTACT",
-    selector: (row: Buyer) => row.contactName,
+    selector: (row: Seller) => row.contactName,
     sortable: true,
   },
   {
     name: "EMAIL",
-    selector: (row: Buyer) => row.email,
+    selector: (row: Seller) => row.email,
     sortable: true,
   },
   {
     name: "PHONE",
-    selector: (row: Buyer) => row.phoneNumber,
+    selector: (row: Seller) => row.phoneNumber,
     sortable: true,
   },
   {
     name: "CREATED DATE",
-    selector: (row: Buyer) =>
-      row?.createdAt ? new Date(row?.createdAt).toLocaleDateString() : "N/A",
+    selector: (row: Seller) =>
+      row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
     sortable: true,
   },
 ];
 
 const customStyles = {
-  headRow: {
+  rows: {
     style: {
-      backgroundColor: "#f8f9fa",
-      borderBottom: "1px solid #ddd",
-    },
-  },
-  headCells: {
-    style: {
-      borderRight: "1px solid #ddd",
-      fontWeight: "bold",
-      color: "gray",
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: "#E8F2FF",
+      },
     },
   },
   cells: {
@@ -67,20 +64,26 @@ const customStyles = {
       padding: "12px 15px",
     },
   },
-  rows: {
+  headCells: {
     style: {
-      "&:hover": {
-        backgroundColor: "#E8F2FF",
-        cursor: "pointer",
-      },
+      borderRight: "1px solid #ddd",
+      fontWeight: "bold",
+      color: "gray",
+      padding: "12px 15px",
+    },
+  },
+  headRow: {
+    style: {
+      backgroundColor: "#f8f9fa",
+      borderBottom: "1px solid #ddd",
     },
   },
 };
 
-const BuyerManagementPage = () => {
-  const [filteredData, setFilteredData] = useState<Buyer[]>([]);
+const SellerManagementPage = () => {
+  const [filteredData, setFilteredData] = useState<Seller[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRows, setSelectedRows] = useState<Buyer[]>([]);
+  const [selectedRows, setSelectedRows] = useState<Seller[]>([]);
   const [toggleCleared, setToggleCleared] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -88,40 +91,38 @@ const BuyerManagementPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // TanStack Query for fetching buyers
+  // TanStack Query for fetching sellers
   const {
     data: data = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["buyers"],
-    queryFn: getBuyers,
+    queryKey: ["sellers"],
+    queryFn: getsellers,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
 
-  // Mutation for deleting buyers
-  const deleteBuyersMutation = useMutation({
-    mutationFn: moveBuyersToTrash,
+  const deleteSellerMutation = useMutation({
+    mutationFn: moveSelllersToTrash,
     onSuccess: (data, variables) => {
       // Invalidate and refetch buyers data
-      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 
       setToggleCleared(!toggleCleared);
       setIsDeleteConfirmOpen(false);
-      toast.success(`${variables.length} buyer(s) moved to trash`);
+      toast.success(`${variables.length} seller(s) moved to trash`);
 
       // Clear selected rows
       setSelectedRows([]);
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("Failed to delete buyers");
+      toast.error("Failed to delete sellers");
     },
   });
-
   // Filter options for date filter dropdown
   const dateFilterOptions = [
     { value: "all", label: "All Time" },
@@ -130,37 +131,42 @@ const BuyerManagementPage = () => {
   ];
 
   useEffect(() => {
-    // Apply both search and date filters
-    let result = data;
+    if (!data || data.length === 0) {
+      setFilteredData([]);
+      return;
+    }
+
+    let result: Seller[] = [...data]; // Create a copy of the data array
 
     // Apply date filter
     if (dateFilter === "today") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      result = result.filter((buyer) => {
-        if (!buyer.createdAt) return false;
-        const createdDate = new Date(buyer.createdAt);
+      result = result.filter((seller) => {
+        if (!seller.createdAt) return false;
+        const createdDate = new Date(seller.createdAt);
         return createdDate >= today;
       });
     } else if (dateFilter === "lastWeek") {
       const lastWeek = new Date();
       lastWeek.setDate(lastWeek.getDate() - 7);
-      result = result.filter((buyer) => {
-        if (!buyer.createdAt) return false;
-        const createdDate = new Date(buyer.createdAt);
+      result = result.filter((seller) => {
+        if (!seller.createdAt) return false;
+        const createdDate = new Date(seller.createdAt);
         return createdDate >= lastWeek;
       });
     }
 
     // Apply search filter
     if (searchTerm) {
-      result = result.filter((buyer) => {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((seller) => {
         return (
-          buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
+          seller.legalName?.toLowerCase().includes(term) ||
+          seller.abn?.toLowerCase().includes(term) ||
+          seller.contactName?.toLowerCase().includes(term) ||
+          seller.email?.toLowerCase().includes(term) ||
+          seller.phoneNumber?.toLowerCase().includes(term)
         );
       });
     }
@@ -168,40 +174,40 @@ const BuyerManagementPage = () => {
     setFilteredData(result);
   }, [searchTerm, dateFilter, data]);
 
-  const handleRowClicked = (row: Buyer) => {
-    router.push(`/buyer-management/${row?._id}`);
+  const handleRowClicked = (row: Seller) => {
+    router.push(`/dashboard/seller-management/${row._id}`);
   };
 
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
-    selectedRows: Buyer[];
+    selectedRows: Seller[];
   }) => {
     setSelectedRows(selected.selectedRows);
   };
 
   const handleEdit = () => {
     if (selectedRows.length === 0) {
-      toast.error("Please select a buyer to edit");
+      toast("Please select at least one seller to edit");
       return;
     }
     if (selectedRows.length > 1) {
-      toast.error("Please select only one buyer to edit");
+      toast("Please select only one seller to edit");
       return;
     }
-    router.push(`/buyer-management/edit/${selectedRows[0]._id}`);
+    router.push(`/dashboard/seller-management/edit/${selectedRows[0]._id}`);
   };
 
   const handleDelete = () => {
     if (selectedRows.length === 0) {
-      toast.error("Please select at least one buyer to delete");
+      toast("Please select at least one seller to delete");
       return;
     }
     setIsDeleteConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedRows.length === 0) return;
+    if (selectedRows.length === 0) return; // No selection
 
     const idsToDelete = selectedRows.reduce<string[]>((acc, row) => {
       if (row._id) acc.push(row._id);
@@ -209,9 +215,7 @@ const BuyerManagementPage = () => {
     }, []);
 
     if (idsToDelete.length === 0) return;
-
-    // Use the mutation instead of direct API call
-    deleteBuyersMutation.mutate(idsToDelete);
+    deleteSellerMutation.mutate(idsToDelete);
   };
 
   const handleFilter = () => {
@@ -227,8 +231,6 @@ const BuyerManagementPage = () => {
     setDateFilter("all");
     setIsFilterOpen(false);
   };
-
-  // Handle loading and error states
   if (isLoading) {
     return (
       <div className="mt-20 flex items-center justify-center min-h-64">
@@ -263,22 +265,22 @@ const BuyerManagementPage = () => {
     <div className="mt-20">
       <Toaster />
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-300 px-4">
-        {/* Create New Buyer Button */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-300 pb-5 px-4">
+        {/* Create New Seller Button */}
         <div className="w-full md:w-auto">
-          <Link href="/buyer-management/create-buyer">
+          <Link href={`/dashboard/seller-management/create-seller`}>
             <button className="w-full md:w-auto px-4 py-2 bg-[#2A5D36] text-white text-sm flex items-center justify-center gap-2 rounded cursor-pointer hover:bg-[#1e4728] transition-colors shadow-sm">
-              Create New Buyer
+              Create New Seller
               <IoIosPersonAdd className="text-lg" />
             </button>
           </Link>
         </div>
 
         {/* Search Input */}
-        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
+        <div className="w-full xl:w-[30rem] md:w-64 lg:w-80  px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm">
           <input
             type="text"
-            placeholder="Search by Name, ABN"
+            placeholder="Search Seller by Name, ABN"
             className="w-full focus:outline-none bg-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -292,10 +294,10 @@ const BuyerManagementPage = () => {
           {/* Title */}
           <div className="w-full md:w-auto">
             <h2 className="text-lg font-semibold text-gray-800">
-              List of Buyers
+              List of Sellers
             </h2>
             <p className="text-sm text-gray-500">
-              {filteredData?.length} buyer(s) found
+              {filteredData?.length} seller(s) found
               {dateFilter !== "all" && (
                 <span>
                   {" "}
@@ -307,37 +309,20 @@ const BuyerManagementPage = () => {
               )}
             </p>
           </div>
-
           {/* Action Buttons */}
           <div className="w-full md:w-auto flex gap-2">
             <button
               onClick={handleEdit}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
-                selectedRows.length === 1
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50"
-              }`}
-              disabled={selectedRows.length !== 1}
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
             >
               <MdOutlineEdit />
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className={`w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors shadow-sm ${
-                selectedRows.length > 0 && !deleteBuyersMutation.isPending
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50"
-              }`}
-              disabled={
-                selectedRows.length === 0 || deleteBuyersMutation.isPending
-              }
+              className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
             >
-              {deleteBuyersMutation.isPending ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-              ) : (
-                <RiDeleteBin6Fill className="text-red-500" />
-              )}
+              <RiDeleteBin6Fill className="text-red-500" />
               Delete
             </button>
 
@@ -416,7 +401,6 @@ const BuyerManagementPage = () => {
             </div>
           </div>
         </div>
-
         {/* DataTable */}
         <div className="overflow-auto border border-gray-200 shadow-sm">
           <DataTable
@@ -440,35 +424,30 @@ const BuyerManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-opacity-20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Delete selected buyers?
+                Delete selected sellers?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
                 Are you sure you want to delete {selectedRows.length} selected
-                buyer(s)? This action cannot be undone.
+                seller(s)? This action cannot be undone.
               </p>
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-                  disabled={deleteBuyersMutation.isPending}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e] flex items-center gap-2"
-                  disabled={deleteBuyersMutation.isPending}
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
                 >
-                  {deleteBuyersMutation.isPending && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  )}
                   Delete
                 </button>
               </div>
@@ -480,4 +459,4 @@ const BuyerManagementPage = () => {
   );
 };
 
-export default BuyerManagementPage;
+export default SellerManagementPage;
