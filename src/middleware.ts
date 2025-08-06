@@ -2,8 +2,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get("token")?.value;
+export function middleware(request: NextRequest,) {
+  const authToken = request.cookies.get("accesstoken")?.value;
+  console.log(authToken)
   const pathname = request.nextUrl.pathname;
 
   const isLoginPage = pathname === "/auth/login";

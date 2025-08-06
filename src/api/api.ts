@@ -9,10 +9,10 @@ export const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     // You can modify the request config here (e.g., add auth token)
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      config.headers.Authorization = `${token}`;
-    }
+    // const token = localStorage.getItem("authToken");
+    // if (token) {
+    //   config.headers.Authorization = `${token}`;
+    // }
     return config;
   },
   (error) => {
@@ -30,7 +30,7 @@ instance.interceptors.response.use(
     // Handle response error (e.g., redirect to login on 401)
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      window.location.href = "/login";
+      // window.location.href = "/auth/login";
     }
     return Promise.reject(error);
   }
