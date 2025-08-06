@@ -35,7 +35,7 @@ const CreateBuyerPage = () => {
       });
 
       toast.success("Buyer created successfully!");
-      router.push("/buyer-management");
+      router.push("/dashboard/buyer-management");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
@@ -212,7 +212,7 @@ const CreateBuyerPage = () => {
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => router.push("/buyer-management")}
+                onClick={() => router.push("/dashboard/buyer-management")}
                 className="bg-gray-500 cursor-pointer py-2 px-6 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={createBuyerMutation.isPending}
               >

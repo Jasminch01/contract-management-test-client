@@ -338,7 +338,7 @@ const EditableContract: React.FC<ContractProps> = ({
       queryClient.invalidateQueries({ queryKey: ["contract", contractId] });
       // Also refetch the contracts list if you have one
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      router.push("/contract-management");
+      router.push("/dashboard/contract-management");
     },
     onError: (error, variables, context) => {
       // Rollback on error if you were doing optimistic updates

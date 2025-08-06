@@ -74,7 +74,7 @@ const SellerInformationPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push("/seller-management");
+    router.back();
   };
 
   // Toggle password visibility for a specific row

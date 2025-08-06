@@ -344,11 +344,11 @@ const EditableContract: React.FC<ContractProps> = ({
         queryClient.invalidateQueries({ queryKey: ["contract"] });
 
         toast.success("Contract duplicated successfully!");
-        router.push("/contract-management");
+        router.push("/dashboard/contract-management");
       } catch (error) {
         console.error("Error refetching queries:", error);
         // Still navigate even if refetch fails
-        router.push("/contract-management");
+        router.push("/dashboard/contract-management");
       }
     },
     onError: (error) => {

@@ -66,7 +66,7 @@ const BuyerInformationEditPage = () => {
       // Also invalidate the buyers list if you have one
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
       // Navigate back to buyer management
-      router.push(`/buyer-management`);
+      router.push(`/dashboard/buyer-management`);
     },
     onSettled: () => {
       // Always refetch after error or success to ensure server state consistency
