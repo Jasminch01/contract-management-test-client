@@ -467,7 +467,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
 
         {/* Edit Button */}
         <div className="mt-10 w-full flex justify-center gap-5">
-          <Link href={`/contract-management/edit/${contract._id}`}>
+          <Link href={`/dashboard/contract-management/edit/${contract._id}`}>
             <button className="cursor-pointer py-2 px-5 bg-[#2A5D36] text-white hover:bg-[#1e4728]  rounded flex items-center gap-2">
               <MdOutlineEdit className="text-lg" />
               Edit Contract
