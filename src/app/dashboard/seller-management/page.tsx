@@ -429,13 +429,13 @@ const SellerManagementPage = () => {
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Delete selected sellers?
+                Move to trash selected sellers?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
-                Are you sure you want to delete {selectedRows.length} selected
-                seller(s)? This action cannot be undone.
+                Are you sure you want to move trash {selectedRows.length} selected
+                seller(s)?
               </p>
               <div className="flex justify-center gap-3">
                 <button
@@ -448,7 +448,7 @@ const SellerManagementPage = () => {
                   onClick={confirmDelete}
                   className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#ff7e7e]"
                 >
-                  Delete
+                  Move
                 </button>
               </div>
             </div>

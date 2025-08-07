@@ -445,13 +445,13 @@ const BuyerManagementPage = () => {
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
                 <IoWarning color="red" />
-                Delete selected buyers?
+                Move to trash selected buyers?
               </h3>
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
-                Are you sure you want to delete {selectedRows.length} selected
-                buyer(s)? This action cannot be undone.
+                Are you sure you want to move trash {selectedRows.length} selected
+                buyer(s)?
               </p>
               <div className="flex justify-center gap-3">
                 <button
