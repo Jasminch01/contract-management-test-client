@@ -178,7 +178,7 @@ const SellerInformationPage = () => {
 
         {/* Edit Button */}
         <div className="mt-10">
-          <Link href={`/seller-management/edit/${sellerId?.toString()}`}>
+          <Link href={`/dashboard/seller-management/edit/${sellerId?.toString()}`}>
             <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4728]">
               <MdOutlineEdit className="text-lg" />
               Edit

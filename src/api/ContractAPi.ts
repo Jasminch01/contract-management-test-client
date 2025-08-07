@@ -7,7 +7,8 @@ export const createContract = async (contract: TUpdateContract) => {
     const res = await instance.post("contracts", contract);
     return res;
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    throw error
   }
 };
 
@@ -21,6 +22,7 @@ export const fetchContracts = async (): Promise<TContract[]> => {
       console.error("Axios error fetching buyers:", error.message);
     } else {
       console.error("Unexpected error fetching buyers:", error);
+      
     }
     return [];
   }
@@ -71,6 +73,7 @@ export const moveContractToTrash = async (
     );
   } catch (error) {
     console.error("Move to trash error:", error);
+
     throw error;
   }
 };

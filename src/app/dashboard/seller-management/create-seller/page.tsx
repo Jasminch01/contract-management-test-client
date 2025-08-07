@@ -99,7 +99,7 @@ const CreateSellerPage = () => {
       });
 
       toast.success("Seller created successfully!");
-      router.push("/seller-management");
+      router.push("/dashboard/seller-management");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
