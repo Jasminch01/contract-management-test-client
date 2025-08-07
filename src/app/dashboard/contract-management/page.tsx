@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DataTable from "react-data-table-component";
@@ -166,53 +166,43 @@ const ContractManagementPage = () => {
   // FIXED: Better data synchronization
   useEffect(() => {
     if (contracts && isMounted) {
-      console.log("Contracts data updated:", contracts.length);
-      
-      // Filter out deleted contracts if needed (assuming deleted contracts have isDeleted: true)
-      const activeContracts = contracts.filter(contract => !contract.isDeleted);
-      
-      setMasterData(activeContracts);
-      
-      // Reset all filtered data when master data changes
-      setSearchFilteredData(activeContracts);
-      
-      // Apply current filters to new data
-      applyFilters(activeContracts);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contracts, isMounted]);
-
-  // FIXED: Centralized filter application logic
-  const applyFilters = (sourceData: TContract[]) => {
-    let filteredData = sourceData;
-
-    // Apply status filter if active
-    if (selectedStatus !== "all") {
-      filteredData = filteredData.filter(
-        (contract) => contract.status?.toLowerCase() === selectedStatus.toLowerCase()
+      // Filter out deleted contracts if needed
+      const activeContracts = contracts.filter(
+        (contract) => !contract.isDeleted
       );
-    }
 
-    setData(filteredData);
-  };
+      setMasterData(activeContracts);
+      setSearchFilteredData(activeContracts);
+
+      // Apply current filters to new data
+      let filteredData = activeContracts;
+      if (selectedStatus !== "all") {
+        filteredData = filteredData.filter(
+          (contract) =>
+            contract.status?.toLowerCase() === selectedStatus.toLowerCase()
+        );
+      }
+      setData(filteredData);
+    }
+  }, [contracts, isMounted, selectedStatus]); // Added selectedStatus to dependencies
 
   // FIXED: Delete mutation with better error handling and state management
   const deleteMutation = useMutation({
     mutationFn: moveContractToTrash,
     onSuccess: () => {
       console.log("Delete successful, invalidating queries...");
-      
+
       // Invalidate and refetch both queries
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
-      
+
       // Clear selections and close modal
       setSelectedRows([]);
-      setToggleCleared(prev => !prev);
+      setToggleCleared((prev) => !prev);
       setIsDeleteConfirmOpen(false);
-      
+
       toast.success("Contract(s) deleted successfully");
-      
+
       // Force refetch to ensure data is updated
       refetch();
     },
@@ -242,27 +232,49 @@ const ContractManagementPage = () => {
   };
 
   // FIXED: Handle filter change from search component
-  const handleFilterChange = (filteredData: TContract[]) => {
-    setSearchFilteredData(filteredData);
-    applyFilters(filteredData);
-  };
+  const handleFilterChange = useCallback(
+    (filteredData: TContract[]) => {
+      setSearchFilteredData(filteredData);
+
+      // Apply status filter directly without calling applyFilters
+      let finalData = filteredData;
+      if (selectedStatus !== "all") {
+        finalData = filteredData.filter(
+          (contract) =>
+            contract.status?.toLowerCase() === selectedStatus.toLowerCase()
+        );
+      }
+      setData(finalData);
+    },
+    [selectedStatus]
+  );
 
   // FIXED: Handle status change with proper filter application
-  const handleStatusChange = (value: string) => {
-    setSelectedStatus(value);
-    setIsFilterActive(value !== "all");
-    setIsFilterOpen(false);
-    
-    applyFilters(searchFilteredData);
-  };
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      setSelectedStatus(value);
+      setIsFilterActive(value !== "all");
+      setIsFilterOpen(false);
+
+      // Apply filter directly without calling applyFilters
+      let filteredData = searchFilteredData;
+      if (value !== "all") {
+        filteredData = searchFilteredData.filter(
+          (contract) => contract.status?.toLowerCase() === value.toLowerCase()
+        );
+      }
+      setData(filteredData);
+    },
+    [searchFilteredData]
+  );
 
   // FIXED: Clear filter function
-  const clearFilter = () => {
+  const clearFilter = useCallback(() => {
     setSelectedStatus("all");
     setIsFilterActive(false);
     setIsFilterOpen(false);
-    applyFilters(searchFilteredData);
-  };
+    setData(searchFilteredData); // Just set data directly without filtering
+  }, [searchFilteredData]);
 
   // Handle delete selected contracts
   const handleDelete = () => {
@@ -285,8 +297,6 @@ const ContractManagementPage = () => {
       setIsDeleteConfirmOpen(false);
       return;
     }
-
-    console.log("Deleting contracts with IDs:", selectedIds);
     deleteMutation.mutate(selectedIds);
   };
 
@@ -633,10 +643,9 @@ const ContractManagementPage = () => {
             pointerOnHover
             noDataComponent={
               <div className="p-10 text-center text-gray-500">
-                {masterData.length === 0 
-                  ? "No contracts found. Create your first contract to get started." 
-                  : "No contracts found matching your current filters."
-                }
+                {masterData.length === 0
+                  ? "No contracts found. Create your first contract to get started."
+                  : "No contracts found matching your current filters."}
               </div>
             }
           />

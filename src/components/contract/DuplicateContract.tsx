@@ -238,19 +238,36 @@ const EditableContract: React.FC<ContractProps> = ({
   };
 
   const handleDateChange = (update: [Date | null, Date | null]) => {
-    setDateRange(update);
+    try {
+      const [start, end] = update;
+      setDateRange(update);
 
-    // Convert date range to string for storage in contract
-    if (update[0] && update[1]) {
-      const start = `${update[0].toLocaleDateString()}`;
-      const end = `${update[1].toLocaleDateString()}`;
+      // Only update contract when both dates are selected and valid
+      if (start && end && start instanceof Date && end instanceof Date) {
+        // Validate dates are not invalid
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          // Use ISO string for consistent date formatting
+          const startStr = start.toISOString().split("T")[0]; // YYYY-MM-DD format
+          const endStr = end.toISOString().split("T")[0];
 
-      setContract((prev) => ({
-        ...prev,
-        deliveryPeriod: { start, end },
-      }));
-      setHasChanges(true);
-    } else {
+          setContract((prev) => ({
+            ...prev,
+            deliveryPeriod: { start: startStr, end: endStr },
+          }));
+          setHasChanges(true);
+        }
+      } else if (!start && !end) {
+        // Clear dates when picker is cleared
+        setContract((prev) => ({
+          ...prev,
+          deliveryPeriod: { start: "", end: "" },
+        }));
+        setHasChanges(true);
+      }
+    } catch (error) {
+      console.error("Date handling error:", error);
+      // Reset to safe state on error
+      setDateRange([null, null]);
       setContract((prev) => ({
         ...prev,
         deliveryPeriod: { start: "", end: "" },
@@ -581,8 +598,8 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3">
                 <DatePicker
                   selectsRange={true}
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={startDate} // This uses the destructured value from dateRange
+                  endDate={endDate} // This uses the destructured value from dateRange
                   onChange={handleDateChange}
                   isClearable={true}
                   placeholderText="Select date range"
