@@ -5,7 +5,7 @@ import { MdOutlineLogout } from "react-icons/md";
 import { useState } from "react"; // Import useState
 import { FaBars, FaTrash } from "react-icons/fa"; // Import hamburger icon
 import Image from "next/image";
-import { userLogOut } from "@/api/Auth";
+// import { userLogOut } from "@/api/Auth";
 
 const menus = [
   {
@@ -40,10 +40,11 @@ const Sidebar = () => {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const res = await userLogOut();
-    if (res) {
-      router.push("/auth/login");
-    }
+    // const res = await userLogOut();
+    // if (res) {
+    // }
+    localStorage.removeItem("accesstoken");
+    router.push("/auth/login");
   };
 
   const toggleSidebar = () => {

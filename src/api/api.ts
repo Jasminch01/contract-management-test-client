@@ -8,11 +8,18 @@ export const instance: AxiosInstance = axios.create({
 // Add request interceptor
 instance.interceptors.request.use(
   (config) => {
-    // You can modify the request config here (e.g., add auth token)
-    // const token = localStorage.getItem("authToken");
-    // if (token) {
-    //   config.headers.Authorization = `${token}`;
-    // }
+    // Check if we're in the browser environment
+    if (typeof window !== "undefined") {
+      try {
+        const token = localStorage.getItem("accesstoken");
+        if (token) {
+          // Set authorization header with "Bearer" prefix to match backend
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+      }
+    }
     return config;
   },
   (error) => {
@@ -20,7 +27,6 @@ instance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 // Add response interceptor
 instance.interceptors.response.use(
   (response) => {

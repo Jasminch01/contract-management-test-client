@@ -17,14 +17,13 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    console.log(email, password);
     try {
       if (!email || !password) {
         throw new Error("Email and password are required");
       }
       const data = await userLogin(email, password);
-      if (data.data) {
-        router.push("/dashboard");
+      if (data.data.token) {
+       router.push("/dashboard")
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid credentials");

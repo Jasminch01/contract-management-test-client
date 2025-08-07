@@ -56,9 +56,9 @@ export default function RootLayout({
     <html lang="en">
       <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
       <body className={satoshiFont.className}>
-        <QueryProvider>
-          <div>{children}</div>
-        </QueryProvider>
+          <QueryProvider>
+            <div>{children}</div>
+          </QueryProvider>
       </body>
     </html>
   );
