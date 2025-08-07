@@ -122,9 +122,9 @@ const customStyles = {
 };
 
 const statusOptions = [
-  { value: "complete", label: "Complete" },
-  { value: "incomplete", label: "Incomplete" },
-  { value: "invoiced", label: "Invoiced" },
+  { value: "Complete", label: "Complete" },
+  { value: "Incomplete", label: "Incomplete" },
+  { value: "Invoiced", label: "Invoiced" },
 ];
 
 const ContractManagementPage = () => {
@@ -179,6 +179,7 @@ const ContractManagementPage = () => {
       // Apply current filters to new data
       applyFilters(activeContracts);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contracts, isMounted]);
 
   // FIXED: Centralized filter application logic
