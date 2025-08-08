@@ -388,7 +388,7 @@ const RubbishBin = () => {
         <div className="w-full md:w-auto flex gap-2">
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
+            className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
             disabled={isLoading}
           >
             <svg

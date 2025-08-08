@@ -79,7 +79,7 @@ const columns = [
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
-            row.status?.toLowerCase() === "completed"
+            row.status?.toLowerCase() === "complete"
               ? "text-[#108A2B]" // Green for completed
               : row.status?.toLowerCase() === "invoiced"
               ? "text-[#3B82F6]" // Blue for invoiced
@@ -147,7 +147,6 @@ const ContractManagementPage = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
   // Fetch contracts using TanStack Query
   const {
     data: contracts = [],

@@ -387,7 +387,7 @@ const EditableContract: React.FC<ContractProps> = ({
           : contract.seller?._id,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, contractNumber, ...contractWithoutId } = contractToSave;
+    const { _id, contractNumber, createdAt, _v, updatedAt, ...contractWithoutId } = contractToSave;
     createContractMutation.mutate(contractWithoutId);
   };
 
@@ -461,11 +461,12 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="text"
                   value={
-                    new Date(contract.createdAt).toISOString().split("T")[0] ||
+                    new Date().toISOString().split("T")[0] ||
                     ""
                   }
                   onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
+                  readOnly
                 />
               </div>
             </div>

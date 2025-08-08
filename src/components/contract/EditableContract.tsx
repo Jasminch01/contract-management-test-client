@@ -374,7 +374,7 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, contractNumber, ...updatedContract } =
+    const { _id, createdAt, updatedAt, _v, contractNumber, ...updatedContract } =
       contractToSave;
     updateContractMutation.mutate(updatedContract);
   };

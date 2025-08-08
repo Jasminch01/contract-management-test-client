@@ -44,7 +44,7 @@ const HistoricalPrices = ({ data = [] }) => {
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-green-500 font-bold">
-                          {price.price}
+                          ${price.price}
                         </p>
                         <p className="text-sm text-gray-500">{price.time}</p>
                       </div>

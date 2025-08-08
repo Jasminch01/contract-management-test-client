@@ -1,6 +1,3 @@
-// "use client";
-// import { useEffect, useState } from "react";
-// import { usePathname, useRouter } from "next/navigation";
 import "./globals.css";
 import localFont from "next/font/local";
 import QueryProvider from "@/provider/QueryProvider";
@@ -35,30 +32,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // const router = useRouter();
-  // const pathname = usePathname();
-
-  // useEffect(() => {
-  //   // Check auth status from cookies
-  //   const authToken = document.cookie.includes("token");
-  //   setIsAuthenticated(authToken);
-
-  // //   // Redirect logic
-  //   if (!authToken && !pathname.startsWith("/login")) {
-  //     router.push("/login");
-  //   } else if (authToken && pathname.startsWith("/login")) {
-  //     router.push("/");
-  //   }
-  // }, [pathname, router]);
-
   return (
     <html lang="en">
       <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
       <body className={satoshiFont.className}>
-          <QueryProvider>
-            <div>{children}</div>
-          </QueryProvider>
+        <QueryProvider>
+          <div>{children}</div>
+        </QueryProvider>
       </body>
     </html>
   );

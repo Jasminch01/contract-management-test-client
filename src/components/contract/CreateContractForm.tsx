@@ -20,7 +20,6 @@ import toast from "react-hot-toast";
 import ConveyanceSelect from "./ConveyanceSelect";
 import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CiExport } from "react-icons/ci";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const CreateContractForm = () => {
@@ -726,13 +725,6 @@ const CreateContractForm = () => {
             className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer"
           >
             <IoArrowBack /> Back
-          </button>
-          <button
-            type="button"
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3"
-          >
-            Preview Contract
-            <CiExport />
           </button>
           <button
             type="submit"
