@@ -26,7 +26,7 @@ const BuyerInformationEditPage = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["buyers", buyerIdString],
+    queryKey: ["buyer", buyerIdString],
     queryFn: () => getBuyer(buyerIdString) as Promise<Buyer>,
     enabled: !!buyerIdString,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -38,39 +38,48 @@ const BuyerInformationEditPage = () => {
     mutationFn: (updatedBuyer: Buyer) =>
       updateBuyer(updatedBuyer, buyerIdString),
     onMutate: async (updatedBuyer) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["buyers", buyerIdString] });
-      // Snapshot the previous value
-      const previousBuyer = queryClient.getQueryData(["buyers", buyerIdString]);
-      // Optimistically update to the new value
-      queryClient.setQueryData(["buyers", buyerIdString], updatedBuyer);
+      // Cancel any outgoing refetches for both single buyer and buyers list
+      await queryClient.cancelQueries({ queryKey: ["buyer", buyerIdString] });
+      await queryClient.cancelQueries({ queryKey: ["buyers"] });
 
-      return { previousBuyer };
+      // Snapshot the previous values
+      const previousBuyer = queryClient.getQueryData(["buyer", buyerIdString]);
+      const previousBuyers = queryClient.getQueryData(["buyers"]);
+
+      // Optimistically update the single buyer
+      queryClient.setQueryData(["buyer", buyerIdString], updatedBuyer);
+
+      return { previousBuyer, previousBuyers };
     },
     onError: (error, updatedBuyer, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+      // Rollback both queries if the mutation fails
       if (context?.previousBuyer) {
         queryClient.setQueryData(
-          ["buyers", buyerIdString],
+          ["buyer", buyerIdString],
           context.previousBuyer
         );
       }
+      if (context?.previousBuyers) {
+        queryClient.setQueryData(["buyers"], context.previousBuyers);
+      }
+
       console.error(error);
       toast.error("Failed to update buyer information");
     },
     onSuccess: () => {
       toast.success("Buyer information updated successfully");
 
-      // Invalidate and refetch buyer data to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["buyers", buyerIdString] });
-      // Also invalidate the buyers list if you have one
+      // Invalidate queries to ensure server consistency
+      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
+
       // Navigate back to buyer management
       router.push(`/dashboard/buyer-management`);
     },
     onSettled: () => {
       // Always refetch after error or success to ensure server state consistency
-      queryClient.invalidateQueries({ queryKey: ["buyers", buyerIdString] });
+      queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
     },
   });
 
