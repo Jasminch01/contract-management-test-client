@@ -328,6 +328,7 @@ const ContractManagementPage = () => {
     }
   };
 
+  // Updated handleEmail function that uses your existing PDF components
   const handleEmail = async (recipientType: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
       toast.error(
@@ -337,10 +338,11 @@ const ContractManagementPage = () => {
     }
 
     try {
+      toast.loading("Generating PDF and preparing email...");
+
       const validRows = selectedRows.filter(
         (row): row is TContract => row != null
       );
-
       const recipients = validRows
         .map((row) =>
           recipientType === "buyer" ? row.buyer?.email : row.seller?.email
@@ -354,13 +356,25 @@ const ContractManagementPage = () => {
         return;
       }
 
+      // Generate PDF blob using your existing ExportContractPdf component
+      const pdfBlob = await generatePDFBlobFromComponent(validRows);
+
+      if (!pdfBlob) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      // Upload to Cloudinary
+      const filename = `contracts_${recipientType}_${Date.now()}.pdf`;
+      const cloudinaryResponse = await uploadPDFToCloudinary(pdfBlob, filename);
+
+      // Create subject
       let subject;
+      const contract = validRows[0];
       if (recipientType === "seller" && validRows.length === 1) {
-        const contract = validRows[0];
         subject = `Broker Note - ${contract.contractNumber || ""} ${
           contract.tonnes || 0
         }mt ${contract.grade || ""} ${contract.deliveryOption || "Delivered"} ${
-          contract.deliveryDestination || contract.deliveryDestination || ""
+          contract.deliveryDestination || ""
         }`;
       } else {
         subject = `${validRows.length} Contract(s) - ${
@@ -368,25 +382,107 @@ const ContractManagementPage = () => {
         } Documents`;
       }
 
-      const emailField = recipientType === "seller" ? "to" : "bcc";
-      const mailtoLink = `mailto:?${emailField}=${recipients.join(
-        ","
-      )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-        "Please find attached contract documents."
-      )}`;
+      // Enhanced email body with PDF link
+      const contractSummary = validRows
+        .map(
+          (contract) =>
+            `• ${contract.contractNumber} - ${contract.tonnes}mt ${contract.grade} (${contract.buyer?.name} ↔ ${contract.seller?.legalName})`
+        )
+        .join("\n");
 
-      setTimeout(() => {
-        window.location.href = mailtoLink;
-      }, 500);
+      const emailBody = `Dear ${
+        recipientType.charAt(0).toUpperCase() + recipientType.slice(1)
+      },
 
+Please find the contract document(s) attached below:
+
+${contractSummary}
+
+📎 Download PDF: ${cloudinaryResponse.secure_url}
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+Contract Management Team`;
+
+      const emailParam = recipientType === "seller" ? "to" : "bcc";
+      const gmailParams = new URLSearchParams({
+        view: "cm",
+        fs: "1",
+        [emailParam]: recipients.join(","),
+        su: subject,
+        body: emailBody,
+      });
+
+      const gmailLink = `https://mail.google.com/mail/?${gmailParams.toString()}`;
+
+      toast.dismiss();
+      window.open(gmailLink, "_blank");
       toast.success(
-        `Preparing email to ${recipients.length} ${recipientType}(s)`
+        `Email prepared with PDF for ${recipients.length} ${recipientType}(s)`
       );
     } catch (error) {
-      console.error("Error preparing email:", error);
-      toast.error("Failed to prepare email");
+      toast.dismiss();
+      console.error("Error preparing email with PDF:", error);
+      toast.error("Failed to generate PDF and prepare email");
     }
   };
+
+  // Function to generate PDF blob using your existing ExportContractPdf component
+  const generatePDFBlobFromComponent = async (
+    contracts: TContract[]
+  ): Promise<Blob | null> => {
+    try {
+      // Import the pdf function from @react-pdf/renderer
+      const { pdf } = await import("@react-pdf/renderer");
+
+      // Dynamically import your ExportContractPdf component to avoid SSR issues
+      const ExportContractPdf = (
+        await import("@/components/contract/ExportContractPdf")
+      ).default;
+
+      // Generate PDF blob using your existing component
+      const blob = await pdf(
+        <ExportContractPdf contracts={contracts} />
+      ).toBlob();
+
+      return blob;
+    } catch (error) {
+      console.error("Error generating PDF from component:", error);
+      return null;
+    }
+  };
+
+  // Updated utility function for Cloudinary upload (fixed for PDF files)
+  const uploadPDFToCloudinary = async (
+    pdfBlob: Blob,
+    filename: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any> => {
+    const formData = new FormData();
+    formData.append("file", pdfBlob, filename);
+    formData.append("resource_type", "raw"); // Important for PDF files
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to upload PDF to Cloudinary: ${errorText}`);
+    }
+
+    return response.json();
+  };
+
 
   // Prevent hydration mismatch
   if (!isMounted) {
