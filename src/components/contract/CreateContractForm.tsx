@@ -233,11 +233,29 @@ const CreateContractForm = () => {
   };
 
   const getFormattedSeasons = () => {
+    if (typeof window === "undefined") {
+      // Return empty array during SSR to avoid hydration mismatch
+      return [];
+    }
+
     const currentYear = new Date().getFullYear();
-    return Array.from({ length: 10 }, (_, i) => {
-      const startYear = currentYear - i - 1;
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+
+    // Determine the current season year based on the month
+    let currentSeasonStartYear;
+    if (currentMonth >= 1 && currentMonth <= 6) {
+      // January to June: current season started last year
+      currentSeasonStartYear = currentYear - 1;
+    } else {
+      // July to December: current season started this year
+      currentSeasonStartYear = currentYear;
+    }
+
+    // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
+    return Array.from({ length: 11 }, (_, i) => {
+      const startYear = currentSeasonStartYear + 1 - i; // +1 for future season
       const endYear = startYear + 1;
-      return `${startYear}/${endYear}`;
+      return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
     });
   };
 

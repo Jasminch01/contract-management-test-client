@@ -230,9 +230,9 @@ const getFormattedSeasons = () => {
     currentSeasonStartYear = currentYear;
   }
 
-  // Generate seasons: current season + 9 previous seasons (10 total)
-  return Array.from({ length: 10 }, (_, i) => {
-    const startYear = currentSeasonStartYear - i;
+  // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
+  return Array.from({ length: 11 }, (_, i) => {
+    const startYear = currentSeasonStartYear + 1 - i; // +1 for future season
     const endYear = startYear + 1;
     return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
   });
@@ -678,24 +678,22 @@ const HistoricalPricesPage = () => {
                   <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200">
                     Season: July - June
                   </div>
-                  {getFormattedSeasons().map((season, index) => (
-                    <div
-                      key={index}
-                      className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm ${
-                        season === getCurrentSeason()
-                          ? "bg-blue-50 font-medium"
-                          : ""
-                      }`}
-                      onClick={() => handleSeasonChange(season)}
-                    >
-                      {season}
-                      {season === getCurrentSeason() && (
-                        <span className="text-xs text-blue-600 ml-1">
-                          (Current)
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {getFormattedSeasons().map((season, index) => {
+                    const isCurrentSeason = season === getCurrentSeason();
+                    const isSelectedSeason = season === selectedSeason; // Assuming you have a selectedSeason state
+
+                    return (
+                      <div
+                        key={index}
+                        className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm ${
+                          isSelectedSeason ? "bg-blue-100 font-medium" : ""
+                        }`}
+                        onClick={() => handleSeasonChange(season)}
+                      >
+                        {season}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

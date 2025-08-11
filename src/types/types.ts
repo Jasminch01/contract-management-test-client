@@ -159,7 +159,7 @@ export interface TContract {
   specialCondition: string;
   termsAndConditions: string;
   notes: string;
-  tonnes: string;
+  tonnes: number;
   tolerance: string;
   season: string;
   isDeleted: boolean;
