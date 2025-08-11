@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { IoIosAdd } from "react-icons/io";
 import { getBuyers } from "@/api/buyerApi";
 import { Buyer } from "@/types/types";
+import { useRouter } from "next/navigation";
 
 interface BuyerSelectProps {
   onSelect: (buyer: Buyer) => void;
@@ -44,7 +45,7 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  const router = useRouter();
   // Handle selecting a buyer
   const handleSelectBuyer = (buyer: Buyer) => {
     setSelectedBuyer(buyer);
@@ -169,6 +170,7 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
                   onClick={() => {
                     // Handle add new buyer logic here
                     setIsDropdownOpen(false);
+                    router.push("/dashboard/buyer-management/create-buyer");
                   }}
                 >
                   <IoIosAdd />

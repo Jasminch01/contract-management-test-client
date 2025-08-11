@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { IoIosAdd } from "react-icons/io";
 import { Seller } from "@/types/types";
 import { getsellers } from "@/api/sellerApi";
+import { useRouter } from "next/navigation";
 
 interface SellerSelectProps {
   onSelect: (seller: Seller) => void;
@@ -27,7 +28,7 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
   });
-
+  const router = useRouter();
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -171,6 +172,7 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
                   onClick={() => {
                     // Handle add new seller logic here
                     setIsDropdownOpen(false);
+                    router.push("/dashboard/seller-management/create-seller")
                   }}
                 >
                   <IoIosAdd />

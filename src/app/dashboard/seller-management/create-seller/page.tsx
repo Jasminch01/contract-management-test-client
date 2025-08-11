@@ -593,7 +593,15 @@ const CreateSellerPage = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="mt-10 text-center md:text-left">
+            <div className="mt-10 text-center md:text-left flex space-x-5 items-center">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="bg-gray-500 cursor-pointer py-2 px-6 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={createSellerMutation.isPending}
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={uploadingAthAct || createSellerMutation.isPending}

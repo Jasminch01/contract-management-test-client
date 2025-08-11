@@ -212,7 +212,7 @@ const CreateBuyerPage = () => {
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => router.push("/dashboard/buyer-management")}
+                onClick={() => router.back()}
                 className="bg-gray-500 cursor-pointer py-2 px-6 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={createBuyerMutation.isPending}
               >
