@@ -108,6 +108,7 @@ const BuyerManagementPage = () => {
       // Invalidate and refetch buyers data
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
 
       setToggleCleared(!toggleCleared);
       setIsDeleteConfirmOpen(false);

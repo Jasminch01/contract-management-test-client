@@ -72,6 +72,7 @@ const BuyerInformationEditPage = () => {
       // Invalidate queries to ensure server consistency
       queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
+       queryClient.invalidateQueries({ queryKey: ["contract"] });
 
       // Navigate back to buyer management
       router.push(`/dashboard/buyer-management`);

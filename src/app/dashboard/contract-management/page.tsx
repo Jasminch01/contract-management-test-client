@@ -405,11 +405,12 @@ If you have any questions, please don't hesitate to contact us.
 Best regards,
 Contract Management Team`;
 
-      const emailParam = recipientType === "seller" ? "to" : "bcc";
+      // const emailParam = recipientType === "seller" ? "to" : "bcc";
       const gmailParams = new URLSearchParams({
         view: "cm",
         fs: "1",
-        [emailParam]: recipients.join(","),
+        to: recipients.join(","),
+        // [emailParam]: recipients.join(","),
         su: subject,
         body: emailBody,
       });
@@ -457,7 +458,7 @@ Contract Management Team`;
   const uploadPDFToCloudinary = async (
     pdfBlob: Blob,
     filename: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> => {
     const formData = new FormData();
     formData.append("file", pdfBlob, filename);
@@ -482,7 +483,6 @@ Contract Management Team`;
 
     return response.json();
   };
-
 
   // Prevent hydration mismatch
   if (!isMounted) {

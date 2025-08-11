@@ -350,30 +350,35 @@ const CreateContractForm = () => {
   };
 
   return (
-    <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible">
+    <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible hide-scrollbar-xl">
       <form className="space-y-6 mt-7 md:mt-10" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 xl:grid-cols-4 xl:grid-rows-8 gap-5">
-          <div className="w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-rows-8 gap-3 sm:gap-4 xl:gap-5">
+          {/* Delivery Period - Full width on mobile, spans appropriately on larger screens */}
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               DELIVERY PERIOD
             </label>
-            <DatePicker
-              selectsRange={true}
-              startDate={startDate}
-              endDate={endDate}
-              onChange={handleDateChange}
-              isClearable={true}
-              placeholderText="Select date range"
-              className="mt-1 w-full xl:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              calendarClassName="w-full sm:w-auto" // Makes calendar responsive
-              dateFormat="MMM d, yyyy"
-              minDate={new Date()}
-              maxDate={addDays(new Date(), 365)}
-              shouldCloseOnSelect={false}
-              selectsDisabledDaysInRange
-              required
-            />
+            <div className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+              <DatePicker
+                selectsRange={true}
+                startDate={startDate}
+                endDate={endDate}
+                onChange={handleDateChange}
+                isClearable={true}
+                placeholderText="Select date range"
+                // className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                calendarClassName="w-full sm:w-auto"
+                dateFormat="MMM d, yyyy"
+                minDate={new Date()}
+                maxDate={addDays(new Date(), 365)}
+                shouldCloseOnSelect={false}
+                selectsDisabledDaysInRange
+                required
+              />
+            </div>
           </div>
+
+          {/* Payment Terms */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               PAYMENT TERMS
@@ -388,6 +393,8 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* Delivery Destination */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               DELIVERY DESTINATION
@@ -402,9 +409,13 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* Contract Type Select */}
           <div>
             <SelectContractType onSelect={handleContractTypeSelect} />
           </div>
+
+          {/* Delivery Option */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               DELIVERY OPTION
@@ -419,6 +430,8 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* Broker Rate */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               BROKER RATE
@@ -434,6 +447,7 @@ const CreateContractForm = () => {
             />
           </div>
 
+          {/* Seller Contract Reference */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SELLER CONTRACT REFERENCE
@@ -447,7 +461,9 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="xl:row-span-2">
+
+          {/* Special Condition - Spans 2 rows on xl, full width on smaller screens */}
+          <div className="sm:col-span-2 lg:col-span-1 xl:row-span-2">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SPECIAL CONDITION
             </label>
@@ -455,11 +471,12 @@ const CreateContractForm = () => {
               name="specialCondition"
               value={formData.specialCondition}
               onChange={handleChange}
-              className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 block resize-none w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 h-24 sm:h-32 xl:h-full"
               placeholder=""
-              rows={5}
             />
           </div>
+
+          {/* Freight */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               FREIGHT
@@ -474,6 +491,8 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* Buyer Contract Reference */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               BUYER CONTRACT REFERENCE
@@ -487,7 +506,9 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="md:row-start-4">
+
+          {/* Grade */}
+          <div className="lg:row-start-4 xl:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               GRADE
             </label>
@@ -502,7 +523,8 @@ const CreateContractForm = () => {
             />
           </div>
 
-          <div className="md:row-start-4">
+          {/* Weights */}
+          <div className="lg:row-start-4 xl:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               WEIGHTS
             </label>
@@ -516,10 +538,14 @@ const CreateContractForm = () => {
               required
             />
           </div>
-          <div className="md:row-start-4">
+
+          {/* Brokerage Select */}
+          <div className="lg:row-start-4 xl:row-start-4">
             <SelectBuyerSeller onSelect={handleBrokerageSelect} />
           </div>
-          <div className="md:row-span-2 md:row-start-4">
+
+          {/* Terms & Conditions - Spans 2 rows on md and xl, full width on smaller screens */}
+          <div className="sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:row-start-4 xl:row-span-2 xl:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               TERMS & CONDITIONS
             </label>
@@ -527,15 +553,17 @@ const CreateContractForm = () => {
               name="termsAndConditions"
               value={formData.termsAndConditions}
               onChange={handleChange}
-              className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 h-24 sm:h-32 lg:h-full"
               placeholder=""
-              rows={4}
             />
           </div>
+
+          {/* Buyer Select */}
           <div>
             <BuyerSelect onSelect={handleBuyerSelect} />
           </div>
 
+          {/* Price (Ex-GST) */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               PRICE (EX-GST)
@@ -551,7 +579,8 @@ const CreateContractForm = () => {
             />
           </div>
 
-          <div>
+          {/* Attach Buyer's Contract - Full width on mobile */}
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH BUYERS CONTRACT
             </label>
@@ -561,7 +590,7 @@ const CreateContractForm = () => {
                 accept="application/pdf"
                 onChange={handleBuyerContractUpload}
                 disabled={uploadingBuyerContract}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               />
               {uploadingBuyerContract && (
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -582,10 +611,14 @@ const CreateContractForm = () => {
               </div>
             )}
           </div>
-          <div className="md:row-start-6">
+
+          {/* Seller Select */}
+          <div className="lg:row-start-6 xl:row-start-6">
             <SellerSelect onSelect={handleSellerSelect} />
           </div>
-          <div className="md:row-start-6">
+
+          {/* Conveyance Select */}
+          <div className="lg:row-start-6 xl:row-start-6">
             <ConveyanceSelect
               value={formData.conveyance}
               onValueChange={(value) =>
@@ -594,7 +627,8 @@ const CreateContractForm = () => {
             />
           </div>
 
-          <div className="md:row-start-6">
+          {/* Certification Scheme */}
+          <div className="lg:row-start-6 xl:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               CERTIFICATION SCHEME
             </label>
@@ -607,7 +641,9 @@ const CreateContractForm = () => {
               placeholder=""
             />
           </div>
-          <div className="md:row-span-2 md:row-start-6">
+
+          {/* Notes - Spans 2 rows on md and xl, full width on smaller screens */}
+          <div className="sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:row-start-6 xl:row-span-2 xl:row-start-6">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               NOTES
             </label>
@@ -615,13 +651,13 @@ const CreateContractForm = () => {
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mt-1 block w-full resize-none px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 h-24 sm:h-32 lg:h-full"
               placeholder=""
-              rows={5}
             />
           </div>
 
-          <div>
+          {/* Attach Seller's Contract - Full width on mobile */}
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               ATTACH SELLERS CONTRACT
             </label>
@@ -631,7 +667,7 @@ const CreateContractForm = () => {
                 accept="application/pdf"
                 onChange={handleSellerContractUpload}
                 disabled={uploadingSellerContract}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               />
               {uploadingSellerContract && (
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -653,6 +689,7 @@ const CreateContractForm = () => {
             )}
           </div>
 
+          {/* Commodity */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               COMMODITY
@@ -667,6 +704,8 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* Tonnes */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               TONNES
@@ -681,8 +720,10 @@ const CreateContractForm = () => {
               required
             />
           </div>
+
+          {/* NGR Number - Conditional */}
           {isGrowerContract && (
-            <div className="md:row-start-8">
+            <div className="lg:row-start-8 xl:row-start-8">
               <label className="block text-xs font-medium text-gray-700 uppercase">
                 NGR NUMBER
               </label>
@@ -698,8 +739,8 @@ const CreateContractForm = () => {
             </div>
           )}
 
-          {/* Added Season Dropdown */}
-          <div className="md:row-start-8">
+          {/* Season Dropdown */}
+          <div className="lg:row-start-8 xl:row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SEASON
             </label>
@@ -719,9 +760,10 @@ const CreateContractForm = () => {
             </select>
           </div>
 
+          {/* Tolerance */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              tolerance
+              TOLERANCE
             </label>
             <input
               onChange={handleChange}
@@ -736,11 +778,11 @@ const CreateContractForm = () => {
         </div>
 
         {/* Submit Buttons */}
-        <div className="flex flex-col md:flex-row gap-4 justify-end">
+        <div className="flex flex-col sm:flex-row gap-4 justify-end pt-4">
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer"
+            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer order-2 sm:order-1"
           >
             <IoArrowBack /> Back
           </button>
@@ -751,7 +793,7 @@ const CreateContractForm = () => {
               uploadingSellerContract ||
               createContractMutation.isPending
             }
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
           >
             {createContractMutation.isPending ? (
               <div className="flex items-center gap-2">

@@ -4,6 +4,12 @@
     4px 0 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  width: 100% !important;
+  display: block !important;
+}
+
 .hidden-scrollbar {
   /* Hide scrollbar for Chrome, Safari and Opera */
   -ms-overflow-style: none; /* IE and Edge */
@@ -28,6 +34,26 @@
 
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.hide-scrollbar-xl {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar-xl::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+@media (min-width: 1280px) {
+  .hide-scrollbar-xl {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar-xl::-webkit-scrollbar {
     display: none;
   }
 }

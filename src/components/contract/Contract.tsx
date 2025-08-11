@@ -160,7 +160,6 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
       </div>
     );
   }
-
   return (
     <div>
       <div className="my-10 text-center">

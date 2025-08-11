@@ -42,7 +42,6 @@ const ContractDetailsPage: React.FC = () => {
       return failureCount < 3;
     },
   });
-
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault();
     router.back();

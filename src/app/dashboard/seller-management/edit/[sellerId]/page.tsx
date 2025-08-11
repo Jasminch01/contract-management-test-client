@@ -107,6 +107,7 @@ const SellerInformationEditPage = () => {
 
       // Snapshot the previous value
       const previousSeller = queryClient.getQueryData(["seller", sellerIdStr]);
+      queryClient.invalidateQueries({ queryKey: ["contract"] });
 
       // Optimistically update to the new value
       queryClient.setQueryData(["seller", sellerIdStr], updatedSeller);
