@@ -111,7 +111,6 @@ const SellerInformationPage = () => {
   if (!sellerData) {
     return <div className="text-center py-10">No seller data found</div>;
   }
-
   // Filter credentials that have data
   const validCredentials = bulkHandlerCredentials.filter(
     (cred) => cred.identifier.trim() !== "" || cred.password.trim() !== ""
@@ -174,11 +173,19 @@ const SellerInformationPage = () => {
             label="Seller Phone Number"
             value={sellerData.phoneNumber || "N/A"}
           />
+          <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
+            Authority to act
+          </div>
+          <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
+           {sellerData.authorityActFormPdf ? <a className="text-blue-400" href={sellerData?.authorityActFormPdf}> authority to act</a> : <p>N/A</p>}
+          </div>
         </div>
 
         {/* Edit Button */}
         <div className="mt-10">
-          <Link href={`/dashboard/seller-management/edit/${sellerId?.toString()}`}>
+          <Link
+            href={`/dashboard/seller-management/edit/${sellerId?.toString()}`}
+          >
             <button className="py-2 cursor-pointer px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4728]">
               <MdOutlineEdit className="text-lg" />
               Edit
