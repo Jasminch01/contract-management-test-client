@@ -370,18 +370,19 @@ const HistoricalPricesPage = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    console.log("Setting isMounted to true");
+    // console.log("Setting isMounted to true");
 
     if(!selectedDate){
       const currentDate = getCurrentDateInputValue();
-      console.log("Setting initial selectedDate: ", currentDate);
+      // console.log("Setting initial selectedDate: ", currentDate);
+
       setSelectedDate(currentDate);
       setCurrentDateInputValue(currentDate);
     }
 
     if(!selectedSeason) {
       const currentSeason = getCurrentSeason();
-      console.log("Setting initial selectedSeason: ", currentSeason);
+      // console.log("Setting initial selectedSeason: ", currentSeason);
       setSelectedSeason(currentSeason);
     }
   }, []);
@@ -397,10 +398,10 @@ const HistoricalPricesPage = () => {
     queryFn: () => fetchPortZoneBids(selectedDate, selectedSeason),
     enabled: !!selectedDate && !!selectedSeason && isMounted,
     onSuccess: (data) => {
-      console.log("Fetched port zone bids:", data);
+      // console.log("Fetched port zone bids:", data);
     },
     onError: (error) => {
-      console.error("Error fetching port zone bids:", error);
+      // console.error("Error fetching port zone bids:", error);
     },
   });
 // console.log("useQuery state:", { selectedDate, selectedSeason, isMounted, isFetching, portZoneBidsError }); // Debug query conditions
@@ -436,7 +437,7 @@ const HistoricalPricesPage = () => {
     },
     onError: (error) => {
       toast.error("Failed to update port zone bid");
-      console.error("Port zone update error:", error);
+      // console.error("Port zone update error:", error);
     },
   });
 
@@ -450,7 +451,7 @@ const HistoricalPricesPage = () => {
     },
     onError: (error) => {
       toast.error("Failed to create port zone bid");
-      console.error("Port zone create error:", error);
+      // console.error("Port zone create error:", error);
     },
   });
 
@@ -465,7 +466,7 @@ const HistoricalPricesPage = () => {
     },
     onError: (error) => {
       toast.error("Failed to update delivered bid");
-      console.error("Delivered bid update error:", error);
+      // console.error("Delivered bid update error:", error);
     },
   });
 
@@ -479,7 +480,7 @@ const HistoricalPricesPage = () => {
     },
     onError: (error) => {
       toast.error("Failed to create delivered bid");
-      console.error("Delivered bid create error:", error);
+      // console.error("Delivered bid create error:", error);
     },
   });
 
