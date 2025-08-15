@@ -272,9 +272,11 @@ const formatDateForFilename = (dateStr: string) => {
 const createEmptyPortZoneRows = (
   fetchedData: PortZoneBid[] = []
 ): PortZoneTableRow[] => {
+  // console.log("Fetched data for mapping:", fetchedData); // Debug fetched data
   return portZoneLabels.map((label, index) => {
     // Find matching data for this label
     const existingData = fetchedData.find((bid) => bid.label === label);
+    // console.log(`Mapping label: ${label}, found:`, !!existingData); // Debug matching
 
     return {
       id: `pz-${index}`,
@@ -366,35 +368,42 @@ const HistoricalPricesPage = () => {
 
   const queryClient = useQueryClient();
 
-  // Set mounted state to true after component mounts
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    console.log("Setting isMounted to true");
 
-  // Initialize with current date and season only after mounting
-  useEffect(() => {
-    if (isMounted) {
-      if (!selectedDate) {
-        const currentDate = getCurrentDateInputValue();
-        setSelectedDate(currentDate);
-        setCurrentDateInputValue(currentDate);
-      }
-      if (!selectedSeason) {
-        setSelectedSeason(getCurrentSeason());
-      }
+    if(!selectedDate){
+      const currentDate = getCurrentDateInputValue();
+      console.log("Setting initial selectedDate: ", currentDate);
+      setSelectedDate(currentDate);
+      setCurrentDateInputValue(currentDate);
     }
-  }, [isMounted, selectedDate, selectedSeason]);
+
+    if(!selectedSeason) {
+      const currentSeason = getCurrentSeason();
+      console.log("Setting initial selectedSeason: ", currentSeason);
+      setSelectedSeason(currentSeason);
+    }
+  }, []);
 
   // Fetch port zone bids
   const {
     data: fetchedPortZoneBids = [],
     isLoading: isLoadingPortZoneBids,
     error: portZoneBidsError,
+    isFetching,
   } = useQuery({
     queryKey: ["portZoneBids", selectedDate, selectedSeason],
     queryFn: () => fetchPortZoneBids(selectedDate, selectedSeason),
     enabled: !!selectedDate && !!selectedSeason && isMounted,
+    onSuccess: (data) => {
+      console.log("Fetched port zone bids:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching port zone bids:", error);
+    },
   });
+// console.log("useQuery state:", { selectedDate, selectedSeason, isMounted, isFetching, portZoneBidsError }); // Debug query conditions
 
   // Fetch delivered bids
   const {

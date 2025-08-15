@@ -94,8 +94,10 @@ const PortZoneBidsTable = ({
 
   // Update local data when prop data changes
   useEffect(() => {
+    // console.log("Received data prop:", data); // Debug incoming data
     setLocalData(data);
-    setChangedRows(new Set()); // Clear changes when new data arrives
+    console.log("Updated localData:", data);
+    // setChangedRows(new Set()); // Clear changes when new data arrives
   }, [data]);
 
   const handleCellEdit = (
