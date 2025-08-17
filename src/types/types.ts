@@ -167,6 +167,7 @@ export interface TContract {
   status: string;
   createdAt: string; // or Date if you'll parse it
   contractNumber: string;
+  contractDate: string; // Added contractDate
 }
 export interface TUpdateContract {
   _id?: string;
@@ -201,4 +202,5 @@ export interface TUpdateContract {
   tolerance: string;
   season: string;
   status?: string;
+  contractDate: string; // Added contractDate
 }

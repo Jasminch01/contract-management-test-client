@@ -33,6 +33,7 @@ import toast from "react-hot-toast";
 // Main Contract Component
 interface ContractProps {
   contract: TContract;
+  initialDate: string;
 }
 
 const generateSeasons = (yearsAhead = 10) => {
@@ -50,6 +51,7 @@ const generateSeasons = (yearsAhead = 10) => {
 
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
+  initialDate,
 }) => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
@@ -58,7 +60,11 @@ const EditableContract: React.FC<ContractProps> = ({
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [preview, setPreview] = useState(false);
-  const [contract, setContract] = useState(initialContract);
+  const [contract, setContract] = useState({
+    ...initialDate,
+    contractDate: initialDate || new Date(initialContract.createdAt).toISOString().split("T")[0],
+    deliveryPeriod: initialContract.deliveryPeriod || { start: "", end: "" },
+  })
   const [hasChanges, setHasChanges] = useState(false);
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
   const [showSellerDropdown, setShowSellerDropdown] = useState(false);
@@ -75,6 +81,8 @@ const EditableContract: React.FC<ContractProps> = ({
     "Complete",
     "Invoiced",
   ];
+
+  console.log('Fetched Contract', contract); // Debug log
 
   const { data: sellers = [] } = useQuery({
     queryKey: ["sellers"],
@@ -449,11 +457,10 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="text"
                   value={
-                    new Date(contract.createdAt).toISOString().split("T")[0] ||
-                    ""
+                    contract.contractDate
                   }
                   // value={new Date(contract.createdAt).toISOString().split("T")[0] || ""}
-                  // onChange={(e) => handleChange(e, "contractDate")}
+                  onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
                   readOnly
                 />
@@ -573,15 +580,15 @@ const EditableContract: React.FC<ContractProps> = ({
                 <div>
                   <p className="text-sm">
                     Start :{" "}
-                    {new Date(contract?.deliveryPeriod?.start)
-                      .toISOString()
-                      .split("T")[0] || "N/A"}
+                    {contract?.deliveryPeriod?.start && !isNaN(Date.parse(contract.deliveryPeriod.start))
+                      ? new Date(contract.deliveryPeriod.start).toISOString().split("T")[0]
+                      : "N/A"}
                   </p>
                   <p className="text-sm">
                     End :{" "}
-                    {new Date(contract?.deliveryPeriod?.end)
-                      .toISOString()
-                      .split("T")[0] || "N/A"}
+                    {contract?.deliveryPeriod?.end && !isNaN(Date.parse(contract.deliveryPeriod.end))
+                      ? new Date(contract.deliveryPeriod.end).toISOString().split("T")[0]
+                      : "N/A"}
                   </p>
                 </div>
               </div>
