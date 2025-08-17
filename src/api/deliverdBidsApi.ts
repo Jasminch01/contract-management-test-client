@@ -1,6 +1,5 @@
 import { instance } from "./api";
 
-// In src/api/deliverdBidsApi.ts
 export interface DeliveredBid {
   _id?: string;
   location: string;
@@ -22,6 +21,15 @@ export interface DeliveredBid {
   updatedAt?: string;
 }
 
+// Type for the bid data sent from the frontend
+interface BidInput {
+  label: string;
+  date: string;
+  season: string;
+  monthlyValues?: { [key: string]: number | null };
+  _id?: string;
+}
+
 export const fetchDeliveredBids = async (
   date: string,
   season: string
@@ -30,12 +38,17 @@ export const fetchDeliveredBids = async (
     const response = await instance.get(
       `delivered-bids?date=${encodeURIComponent(date)}&season=${encodeURIComponent(season)}`
     );
-    // console.log("Fetched delivered bids response:", response.data); // Debug
-    
-    const bids = response.data.data || response.data; // Handle both response structures
+
+    // Debugging
+    console.log("Fetched delivered bids response:", response.data);
+
+    const bids = response.data || response.data;
+    if (!Array.isArray(bids)) {
+      throw new Error("Invalid response format: expected an array of bids");
+    }
     return bids.map((bid: any) => ({
       _id: bid._id,
-      location: bid.label, // Map backend 'label' to frontend 'location'
+      location: bid.label,
       season: bid.season,
       date: bid.date,
       january: bid.monthlyValues?.January ?? null,
@@ -55,93 +68,86 @@ export const fetchDeliveredBids = async (
     }));
   } catch (error) {
     console.error("Error fetching delivered bids:", error);
+    if (error.response && error.response.status === 400) {
+      throw new Error(`Bad request: ${error.response.data.message}`);
+    }
     throw error;
   }
 };
 
-// ... (updateDeliveredBid and createDeliveredBid unchanged, but ensure 'location' maps to 'label')
 export const updateDeliveredBid = async (
-  bid: Partial<DeliveredBid> & { location: string; date: string; season: string }
+  bid: BidInput & { _id: string }
 ): Promise<DeliveredBid> => {
+  if (!bid.label || !bid.date || !bid.season) {
+    throw new Error("label, date, and season are required");
+  }
+
   const payload = {
-    ...bid,
-    label: bid.location, // Map frontend 'location' to backend 'label'
-    monthlyValues: {
-      January: bid.january ?? null,
-      February: bid.february ?? null,
-      March: bid.march ?? null,
-      April: bid.april ?? null,
-      May: bid.may ?? null,
-      June: bid.june ?? null,
-      July: bid.july ?? null,
-      August: bid.august ?? null,
-      September: bid.september ?? null,
-      October: bid.october ?? null,
-      November: bid.november ?? null,
-      December: bid.december ?? null,
-    },
+    label: bid.label,
+    date: bid.date,
+    season: bid.season,
+    monthlyValues: bid.monthlyValues || {},
+    _id: bid._id,
   };
+
+  // Debugging
+  console.log("Sending payload to backend:", JSON.stringify(payload));
+
   const response = await instance.post("delivered-bids", payload);
-  if (!response) {
-    throw new Error("Failed to update delivered bid");
+  if (!response.data || response.status !== 200) {
+    throw new Error(`Failed to update delivered bid: ${response.data?.message || "Unknown error"}`);
   }
   return {
-    ...response.data.data,
-    location: response.data.data.label, // Map back to 'location'
-    january: response.data.data.monthlyValues?.January ?? null,
-    february: response.data.data.monthlyValues?.February ?? null,
-    march: response.data.data.monthlyValues?.March ?? null,
-    april: response.data.data.monthlyValues?.April ?? null,
-    may: response.data.data.monthlyValues?.May ?? null,
-    june: response.data.data.monthlyValues?.June ?? null,
-    july: response.data.data.monthlyValues?.July ?? null,
-    august: response.data.data.monthlyValues?.August ?? null,
-    september: response.data.data.monthlyValues?.September ?? null,
-    october: response.data.data.monthlyValues?.October ?? null,
-    november: response.data.data.monthlyValues?.November ?? null,
-    december: response.data.data.monthlyValues?.December ?? null,
+    ...response.data,
+    location: response.data.label,
+    january: response.data.monthlyValues?.January ?? null,
+    february: response.data.monthlyValues?.February ?? null,
+    march: response.data.monthlyValues?.March ?? null,
+    april: response.data.monthlyValues?.April ?? null,
+    may: response.data.monthlyValues?.May ?? null,
+    june: response.data.monthlyValues?.June ?? null,
+    july: response.data.monthlyValues?.July ?? null,
+    august: response.data.monthlyValues?.August ?? null,
+    september: response.data.monthlyValues?.September ?? null,
+    october: response.data.monthlyValues?.October ?? null,
+    november: response.data.monthlyValues?.November ?? null,
+    december: response.data.monthlyValues?.December ?? null,
   };
 };
 
 export const createDeliveredBid = async (
-  bid: Omit<DeliveredBid, "_id" | "createdAt" | "updatedAt">
+  bid: BidInput
 ): Promise<DeliveredBid> => {
-  const payload = {
-    ...bid,
-    label: bid.location, // Map frontend 'location' to backend 'label'
-    monthlyValues: {
-      January: bid.january ?? null,
-      February: bid.february ?? null,
-      March: bid.march ?? null,
-      April: bid.april ?? null,
-      May: bid.may ?? null,
-      June: bid.june ?? null,
-      July: bid.july ?? null,
-      August: bid.august ?? null,
-      September: bid.september ?? null,
-      October: bid.october ?? null,
-      November: bid.november ?? null,
-      December: bid.december ?? null,
-    },
-  };
-  const response = await instance.post("delivered-bids", payload);
-  if (!response) {
-    throw new Error("Failed to create delivered bid");
+  if (!bid.label || !bid.date || !bid.season) {
+    throw new Error("label, date, and season are required");
   }
+
+  const payload = {
+    label: bid.label,
+    date: bid.date,
+    season: bid.season,
+    monthlyValues: bid.monthlyValues || {},
+  };
+  console.log("Sending payload to backend:", JSON.stringify(payload));
+
+  const response = await instance.post("delivered-bids", payload);
+  // if (!response.data || response.status !== 200) {
+  //   throw new Error(`Failed to create delivered bid: ${response.data?.message || "Unknown error"}`);
+  // }
   return {
-    ...response.data.data,
-    location: response.data.data.label, // Map back to 'location'
-    january: response.data.data.monthlyValues?.January ?? null,
-    february: response.data.data.monthlyValues?.February ?? null,
-    march: response.data.data.monthlyValues?.March ?? null,
-    april: response.data.data.monthlyValues?.April ?? null,
-    may: response.data.data.monthlyValues?.May ?? null,
-    june: response.data.data.monthlyValues?.June ?? null,
-    july: response.data.data.monthlyValues?.July ?? null,
-    august: response.data.data.monthlyValues?.August ?? null,
-    september: response.data.data.monthlyValues?.September ?? null,
-    october: response.data.data.monthlyValues?.October ?? null,
-    november: response.data.data.monthlyValues?.November ?? null,
-    december: response.data.data.monthlyValues?.December ?? null,
+    ...response.data,
+    location: response.data.label,
+    january: response.data.monthlyValues?.January ?? null,
+    february: response.data.monthlyValues?.February ?? null,
+    march: response.data.monthlyValues?.March ?? null,
+    april: response.data.monthlyValues?.April ?? null,
+    may: response.data.monthlyValues?.May ?? null,
+    june: response.data.monthlyValues?.June ?? null,
+    july: response.data.monthlyValues?.July ?? null,
+    august: response.data.monthlyValues?.August ?? null,
+    september: response.data.monthlyValues?.September ?? null,
+    october: response.data.monthlyValues?.October ?? null,
+    november: response.data.monthlyValues?.November ?? null,
+    december: response.data.monthlyValues?.December ?? null,
   };
 };

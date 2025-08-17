@@ -422,7 +422,8 @@ const HistoricalPricesPage = () => {
       });
     },
     onError: (error) => {
-      toast.error("Failed to update delivered bid");
+      toast.error(`Failed to update delivered bid: ${error.message}`);
+      console.error("Mutation Error:", error);
     },
   });
 
@@ -435,7 +436,8 @@ const HistoricalPricesPage = () => {
       });
     },
     onError: (error) => {
-      toast.error("Failed to create delivered bid");
+      toast.error(`Failed to create delivered bid: ${error.message}`);
+      console.error("Mutation Error:", error);
     },
   });
 
@@ -476,6 +478,14 @@ const HistoricalPricesPage = () => {
         [capitalizedMonth]: value,
       },
     };
+
+    // Debug log
+    console.log("Sending delivered bid update/create:", JSON.stringify(bidData));
+
+    if(!selectedDate || isNaN(new Date(selectedDate).getTime())){
+      toast.error("Invalid date");
+      return;
+    }
 
     if (updatedRow.hasData && updatedRow._id) {
       updateDeliveredBidMutation.mutate({
