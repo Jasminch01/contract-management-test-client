@@ -40,8 +40,6 @@ const ContractEditpage = () => {
     },
   });
 
-  console.log("Contract Data:", contractData);
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -89,7 +87,7 @@ const ContractEditpage = () => {
   return (
     <div>
       {/* <Contract contract={contractData} /> */}
-      <EditableContract contract={contractData} initialDate={contractData.contractDate} />
+      <EditableContract contract={contractData} />
     </div>
   );
 };

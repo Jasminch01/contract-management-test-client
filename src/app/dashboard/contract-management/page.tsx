@@ -21,7 +21,7 @@ const columns = [
     name: "DATE",
     selector: (row: TContract) => {
       if (!row?.createdAt) return "";
-      const date = new Date(row.createdAt);
+      const date = new Date(row.contractDate || row.createdAt);
       return date.toLocaleDateString();
     },
     sortable: true,

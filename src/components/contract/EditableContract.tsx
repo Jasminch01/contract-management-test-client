@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
 
 "use client";
@@ -33,7 +33,6 @@ import toast from "react-hot-toast";
 // Main Contract Component
 interface ContractProps {
   contract: TContract;
-  initialDate: string;
 }
 
 const generateSeasons = (yearsAhead = 10) => {
@@ -51,7 +50,6 @@ const generateSeasons = (yearsAhead = 10) => {
 
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
-  initialDate,
 }) => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
@@ -61,10 +59,9 @@ const EditableContract: React.FC<ContractProps> = ({
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [preview, setPreview] = useState(false);
   const [contract, setContract] = useState({
-    ...initialDate,
-    contractDate: initialDate || new Date(initialContract.createdAt).toISOString().split("T")[0],
+    ...initialContract,
     deliveryPeriod: initialContract.deliveryPeriod || { start: "", end: "" },
-  })
+  });
   const [hasChanges, setHasChanges] = useState(false);
   const [showBuyerDropdown, setShowBuyerDropdown] = useState(false);
   const [showSellerDropdown, setShowSellerDropdown] = useState(false);
@@ -81,9 +78,6 @@ const EditableContract: React.FC<ContractProps> = ({
     "Complete",
     "Invoiced",
   ];
-
-  console.log('Fetched Contract', contract); // Debug log
-
   const { data: sellers = [] } = useQuery({
     queryKey: ["sellers"],
     queryFn: getsellers,
@@ -382,8 +376,9 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, updatedAt, _v, contractNumber, ...updatedContract } =
-      contractToSave;
+    const { _id, createdAt,updatedAt,_v,contractNumber,
+      ...updatedContract
+    } = contractToSave;
     updateContractMutation.mutate(updatedContract);
   };
 
@@ -445,24 +440,28 @@ const EditableContract: React.FC<ContractProps> = ({
                   value={contract.contractNumber || ""}
                   // onChange={(e) => handleChange(e, "contractNumber")}
                   readOnly
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full font-semibold focus:outline-none p-1 rounded"
                 />
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
-                Contract Date
+                <p>Contract Date :</p>
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="date"
                   value={
                     contract.contractDate
+                      ? new Date(contract.contractDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : new Date(initialContract.createdAt)
+                          .toISOString()
+                          .split("T")[0]
                   }
-                  // value={new Date(contract.createdAt).toISOString().split("T")[0] || ""}
                   onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
-                  readOnly
                 />
               </div>
             </div>
@@ -580,14 +579,20 @@ const EditableContract: React.FC<ContractProps> = ({
                 <div>
                   <p className="text-sm">
                     Start :{" "}
-                    {contract?.deliveryPeriod?.start && !isNaN(Date.parse(contract.deliveryPeriod.start))
-                      ? new Date(contract.deliveryPeriod.start).toISOString().split("T")[0]
+                    {contract?.deliveryPeriod?.start &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.start))
+                      ? new Date(contract.deliveryPeriod.start)
+                          .toISOString()
+                          .split("T")[0]
                       : "N/A"}
                   </p>
                   <p className="text-sm">
                     End :{" "}
-                    {contract?.deliveryPeriod?.end && !isNaN(Date.parse(contract.deliveryPeriod.end))
-                      ? new Date(contract.deliveryPeriod.end).toISOString().split("T")[0]
+                    {contract?.deliveryPeriod?.end &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.end))
+                      ? new Date(contract.deliveryPeriod.end)
+                          .toISOString()
+                          .split("T")[0]
                       : "N/A"}
                   </p>
                 </div>

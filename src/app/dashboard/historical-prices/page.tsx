@@ -1,5 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 "use client";
 import DeliveredBidsTable from "@/components/Dashboard/DeliverdBidsTable";
 import PortZoneBidsTable from "@/components/Dashboard/PortZoneBidsTable";
@@ -18,7 +21,6 @@ import {
   createDeliveredBid,
   fetchDeliveredBids,
   updateDeliveredBid,
-  type DeliveredBid,
 } from "@/api/deliverdBidsApi";
 
 const clientLocations = [
@@ -35,7 +37,7 @@ const clientLocations = [
   "Dublin Canola",
   "Semaphore Containers NIP/HAL",
   "Semaphore Containers APW1",
-].map((loc) => `Delivered ${loc}`);
+].map((loc) => `${loc}`);
 
 // Backend schema types for Port Zone Bids
 interface PortZoneBid {
@@ -168,67 +170,35 @@ const months = [
   "December",
 ];
 
-// Helper functions
-const getSeasonFromDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1; // 1-12
-
-  if (month >= 1 && month <= 6) {
-    // January to June: we're in the season that started last July
-    const startYear = year - 1;
-    const endYear = year;
-    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
-  } else {
-    // July to December: we're in the season that started this July
-    const startYear = year;
-    const endYear = year + 1;
-    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
-  }
-};
-
-const getFormattedDates = () => {
-  if (typeof window === "undefined") {
-    // Return empty array during SSR to avoid hydration mismatch
-    return [];
-  }
-
-  const today = new Date();
-  return Array.from({ length: 10 }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    const day = date.getDate();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
-  });
-};
-
 const getFormattedSeasons = () => {
   if (typeof window === "undefined") {
     // Return empty array during SSR to avoid hydration mismatch
     return [];
   }
-
+  // This gets the current year every time the function is called
+  // So it automatically updates when the year changes
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1; // 1-12
-
-  // Determine the current season year based on the month
-  let currentSeasonStartYear;
-  if (currentMonth >= 1 && currentMonth <= 6) {
-    // January to June: current season started last year
-    currentSeasonStartYear = currentYear - 1;
-  } else {
-    // July to December: current season started this year
-    currentSeasonStartYear = currentYear;
-  }
-
+ 
   // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
+  // Each season represents a full year and will auto-update based on current year
   return Array.from({ length: 11 }, (_, i) => {
-    const startYear = currentSeasonStartYear + 1 - i; // +1 for future season
+    const startYear = currentYear + 1 - i; // +1 for future season
     const endYear = startYear + 1;
     return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
   });
 };
+
+const getSeasonFromDate = (date: Date) => {
+  // This will always use the year from the provided date
+  // So it automatically works for any year
+  const year = date.getFullYear();
+  
+  // Each season represents a full year
+  const startYear = year;
+  const endYear = year + 1;
+  return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
+};
+
 
 const getCurrentDateInputValue = () => {
   if (typeof window === "undefined") {
@@ -291,9 +261,14 @@ const createEmptyPortZoneRows = (
 };
 
 // Create empty Delivered Bids table rows with client locations
-const createEmptyDeliveredBidsRows = (fetchedData: any[] = []): DeliveredBidTableRow[] => {
+const createEmptyDeliveredBidsRows = (
+  fetchedData: any[] = []
+): DeliveredBidTableRow[] => {
   return clientLocations.map((location, index) => {
-    const existingData = fetchedData.find((bid) => (bid as any).label === location || (bid as any).location === location);
+    const existingData = fetchedData.find(
+      (bid) =>
+        (bid as any).label === location || (bid as any).location === location
+    );
 
     const getMonthValue = (monthName: string) => {
       if (!existingData) return null;
@@ -328,14 +303,19 @@ const createEmptyDeliveredBidsRows = (fetchedData: any[] = []): DeliveredBidTabl
 };
 
 const HistoricalPricesPage = () => {
-  const [activeTab, setActiveTab] = useState<"historicalPrices" | "deliveredBids">("historicalPrices");
+  const [activeTab, setActiveTab] = useState<
+    "historicalPrices" | "deliveredBids"
+  >("historicalPrices");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSeason, setSelectedSeason] = useState("");
   const [currentDateInputValue, setCurrentDateInputValue] = useState("");
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
-  const [exportDateRange, setExportDateRange] = useState<{ start: string; end: string } | null>(null);
+  const [exportDateRange, setExportDateRange] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -480,9 +460,12 @@ const HistoricalPricesPage = () => {
     };
 
     // Debug log
-    console.log("Sending delivered bid update/create:", JSON.stringify(bidData));
+    console.log(
+      "Sending delivered bid update/create:",
+      JSON.stringify(bidData)
+    );
 
-    if(!selectedDate || isNaN(new Date(selectedDate).getTime())){
+    if (!selectedDate || isNaN(new Date(selectedDate).getTime())) {
       toast.error("Invalid date");
       return;
     }
@@ -568,7 +551,7 @@ const HistoricalPricesPage = () => {
         <p className="text-xl">Historical Daily Prices</p>
         {isMounted && (
           <p className="text-sm text-gray-600 mt-2">
-            Current Season: {getCurrentSeason()} (July - June)
+            Current Season: {getCurrentSeason()}
           </p>
         )}
       </div>
@@ -628,7 +611,7 @@ const HistoricalPricesPage = () => {
               {showSeasonDropdown && (
                 <div className="absolute right-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
                   <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200">
-                    Season: July - June
+                    Season
                   </div>
                   {getFormattedSeasons().map((season, index) => {
                     const isCurrentSeason = season === getCurrentSeason();
@@ -668,7 +651,8 @@ const HistoricalPricesPage = () => {
 
         {deliveredBidsError && activeTab === "deliveredBids" && (
           <div className="text-center py-8 text-red-500">
-            Error loading delivered bids: {(deliveredBidsError as Error).message}
+            Error loading delivered bids:{" "}
+            {(deliveredBidsError as Error).message}
           </div>
         )}
 

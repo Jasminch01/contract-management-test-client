@@ -22,13 +22,13 @@ import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
+const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
   ]);
   const [formData, setFormData] = useState<TUpdateContract>({
-    contractDate: initialDate || new Date().toISOString().split("T")[0],
+    contractDate: "",
     buyerContractReference: "",
     sellerContractReference: "",
     grade: "",
@@ -55,7 +55,7 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
     specialCondition: "",
     termsAndConditions: "",
     notes: "",
-    tonnes: 0,
+    tonnes: " ",
     ngrNumber: "",
     tolerance: "",
     season: "",
@@ -69,6 +69,7 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
   });
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
+  const [selectedSeller, setSelectedSeller] = useState<Seller>();
   const [startDate, endDate] = dateRange;
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -238,23 +239,14 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
       // Return empty array during SSR to avoid hydration mismatch
       return [];
     }
-
+    // This gets the current year every time the function is called
+    // So it automatically updates when the year changes
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1; // 1-12
-
-    // Determine the current season year based on the month
-    let currentSeasonStartYear;
-    if (currentMonth >= 1 && currentMonth <= 6) {
-      // January to June: current season started last year
-      currentSeasonStartYear = currentYear - 1;
-    } else {
-      // July to December: current season started this year
-      currentSeasonStartYear = currentYear;
-    }
 
     // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
+    // Each season represents a full year and will auto-update based on current year
     return Array.from({ length: 11 }, (_, i) => {
-      const startYear = currentSeasonStartYear + 1 - i; // +1 for future season
+      const startYear = currentYear + 1 - i; // +1 for future season
       const endYear = startYear + 1;
       return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
     });
@@ -283,6 +275,7 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
 
   // For updating seller information
   const handleSellerSelect = (seller: Seller) => {
+    setSelectedSeller(seller);
     setFormData((prev) => ({
       ...prev,
       seller: seller._id as string,
@@ -347,13 +340,29 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
       ...formData,
     };
 
-    createContractMutation.mutate(newContract);
+    // createContractMutation.mutate(newContract);
+    console.log(newContract);
   };
 
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible hide-scrollbar-xl">
       <form className="space-y-6 mt-7 md:mt-10" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-rows-8 gap-3 sm:gap-4 xl:gap-5">
+          {/* Contract Date */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              CONTRACT DATE
+            </label>
+            <input
+              type="date"
+              name="contractDate"
+              value={formData.contractDate}
+              onChange={handleChange}
+              placeholder="sjfkjdf"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              required
+            />
+          </div>
           {/* Delivery Period - Full width on mobile, spans appropriately on larger screens */}
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-gray-700 uppercase">
@@ -367,8 +376,8 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
                 onChange={handleDateChange}
                 isClearable={true}
                 placeholderText="Select date range"
-                // className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                calendarClassName="w-full sm:w-auto"
+                className="w-full focus:outline-none "
+                // calendarClassName="w-full"
                 dateFormat="MMM d, yyyy"
                 minDate={new Date()}
                 maxDate={addDays(new Date(), 365)}
@@ -377,21 +386,6 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
                 required
               />
             </div>
-          </div>
-
-          {/* Contract Date */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              CONTRACT DATE
-            </label>
-            <input
-              type="date"
-              name="contractDate"
-              value={formData.contractDate}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              required
-            />
           </div>
 
           {/* Payment Terms */}
@@ -424,11 +418,6 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
               placeholder=""
               required
             />
-          </div>
-
-          {/* Contract Type Select */}
-          <div>
-            <SelectContractType onSelect={handleContractTypeSelect} />
           </div>
 
           {/* Delivery Option */}
@@ -737,24 +726,44 @@ const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
             />
           </div>
 
+          {/* Contract Type Select */}
+          <div>
+            <SelectContractType onSelect={handleContractTypeSelect} />
+          </div>
           {/* NGR Number - Conditional */}
           {isGrowerContract && (
             <div className="lg:row-start-8 xl:row-start-8">
               <label className="block text-xs font-medium text-gray-700 uppercase">
                 NGR NUMBER
               </label>
-              <input
-                type="text"
+              <select
                 name="ngrNumber"
                 onChange={handleChange}
                 value={formData.ngrNumber}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-                placeholder=""
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white"
                 required
-              />
+              >
+                <option value="">Select NGR Number</option>
+
+                {/* Main NGR - Highlighted */}
+                {selectedSeller?.additionalNgrs && (
+                  <option
+                    value={selectedSeller.mainNgr}
+                    className=" bg-blue-50 text-blue-800"
+                  >
+                    {selectedSeller.mainNgr} (Main NGR)
+                  </option>
+                )}
+
+                {/* Additional NGRs */}
+                {selectedSeller?.additionalNgrs?.map((ngr, index) => (
+                  <option key={index} value={ngr} className="text-gray-700">
+                    {ngr}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
-
           {/* Season Dropdown */}
           <div className="lg:row-start-8 xl:row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">

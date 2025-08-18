@@ -60,7 +60,13 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                   {contract.sellerContractReference}
                 </span>
                 <span className="w-1/4 font-semibold">Contract Date:</span>
-                <span className="w-1/4">{contract.createdAt}</span>
+                <span className="w-1/4">
+                  {contract.contractDate
+                    ? new Date(contract.contractDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : new Date(contract.createdAt).toISOString().split("T")[0]}
+                </span>
               </div>
             </div>
           </div>

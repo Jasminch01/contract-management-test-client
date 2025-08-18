@@ -186,8 +186,9 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contract Date
               </div>
               <div className="w-1/2 p-3">
-                {new Date(contract.createdAt).toISOString().split("T")[0] ||
-                  "N/A"}
+                {contract.contractDate
+                  ? new Date(contract.contractDate).toISOString().split("T")[0]
+                  : new Date(contract.createdAt).toISOString().split("T")[0]}
               </div>
             </div>
             <div className="flex border-b border-gray-300">

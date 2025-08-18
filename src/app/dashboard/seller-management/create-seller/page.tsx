@@ -157,16 +157,6 @@ const CreateSellerPage = () => {
     });
   };
 
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0]; // Get the first selected file
-  //   if (file) {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       authorityActFormPdf: file, // Store the File object
-  //     }));
-  //   }
-  // };
-
   const handleAuthorityActFormUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -265,8 +255,8 @@ const CreateSellerPage = () => {
       bulkHandlerCredentials: validCredentials,
     };
 
-    // console.log("Submitting seller with credentials:", newSeller);
-    createSellerMutation.mutate(newSeller);
+    console.log("Submitting seller with credentials:", newSeller);
+    // createSellerMutation.mutate(newSeller);
   };
 
   // Save credentials and close modal
@@ -570,24 +560,26 @@ const CreateSellerPage = () => {
 
               {/* Row 6 - Authority to Act Form */}
               <div className="flex flex-col md:flex-row gap-6">
-                <div className="w-full md:w-1/2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    AUTHORITY TO ACT (FORM)
-                  </label>
-                  <input
-                    type="file"
-                    name="authorityActFormPdf"
-                    disabled={uploadingAthAct}
-                    onChange={handleAuthorityActFormUpload}
-                    accept="application/pdf"
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                  />
-                  {uploadingAthAct && (
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
-                    </div>
-                  )}
-                </div>
+                {
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      AUTHORITY TO ACT (FORM)
+                    </label>
+                    <input
+                      type="file"
+                      name="authorityActFormPdf"
+                      disabled={uploadingAthAct}
+                      onChange={handleAuthorityActFormUpload}
+                      accept="application/pdf"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    />
+                    {uploadingAthAct && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                        <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                      </div>
+                    )}
+                  </div>
+                }
                 <div className="w-full md:w-1/2"></div>
               </div>
             </div>

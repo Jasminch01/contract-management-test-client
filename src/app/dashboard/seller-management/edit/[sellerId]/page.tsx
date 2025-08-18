@@ -2,7 +2,13 @@
 import { BulkHandlerCredential, Seller } from "@/types/types";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
-import { MdSave, MdCancel, MdKeyboardBackspace } from "react-icons/md";
+import {
+  MdSave,
+  MdCancel,
+  MdKeyboardBackspace,
+  MdDelete,
+} from "react-icons/md";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import toast from "react-hot-toast";
 import { getseller, updateSeller } from "@/api/sellerApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,6 +48,12 @@ const SellerInformationEditPage = () => {
     new Array(handlerNames.length).fill(false)
   );
 
+  // Add state for authority to act PDF upload
+  const [uploadingAuthorityPdf, setUploadingAuthorityPdf] = useState(false);
+
+  // Add ref for file input to reset it after removal
+  const authorityFileInputRef = useRef<HTMLInputElement>(null);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,6 +90,89 @@ const SellerInformationEditPage = () => {
     "Victoria",
     "TRADE",
   ];
+
+  // Cloudinary upload function (same as in contract component)
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "your_upload_preset"
+    );
+    formData.append("resource_type", "auto");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      throw new Error("Failed to upload file");
+    }
+  };
+
+  // Handle Authority to Act PDF upload
+  const handleAuthorityPdfUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingAuthorityPdf(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setSellerData((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, authorityActFormPdf: url };
+        setHasChanges(checkForChanges(updated));
+        return updated;
+      });
+      toast.success("Authority to Act form uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload Authority to Act form");
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingAuthorityPdf(false);
+    }
+  };
+
+  // Handle remove Authority to Act PDF
+  const handleRemoveAuthorityPdf = () => {
+    setSellerData((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, authorityActFormPdf: "" };
+      setHasChanges(checkForChanges(updated));
+      return updated;
+    });
+
+    // Reset the file input field
+    if (authorityFileInputRef.current) {
+      authorityFileInputRef.current.value = "";
+    }
+  };
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -160,6 +255,7 @@ const SellerInformationEditPage = () => {
         contactName:
           fetchSellerData.contactName || fetchSellerData.legalName || "",
         bulkHandlerCredentials: fetchSellerData.bulkHandlerCredentials || [],
+        authorityActFormPdf: fetchSellerData.authorityActFormPdf || "", // Add this field
       };
 
       setSellerData(initializedData);
@@ -331,7 +427,7 @@ const SellerInformationEditPage = () => {
       bulkHandlerCredentials: validCredentials,
     };
 
-    console.log("Updating seller with data:", sellerDataWithCredentials);
+    // console.log("Updating seller with data:", sellerDataWithCredentials);
     updateSellerMutation.mutate(sellerDataWithCredentials);
   };
 
@@ -641,16 +737,52 @@ const SellerInformationEditPage = () => {
               />
             </div>
 
-            {/* Authority to Act Form */}
+            {/* Updated Authority to Act Form */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 AUTHORITY TO ACT (FORM)
               </label>
-              <input
-                type="file"
-                accept="application/pdf"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-              />
+              {sellerData.authorityActFormPdf ? (
+                <div className="flex items-center gap-2 mb-2">
+                  <a
+                    href={sellerData.authorityActFormPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    View Current Authority to Act Form
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAuthorityPdf}
+                    className="text-red-500 hover:text-red-700 p-1"
+                    title="Remove Authority to Act form"
+                  >
+                    <MdDelete size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 relative">
+                  <input
+                    ref={authorityFileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleAuthorityPdfUpload}
+                    disabled={uploadingAuthorityPdf}
+                    className="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-gray-50 file:text-gray-700
+            hover:file:bg-gray-100 disabled:opacity-50"
+                  />
+                  {uploadingAuthorityPdf && (
+                    <div className="absolute right-2">
+                      <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -667,7 +799,7 @@ const SellerInformationEditPage = () => {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saveStatus === "saving"}
+                disabled={saveStatus === "saving" || uploadingAuthorityPdf}
                 className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 <MdSave className="text-lg" />

@@ -110,7 +110,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       try {
         // Get token from localStorage
         const token = getTokenFromStorage("accesstoken");
-        console.log("Token from localStorage:", token);
 
         if (!token) {
           setIsAuthenticated(false);

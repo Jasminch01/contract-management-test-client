@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
-
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -387,7 +386,14 @@ const EditableContract: React.FC<ContractProps> = ({
           : contract.seller?._id,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, contractNumber, createdAt, _v, updatedAt, ...contractWithoutId } = contractToSave;
+    const {
+      _id,
+      contractNumber,
+      createdAt,
+      _v,
+      updatedAt,
+      ...contractWithoutId
+    } = contractToSave;
     createContractMutation.mutate(contractWithoutId);
   };
 
@@ -448,7 +454,7 @@ const EditableContract: React.FC<ContractProps> = ({
                   type="text"
                   value={contract.contractNumber || ""}
                   // onChange={(e) => handleChange(e, "contractNumber")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  className="w-full font-semibold focus:outline-none p-1 rounded"
                   readOnly
                 />
               </div>
@@ -461,12 +467,16 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="date"
                   value={
-                    contract.contractDate ||
-                    new Date().toISOString().split("T")[0]
+                    contract.contractDate
+                      ? new Date(contract.contractDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : new Date(initialContract.createdAt)
+                          .toISOString()
+                          .split("T")[0]
                   }
                   onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
-                  readOnly
                 />
               </div>
             </div>
