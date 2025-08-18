@@ -532,8 +532,8 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="weights"
               value={formData.weights}
-              type="number"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               required
             />
@@ -769,8 +769,8 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="tolerance"
               value={formData.tolerance}
-              type="number"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               required
             />
