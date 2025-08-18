@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { fetchPortZoneBids } from "@/api/portZoneApi";
-import { fetchDeliveredBids } from "@/api/deliverdBidsApi";
+import { DeliveredBid, fetchDeliveredBids } from "@/api/deliverdBidsApi";
 
 interface DateRangeModalProps {
   isOpen: boolean;
@@ -165,11 +165,11 @@ const exportPortZoneDataToCSV = (
 };
 
 const exportDeliveredBidsToCSV = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[],
   startDate: string,
   endDate: string
 ) => {
+  // console.log("Data for CSV export:", data); // Log the data array
   if (!data || data.length === 0) {
     toast.error("No Delivered Bids data found for the selected date range");
     return;
@@ -212,30 +212,31 @@ const exportDeliveredBidsToCSV = (
     .sort()
     .forEach((date) => {
       groupedByDate[date].forEach((item) => {
-        const monthlyValues = item.monthlyValues || {};
         const row = [
           item.date,
           item.season || "",
-          item.label || item.location || "",
-          monthlyValues.January || "",
-          monthlyValues.February || "",
-          monthlyValues.March || "",
-          monthlyValues.April || "",
-          monthlyValues.May || "",
-          monthlyValues.June || "",
-          monthlyValues.July || "",
-          monthlyValues.August || "",
-          monthlyValues.September || "",
-          monthlyValues.October || "",
-          monthlyValues.November || "",
-          monthlyValues.December || "",
+          item.location || "",
+          String(item.january ?? ""), // Explicitly convert to string
+          String(item.february ?? ""),
+          String(item.march ?? ""),
+          String(item.april ?? ""),
+          String(item.may ?? ""),
+          String(item.june ?? ""),
+          String(item.july ?? ""),
+          String(item.august ?? ""),
+          String(item.september ?? ""),
+          String(item.october ?? ""),
+          String(item.november ?? ""),
+          String(item.december ?? ""),
         ];
+        console.log("Row data:", row); // Log each row data
         rows.push(row.join(","));
       });
     });
 
   // Download CSV
   const csvContent = rows.join("\n");
+  // console.log("CSV content:", csvContent); // Log the final CSV content
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
 
@@ -336,6 +337,9 @@ const DateRangeModal: React.FC<DateRangeModalProps> = ({
         (item, index, self) =>
           index === self.findIndex((t) => t._id === item._id)
       );
+
+      // Debug unique 
+      console.log("Unique data for export: ", uniqueData);
 
       if (uniqueData.length === 0) {
         toast.error(

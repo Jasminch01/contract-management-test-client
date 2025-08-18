@@ -170,8 +170,17 @@ const ContractManagementPage = () => {
         (contract) => !contract.isDeleted
       );
 
-      setMasterData(activeContracts);
-      setSearchFilteredData(activeContracts);
+      setMasterData((prev) => {
+        // Only update if data has changed to prevent unnecessary renders
+        return JSON.stringify(prev) !== JSON.stringify(activeContracts)
+          ? activeContracts
+          : prev;
+      });
+      setSearchFilteredData((prev) => {
+        return JSON.stringify(prev) !== JSON.stringify(activeContracts)
+          ? activeContracts
+          : prev;
+      });
 
       // Apply current filters to new data
       let filteredData = activeContracts;
@@ -181,7 +190,11 @@ const ContractManagementPage = () => {
             contract.status?.toLowerCase() === selectedStatus.toLowerCase()
         );
       }
-      setData(filteredData);
+      setData((prev) => {
+        return JSON.stringify(prev) !== JSON.stringify(filteredData)
+          ? filteredData
+          : prev;
+      });
     }
   }, [contracts, isMounted, selectedStatus]); // Added selectedStatus to dependencies
 
@@ -202,8 +215,7 @@ const ContractManagementPage = () => {
 
       toast.success("Contract(s) deleted successfully");
 
-      // Force refetch to ensure data is updated
-      refetch();
+      // Removed refetch() to rely on automatic refetch from invalidateQueries
     },
     onError: (error) => {
       console.error("Error deleting contracts:", error);

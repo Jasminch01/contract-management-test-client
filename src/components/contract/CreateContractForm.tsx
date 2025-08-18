@@ -22,12 +22,13 @@ import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-const CreateContractForm = () => {
+const CreateContractForm = ({initialDate} : CreateContractFormProps) => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
   ]);
   const [formData, setFormData] = useState<TUpdateContract>({
+    contractDate: initialDate || new Date().toISOString().split("T")[0],
     buyerContractReference: "",
     sellerContractReference: "",
     grade: "",
@@ -376,6 +377,21 @@ const CreateContractForm = () => {
                 required
               />
             </div>
+          </div>
+
+          {/* Contract Date */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              CONTRACT DATE
+            </label>
+            <input
+              type="date"
+              name="contractDate"
+              value={formData.contractDate}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              required
+            />
           </div>
 
           {/* Payment Terms */}

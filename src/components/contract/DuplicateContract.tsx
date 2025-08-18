@@ -459,10 +459,10 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="text"
+                  type="date"
                   value={
-                    new Date().toISOString().split("T")[0] ||
-                    ""
+                    contract.contractDate ||
+                    new Date().toISOString().split("T")[0]
                   }
                   onChange={(e) => handleChange(e, "contractDate")}
                   className="w-full border border-gray-300 p-1 rounded"
