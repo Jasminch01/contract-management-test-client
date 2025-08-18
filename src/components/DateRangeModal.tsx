@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { fetchPortZoneBids } from "@/api/portZoneApi";
-import { DeliveredBid, fetchDeliveredBids } from "@/api/deliverdBidsApi";
+import { fetchDeliveredBids } from "@/api/deliverdBidsApi";
 
 interface DateRangeModalProps {
   isOpen: boolean;
@@ -165,6 +165,7 @@ const exportPortZoneDataToCSV = (
 };
 
 const exportDeliveredBidsToCSV = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[],
   startDate: string,
   endDate: string

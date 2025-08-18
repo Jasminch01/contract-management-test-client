@@ -1,3 +1,4 @@
+
 export interface HistoricalPrice {
   id: string;
   commodity: string;
@@ -171,6 +172,7 @@ export interface TContract {
 }
 export interface TUpdateContract {
   _id?: string;
+  contractNumber: string;
   buyerContractReference: string;
   sellerContractReference: string;
   grade: string;

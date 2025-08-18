@@ -22,12 +22,22 @@ import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
+function generateContractNumber(
+  prefix: string,
+  seq: number,
+  length: number = 4
+): string {
+  const padded = String(seq).padStart(length, "0");
+  return `${prefix}${padded}`;
+}
+
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
   ]);
   const [formData, setFormData] = useState<TUpdateContract>({
+    contractNumber: "",
     contractDate: "",
     buyerContractReference: "",
     sellerContractReference: "",
@@ -77,9 +87,6 @@ const CreateContractForm = () => {
   const createContractMutation = useMutation({
     mutationFn: createContract,
     onSuccess: (data) => {
-      // Invalidate and refetch contracts list
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-
       // Or optimistically update the cache - with null check
       queryClient.setQueryData(
         ["contracts"],
@@ -89,6 +96,13 @@ const CreateContractForm = () => {
           return [data, ...existingContracts];
         }
       );
+
+      // Invalidate and refetch contracts list
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contract"] });
+      queryClient.invalidateQueries({ queryKey: ["sellers"] });
+      queryClient.invalidateQueries({ queryKey: ["buyers"] });
+
       toast.success("Contract created successfully!");
       router.push("/dashboard/contract-management");
     },
@@ -97,6 +111,15 @@ const CreateContractForm = () => {
       toast.error("Failed to create contract. Please try again.");
     },
   });
+
+  useEffect(() => {
+    const seq = Math.floor(Math.random() * 9999) + 1; // Example: random seq, replace with DB counter if available
+    const contractNumber = generateContractNumber("ZJ", seq);
+    setFormData((prev) => ({
+      ...prev,
+      contractNumber,
+    }));
+  }, []);
 
   // Cloudinary upload function
   const uploadToCloudinary = async (file: File): Promise<string> => {
@@ -248,7 +271,7 @@ const CreateContractForm = () => {
     return Array.from({ length: 11 }, (_, i) => {
       const startYear = currentYear + 1 - i; // +1 for future season
       const endYear = startYear + 1;
-      return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
+      return `${String(startYear)}/${String(endYear)}`;
     });
   };
 
@@ -340,18 +363,31 @@ const CreateContractForm = () => {
       ...formData,
     };
 
-    // createContractMutation.mutate(newContract);
-    console.log(newContract);
+    createContractMutation.mutate(newContract);
+    // console.log(newContract);
   };
 
   return (
     <div className="xl:overflow-scroll xl:h-[35rem] 2xl:h-full 2xl:overflow-visible hide-scrollbar-xl">
       <form className="space-y-6 mt-7 md:mt-10" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-rows-8 gap-3 sm:gap-4 xl:gap-5">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              Contract Number
+            </label>
+            <input
+              type="text"
+              name="contractNumber"
+              value={formData.contractNumber}
+              className="mt-1 block w-full px-3 py-2 font-semibold border border-gray-300 rounded  focus:outline-none"
+              placeholder=""
+              required
+            />
+          </div>
           {/* Contract Date */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              CONTRACT DATE
+              CONTRACT DATE *
             </label>
             <input
               type="date"
@@ -366,7 +402,7 @@ const CreateContractForm = () => {
           {/* Delivery Period - Full width on mobile, spans appropriately on larger screens */}
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              DELIVERY PERIOD
+              DELIVERY PERIOD *
             </label>
             <div className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
               <DatePicker
@@ -387,27 +423,10 @@ const CreateContractForm = () => {
               />
             </div>
           </div>
-
-          {/* Payment Terms */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 uppercase">
-              PAYMENT TERMS
-            </label>
-            <input
-              type="text"
-              name="paymentTerms"
-              value={formData.paymentTerms}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              placeholder=""
-              required
-            />
-          </div>
-
           {/* Delivery Destination */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              DELIVERY DESTINATION
+              DELIVERY DESTINATION *
             </label>
             <input
               type="text"
@@ -423,7 +442,7 @@ const CreateContractForm = () => {
           {/* Delivery Option */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              DELIVERY OPTION
+              DELIVERY OPTION *
             </label>
             <input
               type="text"
@@ -439,7 +458,7 @@ const CreateContractForm = () => {
           {/* Broker Rate */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              BROKER RATE
+              BROKER RATE *
             </label>
             <input
               type="number"
@@ -484,7 +503,7 @@ const CreateContractForm = () => {
           {/* Freight */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              FREIGHT
+              FREIGHT *
             </label>
             <input
               type="text"
@@ -515,7 +534,7 @@ const CreateContractForm = () => {
           {/* Grade */}
           <div className="lg:row-start-4 xl:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              GRADE
+              GRADE *
             </label>
             <input
               onChange={handleChange}
@@ -531,7 +550,7 @@ const CreateContractForm = () => {
           {/* Weights */}
           <div className="lg:row-start-4 xl:row-start-4">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              WEIGHTS
+              WEIGHTS *
             </label>
             <input
               onChange={handleChange}
@@ -571,7 +590,7 @@ const CreateContractForm = () => {
           {/* Price (Ex-GST) */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              PRICE (EX-GST)
+              PRICE (EX-GST) *
             </label>
             <input
               value={formData.priceExGST}
@@ -603,7 +622,7 @@ const CreateContractForm = () => {
                 </div>
               )}
             </div>
-            {formData.attachedBuyerContract && (
+            {/* {formData.attachedBuyerContract && (
               <div className="mt-2">
                 <a
                   href={formData.attachedBuyerContract}
@@ -614,7 +633,7 @@ const CreateContractForm = () => {
                   View uploaded contract
                 </a>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Seller Select */}
@@ -680,7 +699,7 @@ const CreateContractForm = () => {
                 </div>
               )}
             </div>
-            {formData.attachedSellerContract && (
+            {/* {formData.attachedSellerContract && (
               <div className="mt-2">
                 <a
                   href={formData.attachedSellerContract}
@@ -691,13 +710,13 @@ const CreateContractForm = () => {
                   View uploaded contract
                 </a>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Commodity */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              COMMODITY
+              COMMODITY *
             </label>
             <input
               type="text"
@@ -713,7 +732,7 @@ const CreateContractForm = () => {
           {/* Tonnes */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              TONNES
+              TONNES *
             </label>
             <input
               onChange={handleChange}
@@ -767,7 +786,7 @@ const CreateContractForm = () => {
           {/* Season Dropdown */}
           <div className="lg:row-start-8 xl:row-start-8">
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              SEASON
+              SEASON *
             </label>
             <select
               name="season"
@@ -785,10 +804,24 @@ const CreateContractForm = () => {
             </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-medium text-gray-700 uppercase">
+              PAYMENT TERMS
+            </label>
+            <input
+              type="text"
+              name="paymentTerms"
+              value={formData.paymentTerms}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+              placeholder=""
+            />
+          </div>
+
           {/* Tolerance */}
           <div>
             <label className="block text-xs font-medium text-gray-700 uppercase">
-              TOLERANCE
+              TOLERANCE *
             </label>
             <input
               onChange={handleChange}

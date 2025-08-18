@@ -49,6 +49,7 @@
         throw new Error("Unexpected API response structure");
       }
       return response.data || [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // console.error("Error fetching port zone bids:", error);
       throw new Error("Error fetching port zone bids");

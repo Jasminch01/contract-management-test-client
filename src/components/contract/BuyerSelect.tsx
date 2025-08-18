@@ -60,7 +60,7 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-xs text-gray-700 uppercase">Buyer</label>
+      <label className="block text-xs text-gray-700 uppercase">Buyer *</label>
 
       {/* Custom select button */}
       <div className="relative mt-1">

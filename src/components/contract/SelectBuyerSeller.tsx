@@ -45,7 +45,7 @@ const SelectBuyerSeller = ({ onSelect }: SelectBuyerSellerProps) => {
     <div ref={dropdownRef}>
       <div className="relative">
         <label className="block text-xs text-gray-700 uppercase">
-          BROKERAGE PAYABLE BY
+          BROKERAGE PAYABLE BY *
         </label>
 
         {/* Custom select button */}

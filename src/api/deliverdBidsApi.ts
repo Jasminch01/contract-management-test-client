@@ -46,6 +46,7 @@ export const fetchDeliveredBids = async (
     if (!Array.isArray(bids)) {
       throw new Error("Invalid response format: expected an array of bids");
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return bids.map((bid: any) => ({
       _id: bid._id,
       location: bid.label,
@@ -68,9 +69,6 @@ export const fetchDeliveredBids = async (
     }));
   } catch (error) {
     console.error("Error fetching delivered bids:", error);
-    if (error.response && error.response.status === 400) {
-      throw new Error(`Bad request: ${error.response.data.message}`);
-    }
     throw error;
   }
 };
