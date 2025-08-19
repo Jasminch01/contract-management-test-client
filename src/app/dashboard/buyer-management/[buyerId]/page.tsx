@@ -212,14 +212,14 @@ const BuyerInformationPage = () => {
             <button
               onClick={handleRefresh}
               disabled={isFetching}
-              className="py-2 px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+              className="py-2 px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 cursor-pointer"
             >
               <MdRefresh className={isFetching ? "animate-spin" : ""} />
               {isFetching ? "Refreshing..." : "Refresh"}
             </button>
 
             <Link href={`/dashboard/buyer-management/edit/${buyerId}`}>
-              <button className="py-2 px-5 bg-[#2A5D36] hover:bg-[#1e4728] text-white rounded flex items-center gap-2 transition-colors">
+              <button className="py-2 px-5 bg-[#2A5D36] hover:bg-[#1e4728] text-white rounded flex items-center gap-2 transition-colors cursor-pointer">
                 <MdOutlineEdit className="text-lg" />
                 Edit Buyer Information
               </button>

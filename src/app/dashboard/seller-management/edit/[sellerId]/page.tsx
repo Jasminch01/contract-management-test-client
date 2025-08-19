@@ -328,7 +328,7 @@ const SellerInformationEditPage = () => {
         ...prev,
         additionalNgrs: value
           ? value
-              .split(",")
+              .split(", ")
               .map((s) => s.trim())
               .filter((s) => s)
           : [],
