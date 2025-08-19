@@ -40,7 +40,7 @@ export const fetchDeliveredBids = async (
     );
 
     // Debugging
-    console.log("Fetched delivered bids response:", response.data);
+    // console.log("Fetched delivered bids response:", response.data);
 
     const bids = response.data || response.data;
     if (!Array.isArray(bids)) {
@@ -89,7 +89,7 @@ export const updateDeliveredBid = async (
   };
 
   // Debugging
-  console.log("Sending payload to backend:", JSON.stringify(payload));
+  // console.log("Sending payload to backend:", JSON.stringify(payload));
 
   const response = await instance.post("delivered-bids", payload);
   if (!response.data || response.status !== 200) {
@@ -126,7 +126,7 @@ export const createDeliveredBid = async (
     season: bid.season,
     monthlyValues: bid.monthlyValues || {},
   };
-  console.log("Sending payload to backend:", JSON.stringify(payload));
+  // console.log("Sending payload to backend:", JSON.stringify(payload));
 
   const response = await instance.post("delivered-bids", payload);
   // if (!response.data || response.status !== 200) {

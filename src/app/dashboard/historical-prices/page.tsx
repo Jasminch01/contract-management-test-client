@@ -503,15 +503,6 @@ const HistoricalPricesPage = () => {
 
     toast.success(`Exporting data from ${startFormatted} to ${endFormatted}`);
 
-    console.log(`Exporting CSV: ${filename}`, {
-      startDate,
-      endDate,
-      data:
-        activeTab === "historicalPrices"
-          ? portZoneTableData
-          : deliveredBidsTableData,
-      type: activeTab,
-    });
   };
 
   const handleDateChange = (newDate: string) => {

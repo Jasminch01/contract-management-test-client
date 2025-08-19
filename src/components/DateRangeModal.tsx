@@ -20,20 +20,14 @@ const getCurrentDateInputValue = () => {
 
 // Helper function to get season from date
 const getSeasonFromDate = (date: Date) => {
+  // This will always use the year from the provided date
+  // So it automatically works for any year
   const year = date.getFullYear();
-  const month = date.getMonth() + 1; // 1-12
 
-  if (month >= 1 && month <= 6) {
-    // January to June: we're in the season that started last July
-    const startYear = year - 1;
-    const endYear = year;
-    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
-  } else {
-    // July to December: we're in the season that started this July
-    const startYear = year;
-    const endYear = year + 1;
-    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
-  }
+  // Each season represents a full year
+  const startYear = year;
+  const endYear = year + 1;
+  return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
 };
 
 // Helper function to get all dates in range
@@ -119,7 +113,7 @@ const exportPortZoneDataToCSV = (
     .forEach((date) => {
       groupedByDate[date].forEach((item) => {
         const row = [
-          item.date,
+          item.date ? new Date(item.date).toISOString().split("T")[0] : "",
           item.season || "",
           item.label || "",
           item.APW1 || "",
@@ -214,7 +208,7 @@ const exportDeliveredBidsToCSV = (
     .forEach((date) => {
       groupedByDate[date].forEach((item) => {
         const row = [
-          item.date,
+          item.date ? new Date(item.date).toISOString().split("T")[0] : "",
           item.season || "",
           item.location || "",
           String(item.january ?? ""), // Explicitly convert to string
@@ -230,7 +224,7 @@ const exportDeliveredBidsToCSV = (
           String(item.november ?? ""),
           String(item.december ?? ""),
         ];
-        console.log("Row data:", row); // Log each row data
+        // console.log("Row data:", row); // Log each row data
         rows.push(row.join(","));
       });
     });
@@ -339,8 +333,8 @@ const DateRangeModal: React.FC<DateRangeModalProps> = ({
           index === self.findIndex((t) => t._id === item._id)
       );
 
-      // Debug unique 
-      console.log("Unique data for export: ", uniqueData);
+      // Debug unique
+      // console.log("Unique data for export: ", uniqueData);
 
       if (uniqueData.length === 0) {
         toast.error(

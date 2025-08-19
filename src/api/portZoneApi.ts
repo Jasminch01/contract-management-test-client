@@ -38,7 +38,7 @@
       throw new Error("Invalid date format, expected YYYY-MM-DD.");
     }
 
-    console.log("Fetching port zone bids for date:", date, "and season:", season);
+    // console.log("Fetching port zone bids for date:", date, "and season:", season);
     try{
       const response = await instance.get(
         `portZone-bids?date=${encodeURIComponent(date)}&season=${encodeURIComponent(season)}`
