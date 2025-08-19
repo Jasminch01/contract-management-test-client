@@ -232,7 +232,7 @@ const RubbishBin = () => {
     setShowDeleteModal(false);
   };
 
-  const handleEmptyRubbishBin = () => {
+  const handleEmptyRubbishBin = async () => {
     if (deletedItems.length === 0) {
       showNotification("Rubbish bin is already empty", "info");
       return;

@@ -255,8 +255,8 @@ const CreateSellerPage = () => {
       bulkHandlerCredentials: validCredentials,
     };
 
-    console.log("Submitting seller with credentials:", newSeller);
-    // createSellerMutation.mutate(newSeller);
+    // console.log("Submitting seller with credentials:", newSeller);
+    createSellerMutation.mutate(newSeller);
   };
 
   // Save credentials and close modal

@@ -30,7 +30,7 @@ export const permanentlyDeleteTrashItems = async (itemIds: string[]) => {
 
 export const emptyTrashBin = async () => {
   try {
-    const data = await instance.delete("trash/empty-all");
+    const data = await instance.delete("trash/emptyall");
     return data;
   } catch (error) {
     throw error;
