@@ -1,4 +1,3 @@
-
 export interface HistoricalPrice {
   id: string;
   commodity: string;
@@ -160,6 +159,7 @@ export interface TContract {
   specialCondition: string;
   termsAndConditions: string;
   notes: string;
+  ngrNumber?: string;
   tonnes: string;
   tolerance: string;
   season: string;

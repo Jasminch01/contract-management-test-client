@@ -57,6 +57,7 @@ const SellerInformationEditPage = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ngrInputValue, setNgrInputValue] = useState('');
 
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
@@ -261,6 +262,14 @@ const SellerInformationEditPage = () => {
       setSellerData(initializedData);
       setOriginalSellerData(initializedData);
 
+      // Initialize NGR input value
+      if (
+        initializedData.additionalNgrs &&
+        initializedData.additionalNgrs.length > 0
+      ) {
+        setNgrInputValue(initializedData.additionalNgrs.join(", "));
+      }
+
       // Initialize bulk handler credentials
       const existingCredentials = fetchSellerData.bulkHandlerCredentials || [];
       const mergedCredentials = handlerNames.map((handlerName) => {
@@ -322,15 +331,20 @@ const SellerInformationEditPage = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
+
+    // Update the display value
+    setNgrInputValue(value);
+
+    // Update the seller data
     setSellerData((prev) => {
       if (!prev) return prev;
       const updated = {
         ...prev,
         additionalNgrs: value
           ? value
-              .split(", ")
+              .split(",") // Split by comma only
               .map((s) => s.trim())
-              .filter((s) => s)
+              .filter((s) => s !== "")
           : [],
       };
       setHasChanges(checkForChanges(updated));
@@ -730,13 +744,12 @@ const SellerInformationEditPage = () => {
               <input
                 type="text"
                 name="additionalNgrs"
-                value={(sellerData.additionalNgrs || []).join(", ")}
+                value={ngrInputValue}
                 onChange={handleAdditionalNGRChange}
                 className="w-full mb-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
-                placeholder="Enter NGRs separated by commas"
+                placeholder="Enter NGRs separated by commas (e.g., 11, 22, 33)"
               />
             </div>
-
             {/* Updated Authority to Act Form */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

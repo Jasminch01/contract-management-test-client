@@ -21,6 +21,7 @@ import ConveyanceSelect from "./ConveyanceSelect";
 import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { satoshiFont } from "@/font/font";
 
 function generateContractNumber(
   prefix: string,
@@ -114,7 +115,7 @@ const CreateContractForm = () => {
 
   useEffect(() => {
     const seq = Math.floor(Math.random() * 9999) + 1; // Example: random seq, replace with DB counter if available
-    const contractNumber = generateContractNumber("ZJ", seq);
+    const contractNumber = generateContractNumber("JZ", seq);
     setFormData((prev) => ({
       ...prev,
       contractNumber,
@@ -262,17 +263,30 @@ const CreateContractForm = () => {
       // Return empty array during SSR to avoid hydration mismatch
       return [];
     }
+
     // This gets the current year every time the function is called
     // So it automatically updates when the year changes
     const currentYear = new Date().getFullYear();
 
-    // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
-    // Each season represents a full year and will auto-update based on current year
-    return Array.from({ length: 11 }, (_, i) => {
-      const startYear = currentYear + 1 - i; // +1 for future season
+    // Generate seasons: 1 future season + current season + previous seasons back to 2021/2022
+    // But filter out any seasons below 2021/2022
+    const seasons = [];
+
+    // Start from next year (future season) and go backwards
+    for (let i = 0; i < 20; i++) {
+      // 20 is a safe upper limit to ensure we capture all needed seasons
+      const startYear = currentYear + 1 - i; // +1 for future season, then go backwards
       const endYear = startYear + 1;
-      return `${String(startYear)}/${String(endYear)}`;
-    });
+
+      // Stop if we go below 2021/2022 season
+      if (startYear < 2021) {
+        break;
+      }
+
+      seasons.push(`${String(startYear)}/${String(endYear)}`);
+    }
+
+    return seasons;
   };
 
   const handleChange = (
@@ -429,7 +443,6 @@ const CreateContractForm = () => {
               DELIVERY DESTINATION *
             </label>
             <input
-              type="text"
               name="deliveryDestination"
               value={formData.deliveryDestination}
               onChange={handleChange}
@@ -506,7 +519,6 @@ const CreateContractForm = () => {
               FREIGHT *
             </label>
             <input
-              type="text"
               onChange={handleChange}
               name="freight"
               value={formData.freight}
@@ -540,7 +552,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="grade"
               value={formData.grade}
-              type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               required
@@ -556,7 +567,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="weights"
               value={formData.weights}
-              type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               required
@@ -784,7 +794,7 @@ const CreateContractForm = () => {
             </div>
           )}
           {/* Season Dropdown */}
-          <div className="lg:row-start-8 xl:row-start-8">
+          <div className={`lg:row-start-8 xl:row-start-8`}>
             <label className="block text-xs font-medium text-gray-700 uppercase">
               SEASON *
             </label>
@@ -797,7 +807,11 @@ const CreateContractForm = () => {
             >
               <option value="">Select Season</option>
               {getFormattedSeasons().map((season) => (
-                <option key={season} value={season}>
+                <option
+                  key={season}
+                  value={season}
+                  className={`${satoshiFont.className}`}
+                >
                   {season}
                 </option>
               ))}
@@ -827,7 +841,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               name="tolerance"
               value={formData.tolerance}
-              type="text"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
               required

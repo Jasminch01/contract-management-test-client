@@ -38,7 +38,7 @@ const columns = [
   },
   {
     name: "NGR",
-    selector: (row: TContract) => row?.seller?.mainNgr || "",
+    selector: (row: TContract) =>row?.ngrNumber || row?.seller?.mainNgr || "",
     sortable: true,
   },
   {

@@ -54,7 +54,7 @@ export default function SearchFilterBar({
     },
     {
       id: "contractNumber",
-      label: "Contract number",
+      label: "Contract Number",
       field: "contractNumber",
     },
   ];

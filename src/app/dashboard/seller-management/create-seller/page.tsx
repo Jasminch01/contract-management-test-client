@@ -31,6 +31,7 @@ const CreateSellerPage = () => {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const [bulkHandlerCredentials, setBulkHandlerCredentials] =
     useState<BulkHandlerCredential[]>(initialCredentials);
 
@@ -140,22 +141,52 @@ const CreateSellerPage = () => {
   ) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => {
-      // Special handling for additionalNgrs
-      if (name === "additionalNgrs") {
+    if (name === "additionalNgrs") {
+      // Update the input display value
+      setInputValue(value);
+
+      // Update the form data array
+      setFormData((prev) => {
+        const ngrArray = value
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== "");
+
         return {
           ...prev,
-          [name]: value.split(", ").map((s) => s.trim()),
+          [name]: ngrArray,
         };
-      }
+      });
+      return;
+    }
 
-      // Normal handling for other fields
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
+    // Normal handling for other fields
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
+  // const handleChange = (
+  //   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  // ) => {
+  //   const { name, value } = e.target;
+
+  //   setFormData((prev) => {
+  //     // Special handling for additionalNgrs
+  //     if (name === "additionalNgrs") {
+  //       return {
+  //         ...prev,
+  //         [name]: value.split(", ").map((s) => s.trim()),
+  //       };
+  //     }
+
+  //     // Normal handling for other fields
+  //     return {
+  //       ...prev,
+  //       [name]: value,
+  //     };
+  //   });
+  // };
 
   const handleAuthorityActFormUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -408,10 +439,10 @@ const CreateSellerPage = () => {
                   <input
                     type="text"
                     name="additionalNgrs"
-                    value={formData.additionalNgrs.join(", ")}
+                    value={inputValue}
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#2A5D36] focus:border-[#2A5D36]"
-                    placeholder="NGR1, NGR2, NGR3"
+                    placeholder="11, 22, 33"
                   />
                 </div>
               </div>

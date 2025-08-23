@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-nocheck
 
@@ -35,14 +36,32 @@ interface ContractProps {
   contract: TContract;
 }
 
-const generateSeasons = (yearsAhead = 10) => {
+const getFormattedSeasons = () => {
+  if (typeof window === "undefined") {
+    // Return empty array during SSR to avoid hydration mismatch
+    return [];
+  }
+
+  // This gets the current year every time the function is called
+  // So it automatically updates when the year changes
   const currentYear = new Date().getFullYear();
+
+  // Generate seasons: 1 future season + current season + previous seasons back to 2021/2022
+  // But filter out any seasons below 2021/2022
   const seasons = [];
 
-  for (let i = 0; i < yearsAhead; i++) {
-    const startYear = currentYear + i;
+  // Start from next year (future season) and go backwards
+  for (let i = 0; i < 20; i++) {
+    // 20 is a safe upper limit to ensure we capture all needed seasons
+    const startYear = currentYear + 1 - i; // +1 for future season, then go backwards
     const endYear = startYear + 1;
-    seasons.push(`${startYear}/${endYear}`);
+
+    // Stop if we go below 2021/2022 season
+    if (startYear < 2021) {
+      break;
+    }
+
+    seasons.push(`${String(startYear)}/${String(endYear)}`);
   }
 
   return seasons;
@@ -269,6 +288,7 @@ const EditableContract: React.FC<ContractProps> = ({
     setContract((prev) => ({
       ...prev,
       seller: selectedSeller._id,
+      ngrNumber: selectedSeller.mainNgr,
     }));
     setShowSellerDropdown(false);
     setHasChanges(true);
@@ -287,27 +307,37 @@ const EditableContract: React.FC<ContractProps> = ({
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
-    field: string,
-    nestedObject?: keyof typeof contract // Use keyof to restrict to actual property names
+    field?: string, // Make field optional
+    nestedObject?: keyof typeof contract
   ) => {
-    const { value } = e.target;
+    const { name, value } = e.target;
+
+    // Use provided field parameter, or fall back to the name attribute
+    const fieldName = field || name;
+
+    // Validate that we have a field name to work with
+    if (!fieldName) {
+      console.error("No field name provided for handleChange");
+      return;
+    }
+
     setContract((prev) => {
       const newContract = { ...prev };
+
       if (nestedObject) {
-        // Type assertion for nested object update
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // Handle nested object updates (like deliveryPeriod.start)
         (newContract as any)[nestedObject] = {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...(newContract as any)[nestedObject],
-          [field]: value,
+          [fieldName]: value,
         };
       } else {
-        // Type assertion for direct property update
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (newContract as any)[field] = value;
+        // Handle direct property updates
+        (newContract as any)[fieldName] = value;
       }
+
       return newContract;
     });
+
     setHasChanges(true);
   };
   const handleDateChange = (update: [Date | null, Date | null]) => {
@@ -376,10 +406,11 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt,updatedAt,_v,contractNumber,
+    const { _id, createdAt, updatedAt,_v, contractNumber,
       ...updatedContract
     } = contractToSave;
     updateContractMutation.mutate(updatedContract);
+    // console.log(updatedContract);
   };
 
   const handleCancel = () => {
@@ -487,7 +518,7 @@ const EditableContract: React.FC<ContractProps> = ({
                   className="w-full border border-gray-300 p-1 rounded"
                 >
                   <option value="">Select Season</option>
-                  {generateSeasons(10).map((season) => (
+                  {getFormattedSeasons().map((season) => (
                     <option key={season} value={season}>
                       {season}
                     </option>
@@ -501,7 +532,6 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="number"
                   value={contract.tolerance || ""}
                   onChange={(e) => handleChange(e, "tolerance")}
                   className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -536,10 +566,9 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <input
-                  type="number"
                   value={contract.weights || ""}
                   onChange={(e) => handleChange(e, "weights")}
-                  className="w-full border border-gray-300 p-1 rounded appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="w-full border border-gray-300 p-1 rounded"
                 />
               </div>
             </div>
@@ -949,7 +978,35 @@ const EditableContract: React.FC<ContractProps> = ({
               </div>
               <div className="w-1/2 p-3">
                 <div className="w-full p-1 rounded bg-gray-50">
-                  {selectedSeller?.mainNgr || ""}
+                  <label className="block text-xs font-medium text-gray-700 uppercase">
+                    NGR NUMBER
+                  </label>
+                  <select
+                    name="ngrNumber"
+                    onChange={(e) => handleChange(e, "ngrNumber")} // Fixed: use direct field name
+                    value={contract.ngrNumber || selectedSeller?.mainNgr || ""} // Use contract.ngrNumber with fallback
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white"
+                    required
+                  >
+                    <option value="">Select NGR Number</option>
+
+                    {/* Main NGR - Always show if available */}
+                    {selectedSeller?.mainNgr && (
+                      <option
+                        value={selectedSeller.mainNgr}
+                        className="bg-blue-50 text-blue-800"
+                      >
+                        {selectedSeller.mainNgr} (Main NGR)
+                      </option>
+                    )}
+
+                    {/* Additional NGRs */}
+                    {selectedSeller?.additionalNgrs?.map((ngr, index) => (
+                      <option key={index} value={ngr} className="text-gray-700">
+                        {ngr} (Additional NGR)
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

@@ -170,23 +170,36 @@ const months = [
   "December",
 ];
 
-const getFormattedSeasons = () => {
-  if (typeof window === "undefined") {
-    // Return empty array during SSR to avoid hydration mismatch
-    return [];
-  }
-  // This gets the current year every time the function is called
-  // So it automatically updates when the year changes
-  const currentYear = new Date().getFullYear();
- 
-  // Generate seasons: 1 future season + current season + 9 previous seasons (11 total)
-  // Each season represents a full year and will auto-update based on current year
-  return Array.from({ length: 11 }, (_, i) => {
-    const startYear = currentYear + 1 - i; // +1 for future season
-    const endYear = startYear + 1;
-    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
-  });
-};
+  const getFormattedSeasons = () => {
+    if (typeof window === "undefined") {
+      // Return empty array during SSR to avoid hydration mismatch
+      return [];
+    }
+
+    // This gets the current year every time the function is called
+    // So it automatically updates when the year changes
+    const currentYear = new Date().getFullYear();
+
+    // Generate seasons: 1 future season + current season + previous seasons back to 2021/2022
+    // But filter out any seasons below 2021/2022
+    const seasons = [];
+
+    // Start from next year (future season) and go backwards
+    for (let i = 0; i < 20; i++) {
+      // 20 is a safe upper limit to ensure we capture all needed seasons
+      const startYear = currentYear + 1 - i; // +1 for future season, then go backwards
+      const endYear = startYear + 1;
+
+      // Stop if we go below 2021/2022 season
+      if (startYear < 2021) {
+        break;
+      }
+
+      seasons.push(`${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`);
+    }
+
+    return seasons;
+  };
 
 const getSeasonFromDate = (date: Date) => {
   // This will always use the year from the provided date

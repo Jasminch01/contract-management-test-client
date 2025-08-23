@@ -381,7 +381,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Main NGR
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.mainNgr || "N/A"}
+                {contract?.ngrNumber || contract?.seller?.mainNgr  || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -389,17 +389,17 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller?.legalName || "N/A"}
+                {contract?.seller?.legalName || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
-              <div className="w-1/2 p-3">{contract.seller?.email || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract?.seller?.email || "N/A"}</div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract.seller?.phoneNumber || "N/A"}
+                {contract?.seller?.phoneNumber || "N/A"}
               </div>
             </div>
           </div>

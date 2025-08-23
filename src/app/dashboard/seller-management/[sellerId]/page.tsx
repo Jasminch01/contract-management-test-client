@@ -177,7 +177,7 @@ const SellerInformationPage = () => {
             Authority to act
           </div>
           <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-           {sellerData.authorityActFormPdf ? <a className="text-blue-400" href={sellerData?.authorityActFormPdf}> authority to act</a> : <p>N/A</p>}
+           {sellerData.authorityActFormPdf ? <a className="text-blue-400" href={sellerData?.authorityActFormPdf}> View – Authority To Act</a> : <p>N/A</p>}
           </div>
         </div>
 
