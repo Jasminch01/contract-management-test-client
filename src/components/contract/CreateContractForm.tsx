@@ -22,16 +22,10 @@ import { createContract } from "@/api/ContractAPi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { satoshiFont } from "@/font/font";
-
-function generateContractNumber(
-  prefix: string,
-  seq: number,
-  length: number = 4
-): string {
-  const padded = String(seq).padStart(length, "0");
-  return `${prefix}${padded}`;
+import { instance } from "@/api/api";
+interface NextContractNumberResponse {
+  nextContractNumber: string;
 }
-
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
@@ -79,6 +73,7 @@ const CreateContractForm = () => {
     visible: false,
   });
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
+  const [isLoadingContractNumber, setIsLoadingContractNumber] = useState(true);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [selectedSeller, setSelectedSeller] = useState<Seller>();
   const [startDate, endDate] = dateRange;
@@ -113,13 +108,40 @@ const CreateContractForm = () => {
     },
   });
 
+  //contract number
+  const fetchNextContractNumber = async () => {
+    try {
+      setIsLoadingContractNumber(true);
+
+      // Using your instance with proper typing
+      const response = await instance.get<NextContractNumberResponse>(
+        "/contracts/next-number"
+      );
+
+      if (!response.data) {
+        throw new Error("Failed to fetch contract number");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        contractNumber: response.data.nextContractNumber,
+      }));
+    } catch (error) {
+      console.error("Error fetching contract number:", error);
+      toast.error("Failed to fetch contract number. Using fallback.");
+
+      // Fallback to a default number
+      setFormData((prev) => ({
+        ...prev,
+        contractNumber: "JZ02600", // fallback
+      }));
+    } finally {
+      setIsLoadingContractNumber(false);
+    }
+  };
+
   useEffect(() => {
-    const seq = Math.floor(Math.random() * 9999) + 1; // Example: random seq, replace with DB counter if available
-    const contractNumber = generateContractNumber("JZ", seq);
-    setFormData((prev) => ({
-      ...prev,
-      contractNumber,
-    }));
+    fetchNextContractNumber();
   }, []);
 
   // Cloudinary upload function
@@ -389,14 +411,22 @@ const CreateContractForm = () => {
             <label className="block text-xs font-medium text-gray-700 uppercase">
               Contract Number
             </label>
-            <input
-              type="text"
-              name="contractNumber"
-              value={formData.contractNumber}
-              className="mt-1 block w-full px-3 py-2 font-semibold border border-gray-300 rounded  focus:outline-none"
-              placeholder=""
-              required
-            />
+            {isLoadingContractNumber ? (
+              <div className="mt-1 block w-full px-3 py-2 font-semibold border border-gray-300 rounded focus:outline-none bg-gray-50 items-center">
+                <AiOutlineLoading3Quarters className="animate-spin mr-2" />
+                <span className="text-gray-500">Loading...</span>
+              </div>
+            ) : (
+              <input
+                type="text"
+                name="contractNumber"
+                value={formData.contractNumber}
+                className="mt-1 block w-full px-3 py-2 font-semibold border border-gray-300 rounded focus:outline-none bg-gray-50 cursor-not-allowed"
+                placeholder=""
+                readOnly
+                style={{ backgroundColor: "#f9f9f9" }}
+              />
+            )}
           </div>
           {/* Contract Date */}
           <div>

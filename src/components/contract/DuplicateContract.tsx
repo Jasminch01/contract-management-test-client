@@ -28,19 +28,15 @@ import PreviewContract from "./PreviewContract";
 import { createContract } from "@/api/ContractAPi";
 import toast from "react-hot-toast";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-
+import { instance } from "@/api/api";
+interface NextContractNumberResponse {
+  nextContractNumber: string;
+}
 // Main Contract Component
 interface ContractProps {
   contract: TContract;
 }
-function generateContractNumber(
-  prefix: string,
-  seq: number,
-  length: number = 4
-): string {
-  const padded = String(seq).padStart(length, "0");
-  return `${prefix}${padded}`;
-}
+
 const EditableContract: React.FC<ContractProps> = ({
   contract: initialContract,
 }) => {
@@ -48,7 +44,7 @@ const EditableContract: React.FC<ContractProps> = ({
     null,
     null,
   ]);
-
+  const [isLoadingContractNumber, setIsLoadingContractNumber] = useState(false);
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
   const [preview, setPreview] = useState(false);
@@ -129,14 +125,39 @@ const EditableContract: React.FC<ContractProps> = ({
         : contract.seller?._id)
   );
 
+  const fetchNextContractNumber = async () => {
+    try {
+      setIsLoadingContractNumber(true);
+
+      // Using your instance with proper typing
+      const response = await instance.get<NextContractNumberResponse>(
+        "/contracts/next-number"
+      );
+
+      if (!response.data) {
+        throw new Error("Failed to fetch contract number");
+      }
+
+      setContract((prev) => ({
+        ...prev,
+        contractNumber: response.data.nextContractNumber,
+      }));
+    } catch (error) {
+      console.error("Error fetching contract number:", error);
+      toast.error("Failed to fetch contract number. Using fallback.");
+
+      // Fallback to a default number
+      setContract((prev) => ({
+        ...prev,
+        contractNumber: "JZ02600", // fallback
+      }));
+    } finally {
+      setIsLoadingContractNumber(false);
+    }
+  };
+
   useEffect(() => {
-    const seq = Math.floor(Math.random() * 9999) + 1; // Example: random seq, replace with DB counter if available
-    const contractNumber = generateContractNumber("JZ", seq);
-    setContract((prev) => ({
-      ...prev,
-      contractNumber,
-    }));
-    setHasChanges(true); // Mark as changed since we're generating a new contract number
+    fetchNextContractNumber();
   }, []);
 
   const getFormattedSeasons = () => {
@@ -479,13 +500,22 @@ const EditableContract: React.FC<ContractProps> = ({
                 Contract Number
               </div>
               <div className="w-1/2 p-3">
-                <input
-                  type="text"
-                  value={contract.contractNumber || ""}
-                  // onChange={(e) => handleChange(e, "contractNumber")}
-                  className="w-full font-semibold focus:outline-none p-1 rounded"
-                  readOnly
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={contract.contractNumber || ""}
+                    className="w-full font-semibold focus:outline-none p-1 rounded bg-gray-50"
+                    readOnly
+                    placeholder={
+                      isLoadingContractNumber ? "Loading..." : "Contract Number"
+                    }
+                  />
+                  {isLoadingContractNumber && (
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <AiOutlineLoading3Quarters className="animate-spin text-gray-500" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex border-b border-gray-300">

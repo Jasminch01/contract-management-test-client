@@ -1,7 +1,6 @@
 import { TContract, TUpdateContract } from "@/types/types";
 import { instance } from "./api";
 import axios from "axios";
-import Contract from "@/components/contract/Contract";
 
 export const createContract = async (contract: TUpdateContract) => {
   try {
@@ -31,7 +30,7 @@ export const fetchContracts = async (): Promise<TContract[]> => {
 
 //fetch contract
 export const fetchContract = async (id: string) => {
-  console.log(Contract)
+  // console.log(Contract)
   try {
     const contract = await instance.get(`/contracts/${id}`);
     return contract;
