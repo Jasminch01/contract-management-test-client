@@ -5,14 +5,13 @@ interface LoginResponse {
 }
 
 export const userLogin = async (email: string, password: string) => {
-  console.log(email, password);
 
   try {
     const res = await instance.post<LoginResponse>(`auth/login`, {
       email,
       password,
     });
-    console.log(res);
+    // console.log(res);
 
     // IMPORTANT: Access token from res.data.token, NOT res.token
     if (res.data.token) {

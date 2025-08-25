@@ -468,7 +468,7 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3">
                 <input
                   type="text"
-                  value={contract.contractNumber || ""}
+                  value={contract?.contractNumber || ""}
                   // onChange={(e) => handleChange(e, "contractNumber")}
                   readOnly
                   className="w-full font-semibold focus:outline-none p-1 rounded"
@@ -483,7 +483,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="date"
                   value={
-                    contract.contractDate
+                    contract?.contractDate
                       ? new Date(contract.contractDate)
                           .toISOString()
                           .split("T")[0]
