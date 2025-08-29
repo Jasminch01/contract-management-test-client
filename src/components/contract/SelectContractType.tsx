@@ -43,7 +43,7 @@ const SelectContractType = ({ onSelect }: SelectContractTypeProps) => {
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-xs text-gray-700 uppercase">
-        CONTRACT TYPE
+        CONTRACT TYPE *
       </label>
 
       {/* Custom select button */}

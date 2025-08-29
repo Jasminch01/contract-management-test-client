@@ -2,31 +2,43 @@
 import { TContract } from "@/types/types";
 import { CSVLink } from "react-csv";
 import { IoDocumentText } from "react-icons/io5";
+
 interface ExportCSVButtonProps {
   selectedRows: TContract[];
 }
 
 const ExportCsv: React.FC<ExportCSVButtonProps> = ({ selectedRows }) => {
+  // Method 1: Transform the data to flatten nested properties
+  const transformedData = selectedRows.map((row) => ({
+    contractNumber: row.contractNumber,
+    season: row?.season || "",
+    ngr: row.ngrNumber || "",
+    grower: row?.seller?.legalName || "",
+    tonnes: row.tonnes,
+    buyer: row.buyer?.name || "",
+    destination: row.buyer?.officeAddress || "",
+    priceExGst: `A$${row?.priceExGST}`,
+    status: row.status,
+    notes: row.notes || "",
+  }));
+
   const headers = [
     { label: "CONTRACT NUMBER", key: "contractNumber" },
-    { label: "SEASON", key: "commoditySeason" },
-    { label: "NGR", key: "seller.sellerMainNGR" },
-    { label: "GROWER", key: "seller.sellerLegalName" },
+    { label: "SEASON", key: "season" },
+    { label: "NGR", key: "ngr" },
+    { label: "GROWER", key: "grower" },
     { label: "TONNES", key: "tonnes" },
-    { label: "BUYER", key: "buyer.name" },
-    { label: "DESTINATION", key: "buyer.officeAddress" },
-    {
-      label: "CONTRACT PRICE",
-      key: "priceExGst",
-      format: (value: number) => `A$${value.toFixed(2)}`,
-    },
+    { label: "BUYER", key: "buyer" },
+    { label: "DESTINATION", key: "destination" },
+    { label: "CONTRACT PRICE", key: "priceExGst" },
     { label: "STATUS", key: "status" },
     { label: "NOTES", key: "notes" },
   ];
+
   return (
     // @ts-expect-error
     <CSVLink
-      data={selectedRows}
+      data={transformedData}
       headers={headers}
       filename={`contracts-export-${new Date().toISOString().slice(0, 10)}.csv`}
       className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${

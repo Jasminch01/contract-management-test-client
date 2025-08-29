@@ -49,7 +49,7 @@ const ConveyanceSelect = ({ onValueChange, value }: ConveyanceSelectProps) => {
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-xs font-medium text-gray-700 uppercase">
-        CONVEYANCE
+        CONVEYANCE *
       </label>
 
       {/* Custom select button */}

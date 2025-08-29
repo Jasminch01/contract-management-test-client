@@ -43,6 +43,11 @@ export default function SearchFilterBar({
       field: (contract) => contract.seller?.legalName || "",
     },
     {
+      id: "buyer",
+      label: "Buyer",
+      field: (contract) => contract.buyer?.name|| "",
+    },
+    {
       id: "grade",
       label: "Grade",
       field: "grade",

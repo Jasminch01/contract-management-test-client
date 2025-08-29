@@ -389,6 +389,20 @@ const CreateContractForm = () => {
       );
       hasError = true;
     }
+    if (!formData.contractType) {
+      showNotification(
+        "Please select type of contract",
+        "error"
+      );
+      hasError = true;
+    }
+    if (!formData.conveyance) {
+      showNotification(
+        "Please select conveyance",
+        "error"
+      );
+      hasError = true;
+    }
 
     if (hasError) {
       return;

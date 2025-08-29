@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
-
 "use client";
 import { useRouter } from "next/navigation";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -406,7 +405,7 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, updatedAt,_v, contractNumber,
+    const {_id,createdAt, updatedAt, _v, contractNumber,
       ...updatedContract
     } = contractToSave;
     updateContractMutation.mutate(updatedContract);
@@ -572,7 +571,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
-            <div className="flex">
+            <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Price (ex GST)
               </div>
@@ -585,7 +584,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
-            <div className="flex">
+            <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivered Destination
               </div>
@@ -594,6 +593,19 @@ const EditableContract: React.FC<ContractProps> = ({
                   type="text"
                   value={contract.deliveryDestination || ""}
                   onChange={(e) => handleChange(e, "deliveryDestination")}
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
+              </div>
+            </div>
+            <div className="flex">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Buyer Contract Referance
+              </div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  value={contract?.buyerContractReference || ""}
+                  onChange={(e) => handleChange(e, "buyerContractReference")}
                   className="w-full border border-gray-300 p-1 rounded"
                 />
               </div>
@@ -702,9 +714,11 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3">
                 <input
                   type="text"
-                  value={selectedSeller?.legalName || ""}
-                  onChange={(e) => handleChange(e, "broker")}
-                  className="w-full border border-gray-300 p-1 rounded"
+                  value={"Growth Grain Services"}
+                  // value={selectedSeller?.legalName || "Growth Grain Services"}
+                  // onChange={(e) => handleChange(e, "broker")}
+                  readOnly
+                  className="w-full border border-gray-300 p-1 rounded focus:outline-none"
                 />
               </div>
             </div>
@@ -795,7 +809,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 )}
               </div>
             </div>
-            <div className="flex">
+            <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Status</div>
               <div className="w-1/2 p-3 relative">
                 <div
@@ -824,6 +838,21 @@ const EditableContract: React.FC<ContractProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="flex">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Seller Contract Reference
+              </div>
+              <div className="w-1/2 p-3">
+                <input
+                  type="text"
+                  name="sellerContractReference" // Added name attribute
+                  value={contract?.sellerContractReference|| ""}
+                  onChange={(e) => handleChange(e)} // Simplified onChange
+                  className="w-full border border-gray-300 p-1 rounded"
+                />
               </div>
             </div>
           </div>
