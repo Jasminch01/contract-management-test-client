@@ -344,6 +344,106 @@ const ContractManagementPage = () => {
   };
 
   // Updated handleEmail function that uses your existing PDF components
+  //   const handleEmail = async (recipientType: "buyer" | "seller") => {
+  //     if (selectedRows.length === 0) {
+  //       toast.error(
+  //         `Please select at least one contract to email ${recipientType}`
+  //       );
+  //       return;
+  //     }
+
+  //     try {
+  //       toast.loading("Generating PDF and preparing email...");
+
+  //       const validRows = selectedRows.filter(
+  //         (row): row is TContract => row != null
+  //       );
+  //       const recipients = validRows
+  //         .map((row) =>
+  //           recipientType === "buyer" ? row.buyer?.email : row.seller?.email
+  //         )
+  //         .filter((email): email is string => Boolean(email));
+
+  //       if (recipients.length === 0) {
+  //         toast.error(
+  //           `No valid ${recipientType} emails found in selected contracts`
+  //         );
+  //         return;
+  //       }
+
+  //       // Generate PDF blob using your existing ExportContractPdf component
+  //       const pdfBlob = await generatePDFBlobFromComponent(validRows);
+
+  //       if (!pdfBlob) {
+  //         throw new Error("Failed to generate PDF");
+  //       }
+
+  //       // Upload to Cloudinary
+  //       const filename = `contracts_${recipientType}_${Date.now()}.pdf`;
+  //       const cloudinaryResponse = await uploadPDFToCloudinary(pdfBlob, filename);
+
+  //       // Create subject
+  //       let subject;
+  //       const contract = validRows[0];
+  //       if (recipientType === "seller" && validRows.length === 1) {
+  //         subject = `Broker Note - ${contract.contractNumber || ""} ${
+  //           contract.tonnes || 0
+  //         }mt ${contract.grade || ""} ${contract.deliveryOption || "Delivered"} ${
+  //           contract.deliveryDestination || ""
+  //         }`;
+  //       } else {
+  //         subject = `${validRows.length} Contract(s) - ${
+  //           recipientType === "buyer" ? "Buyer" : "Seller"
+  //         } Documents`;
+  //       }
+
+  //       // Enhanced email body with PDF link
+  //       const contractSummary = validRows
+  //         .map(
+  //           (contract) =>
+  //             `• ${contract.contractNumber} - ${contract.tonnes}mt ${contract.grade} (${contract.buyer?.name} ↔ ${contract.seller?.legalName})`
+  //         )
+  //         .join("\n");
+
+  //       const emailBody = `Dear ${
+  //         recipientType.charAt(0).toUpperCase() + recipientType.slice(1)
+  //       },
+
+  // Please find the contract document(s) attached below:
+
+  // ${contractSummary}
+
+  // 📎 Download PDF: ${cloudinaryResponse.secure_url}
+
+  // If you have any questions, please don't hesitate to contact us.
+
+  // Best regards,
+  // Contract Management Team`;
+
+  //       // const emailParam = recipientType === "seller" ? "to" : "bcc";
+  //       const gmailParams = new URLSearchParams({
+  //         view: "cm",
+  //         fs: "1",
+  //         to: recipients.join(","),
+  //         // [emailParam]: recipients.join(","),
+  //         su: subject,
+  //         body: emailBody,
+  //       });
+
+  //       const gmailLink = `https://mail.google.com/mail/?${gmailParams.toString()}`;
+
+  //       toast.dismiss();
+  //       window.open(gmailLink, "_blank");
+  //       toast.success(
+  //         `Email prepared with PDF for ${recipients.length} ${recipientType}(s)`
+  //       );
+  //     } catch (error) {
+  //       toast.dismiss();
+  //       console.error("Error preparing email with PDF:", error);
+  //       toast.error("Failed to generate PDF and prepare email");
+  //     }
+  //   };
+
   const handleEmail = async (recipientType: "buyer" | "seller") => {
     if (selectedRows.length === 0) {
       toast.error(
@@ -418,22 +518,20 @@ ${contractSummary}
 If you have any questions, please don't hesitate to contact us.
 
 Best regards,
-Contract Management Team`;
+Growth Grain Services`;
 
-      // const emailParam = recipientType === "seller" ? "to" : "bcc";
-      const gmailParams = new URLSearchParams({
-        view: "cm",
-        fs: "1",
-        to: recipients.join(","),
-        // [emailParam]: recipients.join(","),
-        su: subject,
-        body: emailBody,
-      });
-
-      const gmailLink = `https://mail.google.com/mail/?${gmailParams.toString()}`;
+      // Create Outlook mailto link with properly encoded body
+      const outlookLink = `mailto:${recipients.join(
+        ","
+      )}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+        emailBody
+      )}`;
 
       toast.dismiss();
-      window.open(gmailLink, "_blank");
+
+      // Open default email client (Outlook if it's the default)
+      window.location.href = outlookLink;
+
       toast.success(
         `Email prepared with PDF for ${recipients.length} ${recipientType}(s)`
       );
@@ -443,7 +541,6 @@ Contract Management Team`;
       toast.error("Failed to generate PDF and prepare email");
     }
   };
-
   // Function to generate PDF blob using your existing ExportContractPdf component
   const generatePDFBlobFromComponent = async (
     contracts: TContract[]
