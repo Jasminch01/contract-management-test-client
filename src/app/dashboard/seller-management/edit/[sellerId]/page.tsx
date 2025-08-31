@@ -57,7 +57,7 @@ const SellerInformationEditPage = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ngrInputValue, setNgrInputValue] = useState('');
+  const [ngrInputValue, setNgrInputValue] = useState("");
 
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
@@ -563,43 +563,43 @@ const SellerInformationEditPage = () => {
             <Field
               label="Office Address"
               name="address"
-              value={sellerData.address || ""}
+              value={sellerData?.address || ""}
               onChange={handleInputChange}
             />
             <Field
               label="ABN"
               name="abn"
-              value={sellerData.abn || ""}
+              value={sellerData?.abn || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Main NGR"
               name="mainNgr"
-              value={sellerData.mainNgr || ""}
+              value={sellerData?.mainNgr || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Contact Name"
               name="contactName"
-              value={sellerData.contactName || ""}
+              value={sellerData?.contactName || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Email"
               name="email"
-              value={sellerData.email || ""}
+              value={sellerData?.email || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Phone Number"
               name="phoneNumber"
-              value={sellerData.phoneNumber || ""}
+              value={sellerData?.phoneNumber || ""}
               onChange={handleInputChange}
             />
             <Field
               label="Account Number"
               name="accountNumber"
-              value={sellerData.accountNumber || ""}
+              value={sellerData?.accountNumber || ""}
               onChange={handleInputChange}
             />
 

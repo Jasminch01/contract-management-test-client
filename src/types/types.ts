@@ -79,7 +79,7 @@ export interface Buyer {
   createdAt?: string;
 }
 
-export type ContractStatus = "Incomplete" | "Complete" | "Invoiced";
+export type ContractStatus = "Draft" | "Incomplete" | "Complete" | "Invoiced";
 
 // For the array of contracts
 

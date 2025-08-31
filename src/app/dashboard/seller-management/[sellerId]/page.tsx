@@ -154,30 +154,40 @@ const SellerInformationPage = () => {
           <InfoRow label="Seller ABN" value={sellerData.abn || "N/A"} />
           <InfoRow
             label="Seller Additional NGRs"
-            value={sellerData.additionalNgrs?.join(", ") || "N/A"}
+            value={sellerData?.additionalNgrs?.join(", ") || "N/A"}
           />
-          <InfoRow label="Seller Email" value={sellerData.email || "N/A"} />
+          <InfoRow label="Seller Email" value={sellerData?.email || "N/A"} />
           <InfoRow
             label="Seller Farm or PO Address"
-            value={sellerData.address || "N/A"}
+            value={sellerData?.address || "N/A"}
           />
           <InfoRow
             label="Seller Main NGR"
-            value={sellerData.mainNgr || "N/A"}
+            value={sellerData?.mainNgr || "N/A"}
           />
           <InfoRow
             label="Seller Contact Name"
-            value={sellerData.contactName || "N/A"}
+            value={sellerData?.contactName || "N/A"}
           />
           <InfoRow
             label="Seller Phone Number"
-            value={sellerData.phoneNumber || "N/A"}
+            value={sellerData?.phoneNumber || "N/A"}
           />
           <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
             Authority to act
           </div>
           <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
-           {sellerData.authorityActFormPdf ? <a className="text-blue-400" href={sellerData?.authorityActFormPdf}> View – Authority To Act</a> : <p>N/A</p>}
+            {sellerData?.authorityActFormPdf ? (
+              <a
+                className="text-blue-400"
+                href={sellerData?.authorityActFormPdf}
+              >
+                {" "}
+                View – Authority To Act
+              </a>
+            ) : (
+              <p>N/A</p>
+            )}
           </div>
         </div>
 

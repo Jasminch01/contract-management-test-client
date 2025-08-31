@@ -95,6 +95,7 @@ const EditableContract: React.FC<ContractProps> = ({
     "Incomplete",
     "Complete",
     "Invoiced",
+    "Draft",
   ];
   const { data: sellers = [] } = useQuery({
     queryKey: ["sellers"],
@@ -405,7 +406,7 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {_id,createdAt, updatedAt, _v, contractNumber,
+    const {_id, createdAt, updatedAt, _v, contractNumber,
       ...updatedContract
     } = contractToSave;
     updateContractMutation.mutate(updatedContract);
@@ -849,7 +850,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 <input
                   type="text"
                   name="sellerContractReference" // Added name attribute
-                  value={contract?.sellerContractReference|| ""}
+                  value={contract?.sellerContractReference || ""}
                   onChange={(e) => handleChange(e)} // Simplified onChange
                   className="w-full border border-gray-300 p-1 rounded"
                 />

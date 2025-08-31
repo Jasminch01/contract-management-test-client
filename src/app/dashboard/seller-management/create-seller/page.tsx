@@ -420,14 +420,13 @@ const CreateSellerPage = () => {
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-medium text-gray-700">
-                    SELLER MAIN NGR *
+                    SELLER MAIN NGR
                   </label>
                   <input
                     type="text"
                     name="mainNgr"
                     value={formData.mainNgr}
                     onChange={handleChange}
-                    required
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   />
                 </div>

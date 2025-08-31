@@ -63,6 +63,7 @@ const EditableContract: React.FC<ContractProps> = ({
     "Incomplete",
     "Complete",
     "Invoiced",
+    "Draft",
   ];
 
   // Cloudinary upload function

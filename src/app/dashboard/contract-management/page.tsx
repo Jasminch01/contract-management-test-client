@@ -38,7 +38,7 @@ const columns = [
   },
   {
     name: "NGR",
-    selector: (row: TContract) =>row?.ngrNumber || row?.seller?.mainNgr || "",
+    selector: (row: TContract) => row?.ngrNumber || row?.seller?.mainNgr || "",
     sortable: true,
   },
   {
@@ -83,6 +83,8 @@ const columns = [
               ? "text-[#108A2B]" // Green for completed
               : row.status?.toLowerCase() === "invoiced"
               ? "text-[#3B82F6]" // Blue for invoiced
+              : row.status?.toLowerCase() === "draft"
+              ? "text-[#EF4444]" // Red for draft
               : "text-[#FAD957]" // Yellow for incomplete (default)
           }`}
         />
@@ -125,6 +127,7 @@ const statusOptions = [
   { value: "Complete", label: "Complete" },
   { value: "Incomplete", label: "Incomplete" },
   { value: "Invoiced", label: "Invoiced" },
+  { value: "Draft", label: "Draft" },
 ];
 
 const ContractManagementPage = () => {

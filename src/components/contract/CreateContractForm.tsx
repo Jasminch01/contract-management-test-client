@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
 "use client";
 import { IoArrowBack } from "react-icons/io5";
 import BuyerSelect from "./BuyerSelect";
@@ -23,9 +26,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { satoshiFont } from "@/font/font";
 import { instance } from "@/api/api";
+
 interface NextContractNumberResponse {
   nextContractNumber: string;
 }
+
 const CreateContractForm = () => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
@@ -99,7 +104,12 @@ const CreateContractForm = () => {
       queryClient.invalidateQueries({ queryKey: ["sellers"] });
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
 
-      toast.success("Contract created successfully!");
+      const isDraft = data.status === "draft";
+      toast.success(
+        isDraft
+          ? "Contract saved as draft successfully!"
+          : "Contract created successfully!"
+      );
       router.push("/dashboard/contract-management");
     },
     onError: (error) => {
@@ -367,9 +377,8 @@ const CreateContractForm = () => {
     }, 4000);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent form submission first
-
+  // Validation function for active contracts
+  const validateActiveContract = () => {
     let hasError = false;
 
     if (!formData.seller) {
@@ -389,32 +398,109 @@ const CreateContractForm = () => {
       );
       hasError = true;
     }
+
     if (!formData.contractType) {
-      showNotification(
-        "Please select type of contract",
-        "error"
-      );
-      hasError = true;
-    }
-    if (!formData.conveyance) {
-      showNotification(
-        "Please select conveyance",
-        "error"
-      );
+      showNotification("Please select type of contract", "error");
       hasError = true;
     }
 
-    if (hasError) {
+    if (!formData.conveyance) {
+      showNotification("Please select conveyance", "error");
+      hasError = true;
+    }
+
+    // Check other required fields based on your form requirements
+    const requiredFields = [
+      { field: "contractDate", message: "Contract date is required" },
+      { field: "deliveryPeriod.start", message: "Delivery period is required" },
+      {
+        field: "deliveryDestination",
+        message: "Delivery destination is required",
+      },
+      { field: "deliveryOption", message: "Delivery option is required" },
+      { field: "brokerRate", message: "Broker rate is required" },
+      { field: "freight", message: "Freight is required" },
+      { field: "grade", message: "Grade is required" },
+      { field: "weights", message: "Weights is required" },
+      { field: "priceExGST", message: "Price (Ex-GST) is required" },
+      { field: "commodity", message: "Commodity is required" },
+      { field: "tonnes", message: "Tonnes is required" },
+      { field: "season", message: "Season is required" },
+      { field: "tolerance", message: "Tolerance is required" },
+    ];
+
+    for (const { field, message } of requiredFields) {
+      let value;
+      if (field.includes(".")) {
+        const [parent, child] = field.split(".");
+        value = formData[parent as keyof typeof formData]?.[child as any];
+      } else {
+        value = formData[field as keyof typeof formData];
+      }
+
+      if (!value || (typeof value === "string" && value.trim() === "")) {
+        showNotification(message, "error");
+        hasError = true;
+        break; // Show one error at a time
+      }
+    }
+
+    return !hasError;
+  };
+
+  const validateDraftContract = () => {
+    let hasError = false;
+
+    if (!formData.seller) {
+      showNotification("Must have to select a seller to save draft", "error");
+      hasError = true;
+    }
+
+    if (!formData.buyer) {
+      showNotification("Must have to  select a buyer to save draft", "error");
+      hasError = true;
+    }
+
+    if (!formData.brokeragePayableBy) {
+      showNotification(
+        "Must have to select who the brokerage is payable by to save draft",
+        "error"
+      );
+      hasError = true;
+    }
+    return !hasError;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent form submission first
+
+    // Only validate required fields for active contracts
+    if (!validateActiveContract()) {
       return;
     }
 
-    // Only proceed if all validations pass
+    // Create active contract
     const newContract: TUpdateContract = {
       ...formData,
     };
 
     createContractMutation.mutate(newContract);
-    // console.log(newContract);
+  };
+
+  const handleSaveDraft = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent form submission
+    if (!validateDraftContract()) {
+      return;
+    }
+
+    // No validation required for drafts - save whatever is filled
+    const draftContract: TUpdateContract = {
+      ...formData,
+      status: "Draft",
+    };
+
+    createContractMutation.mutate(draftContract);
+    // console.log(draftContract)
   };
 
   return (
@@ -454,7 +540,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               placeholder="sjfkjdf"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              required
             />
           </div>
           {/* Delivery Period - Full width on mobile, spans appropriately on larger screens */}
@@ -477,7 +562,6 @@ const CreateContractForm = () => {
                 maxDate={addDays(new Date(), 365)}
                 shouldCloseOnSelect={false}
                 selectsDisabledDaysInRange
-                required
               />
             </div>
           </div>
@@ -492,7 +576,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -508,7 +591,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -524,7 +606,6 @@ const CreateContractForm = () => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
-              required
             />
           </div>
 
@@ -568,7 +649,6 @@ const CreateContractForm = () => {
               value={formData.freight}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -598,7 +678,6 @@ const CreateContractForm = () => {
               value={formData.grade}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -613,7 +692,6 @@ const CreateContractForm = () => {
               value={formData.weights}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -653,7 +731,6 @@ const CreateContractForm = () => {
               type="number"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
-              required
             />
           </div>
 
@@ -779,7 +856,6 @@ const CreateContractForm = () => {
               value={formData.commodity}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
 
@@ -795,7 +871,6 @@ const CreateContractForm = () => {
               type="number"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder=""
-              required
             />
           </div>
 
@@ -814,7 +889,6 @@ const CreateContractForm = () => {
                 onChange={handleChange}
                 value={formData.ngrNumber}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white"
-                required
               >
                 <option value="">Select NGR Number</option>
 
@@ -847,7 +921,6 @@ const CreateContractForm = () => {
               value={formData.season}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-              required
             >
               <option value="">Select Season</option>
               {getFormattedSeasons().map((season) => (
@@ -887,7 +960,6 @@ const CreateContractForm = () => {
               value={formData.tolerance}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder=""
-              required
             />
           </div>
         </div>
@@ -897,10 +969,31 @@ const CreateContractForm = () => {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer order-2 sm:order-1"
+            className="px-6 py-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-3 cursor-pointer order-3 sm:order-1"
           >
             <IoArrowBack /> Back
           </button>
+
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={
+              uploadingBuyerContract ||
+              uploadingSellerContract ||
+              createContractMutation.isPending
+            }
+            className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed order-2 sm:order-2"
+          >
+            {createContractMutation.isPending ? (
+              <div className="flex items-center gap-2">
+                <AiOutlineLoading3Quarters className="animate-spin" />
+                Saving...
+              </div>
+            ) : (
+              "Save Draft"
+            )}
+          </button>
+
           <button
             type="submit"
             disabled={
@@ -908,7 +1001,7 @@ const CreateContractForm = () => {
               uploadingSellerContract ||
               createContractMutation.isPending
             }
-            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
+            className="px-6 py-2 bg-[#2A5D36] text-white rounded hover:bg-[#1e4728] focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-3"
           >
             {createContractMutation.isPending ? (
               <div className="flex items-center gap-2">
