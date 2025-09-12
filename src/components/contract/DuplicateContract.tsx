@@ -44,6 +44,15 @@ const EditableContract: React.FC<ContractProps> = ({
     null,
     null,
   ]);
+  const [showContactDropdown, setShowContactDropdown] = useState(false);
+  const [showSellerContactDropdown, setShowSellerContactDropdown] =
+    useState(false);
+  const [selectedBuyerContactName, setSelectedBuyerContactName] = useState(
+    initialContract.buyerContactName || ""
+  );
+  const [selectedSellerContactName, setSelectedSellerContactName] = useState(
+    initialContract.sellerContactName || ""
+  );
   const [isLoadingContractNumber, setIsLoadingContractNumber] = useState(false);
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
@@ -231,6 +240,22 @@ const EditableContract: React.FC<ContractProps> = ({
     }));
     setShowBuyerDropdown(false);
     setHasChanges(true);
+  };
+
+  const handleContactSelect = (contactName) => {
+    if (contactName !== contract.buyerContactName) {
+      setSelectedBuyerContactName(contactName);
+      setHasChanges(true);
+    }
+    setShowContactDropdown(false);
+  };
+
+  const handleSellerContact = (contactName) => {
+    if (contactName !== contract.sellerContactName) {
+      setSelectedSellerContactName(contactName);
+      setHasChanges(true);
+    }
+    setShowSellerContactDropdown(false);
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -440,6 +465,10 @@ const EditableContract: React.FC<ContractProps> = ({
         initialContract.attachedSellerContract
           ? contract.attachedSellerContract
           : "",
+
+      buyerContactName: selectedBuyerContactName || contract.buyerContactName,
+      sellerContactName:
+        selectedSellerContactName || contract.sellerContactName,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, _v, updatedAt, ...contractWithoutId } =
@@ -958,10 +987,70 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Contact Name
               </div>
-              <div className="w-1/2 p-3">
-                <div className="w-full p-1 rounded bg-gray-50">
-                  {selectedBuyer?.contactName || ""}
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full p-2 rounded bg-gray-50 border border-gray-300 cursor-pointer flex items-center justify-between hover:bg-gray-100"
+                  onClick={() => setShowContactDropdown(!showContactDropdown)}
+                >
+                  <span className="text-gray-700">
+                    {selectedBuyerContactName || contract.buyerContactName}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 text-gray-500 transition-transform ${
+                      showContactDropdown ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
+
+                {showContactDropdown && selectedBuyer?.contactName && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                    {selectedBuyer.contactName.map((contactName, index) => {
+                      // Check if this contact name is the currently selected/existing one
+                      const isSelected =
+                        contactName === contract.buyerContactName;
+
+                      return (
+                        <div
+                          key={index}
+                          className={`p-2 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            isSelected
+                              ? "bg-blue-100 text-blue-800 font-medium hover:bg-blue-200"
+                              : "hover:bg-gray-100"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleContactSelect(contactName);
+                          }}
+                        >
+                          {contactName}
+                          {isSelected && (
+                            <span className="ml-2 text-xs text-blue-600">
+                              (Selected)
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Click outside to close dropdown */}
+                {showContactDropdown && (
+                  <div
+                    className="fixed inset-0 z-0"
+                    onClick={() => setShowContactDropdown(false)}
+                  />
+                )}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -1084,10 +1173,72 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Contact Name
               </div>
-              <div className="w-1/2 p-3">
-                <div className="w-full p-1 rounded bg-gray-50">
-                  {selectedSeller?.contactName || ""}
+              <div className="w-1/2 p-3 relative">
+                <div
+                  className="w-full p-2 rounded bg-gray-50 border border-gray-300 cursor-pointer flex items-center justify-between hover:bg-gray-100"
+                  onClick={() =>
+                    setShowSellerContactDropdown(!showSellerContactDropdown)
+                  }
+                >
+                  <span className="text-gray-700">
+                    {selectedSellerContactName || contract.sellerContactName}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 text-gray-500 transition-transform ${
+                      showSellerContactDropdown ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
+
+                {showSellerContactDropdown && selectedSeller?.contactName && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                    {selectedSeller.contactName.map((contactName, index) => {
+                      // Check if this contact name is the currently selected/existing one
+                      const isSelected =
+                        contactName === contract.sellerContactName;
+
+                      return (
+                        <div
+                          key={index}
+                          className={`p-2 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            isSelected
+                              ? "bg-blue-100 text-blue-800 font-medium hover:bg-blue-200"
+                              : "hover:bg-gray-100"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSellerContact(contactName);
+                          }}
+                        >
+                          {contactName}
+                          {isSelected && (
+                            <span className="ml-2 text-xs text-blue-600">
+                              (Selected)
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Click outside to close dropdown */}
+                {showSellerContactDropdown && (
+                  <div
+                    className="fixed inset-0 z-0"
+                    onClick={() => setShowSellerContactDropdown(false)}
+                  />
+                )}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
