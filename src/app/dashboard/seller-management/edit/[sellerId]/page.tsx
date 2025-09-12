@@ -55,6 +55,7 @@ const SellerInformationEditPage = () => {
   const authorityFileInputRef = useRef<HTMLInputElement>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [currentContactName, setCurrentContactName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ngrInputValue, setNgrInputValue] = useState("");
@@ -318,6 +319,12 @@ const SellerInformationEditPage = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    // Skip contact name handling here since it's handled separately
+    if (name === "contactName") {
+      return;
+    }
+
     setSellerData((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, [name]: value };
@@ -426,6 +433,45 @@ const SellerInformationEditPage = () => {
       if (!confirmLeave) return;
     }
     router.back();
+  };
+
+  const addContactName = () => {
+    if (
+      currentContactName.trim() &&
+      !sellerData?.contactName.includes(currentContactName.trim())
+    ) {
+      setSellerData((prev) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          contactName: [...prev.contactName, currentContactName.trim()],
+        };
+        setHasChanges(checkForChanges(updated));
+        return updated;
+      });
+      setCurrentContactName("");
+    } else if (sellerData?.contactName.includes(currentContactName.trim())) {
+      toast.error("Contact name already exists");
+    }
+  };
+
+  const removeContactName = (nameToRemove: string) => {
+    setSellerData((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        contactName: prev.contactName.filter((name) => name !== nameToRemove),
+      };
+      setHasChanges(checkForChanges(updated));
+      return updated;
+    });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addContactName();
+    }
   };
 
   const handleSave = async () => {
@@ -578,12 +624,53 @@ const SellerInformationEditPage = () => {
               value={sellerData?.mainNgr || ""}
               onChange={handleInputChange}
             />
-            <Field
-              label="Contact Name"
-              name="contactName"
-              value={sellerData?.contactName || ""}
-              onChange={handleInputChange}
-            />
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Contact Name *
+              </label>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={currentContactName}
+                    onChange={(e) => setCurrentContactName(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Enter contact name"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+                    disabled={updateSellerMutation.isPending}
+                  />
+                </div>
+
+                {/* Display added contact names */}
+                {sellerData?.contactName &&
+                  sellerData.contactName.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {sellerData.contactName.map((name, index) => (
+                        <div
+                          key={index}
+                          className="bg-[#2A5D36] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                        >
+                          <span>{name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeContactName(name)}
+                            className="text-white hover:text-gray-300 font-bold text-lg leading-none"
+                            disabled={updateSellerMutation.isPending}
+                            style={{ fontSize: "14px" }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                {sellerData.contactName.length === 0 && (
+                  <p className="text-red-500 text-xs">
+                    At least one contact name is required
+                  </p>
+                )}
+              </div>
+            </div>
             <Field
               label="Email"
               name="email"
@@ -812,7 +899,7 @@ const SellerInformationEditPage = () => {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saveStatus === "saving" || uploadingAuthorityPdf}
+                disabled={saveStatus === "saving" || uploadingAuthorityPdf || sellerData.contactName.length ===0}
                 className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 <MdSave className="text-lg" />

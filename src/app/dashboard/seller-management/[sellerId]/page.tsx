@@ -167,7 +167,7 @@ const SellerInformationPage = () => {
           />
           <InfoRow
             label="Seller Contact Name"
-            value={sellerData?.contactName || "N/A"}
+            value={sellerData?.contactName.join(", ") || "N/A"}
           />
           <InfoRow
             label="Seller Phone Number"

@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,11 +15,13 @@ const CreateBuyerPage = () => {
     name: "",
     abn: "",
     officeAddress: "",
-    contactName: "",
+    contactName: [], // This should be an array
     email: "",
     phoneNumber: "",
     accountNumber: "",
   });
+
+  const [currentContactName, setCurrentContactName] = useState("");
 
   // TanStack Query mutation for creating buyer
   const createBuyerMutation = useMutation({
@@ -46,10 +49,42 @@ const CreateBuyerPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Skip contactName as it's handled separately as an array
+    if (name !== "contactName") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const addContactName = () => {
+    if (
+      currentContactName.trim() &&
+      !formData.contactName.includes(currentContactName.trim())
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        contactName: [...prev.contactName, currentContactName.trim()],
+      }));
+      setCurrentContactName("");
+    } else if (formData.contactName.includes(currentContactName.trim())) {
+      toast.error("Contact name already exists");
+    }
+  };
+
+  const removeContactName = (nameToRemove: string) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      contactName: prev.contactName.filter((name) => name !== nameToRemove),
     }));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addContactName();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,12 +94,16 @@ const CreateBuyerPage = () => {
     if (
       !formData.name ||
       !formData.abn ||
-      !formData.contactName ||
+      !formData.officeAddress ||
       !formData.email ||
-      !formData.phoneNumber ||
-      !formData.officeAddress
+      !formData.phoneNumber
     ) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (formData.contactName.length === 0) {
+      toast.error("Please add at least one contact name");
       return;
     }
 
@@ -81,6 +120,7 @@ const CreateBuyerPage = () => {
 
     // Use the mutation instead of direct API call
     createBuyerMutation.mutate(newBuyer);
+    // console.log(newBuyer);
   };
 
   return (
@@ -147,15 +187,42 @@ const CreateBuyerPage = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   BUYER CONTACT NAME *
                 </label>
-                <input
-                  type="text"
-                  name="contactName"
-                  value={formData.contactName}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
-                  required
-                  disabled={createBuyerMutation.isPending}
-                />
+                <div className="mt-1 space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={currentContactName}
+                      onChange={(e) => setCurrentContactName(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Enter contact name"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
+                      disabled={createBuyerMutation.isPending}
+                    />
+                  </div>
+
+                  {/* Display added contact names */}
+                  {formData.contactName.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.contactName.map((name, index) => (
+                        <div
+                          key={index}
+                          className="bg-[#2A5D36] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                        >
+                          <span>{name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeContactName(name)}
+                            className="text-white hover:text-gray-300 font-bold text-lg leading-none"
+                            disabled={createBuyerMutation.isPending}
+                            style={{ fontSize: "14px" }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

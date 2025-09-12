@@ -27,8 +27,8 @@ const columns = [
     sortable: true,
   },
   {
-    name: "MAIN CONTACT",
-    selector: (row: Seller) => row.contactName,
+    name: "CONTACT NAMES",
+    selector: (row: Seller) => row.contactName.join(", "),
     sortable: true,
   },
   {

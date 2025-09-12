@@ -16,27 +16,27 @@ import { RiDeleteBin6Fill } from "react-icons/ri";
 const columns = [
   {
     name: "BUYER NAME",
-    selector: (row: Buyer) => row.name,
+    selector: (row: Buyer) => row?.name,
     sortable: true,
   },
   {
     name: "ABN",
-    selector: (row: Buyer) => row.abn,
+    selector: (row: Buyer) => row?.abn,
     sortable: true,
   },
   {
-    name: "MAIN CONTACT",
-    selector: (row: Buyer) => row.contactName,
+    name: "CONTACT NAMES",
+    selector: (row: Buyer) => row?.contactName.join(", "),
     sortable: true,
   },
   {
     name: "EMAIL",
-    selector: (row: Buyer) => row.email,
+    selector: (row: Buyer) => row?.email,
     sortable: true,
   },
   {
     name: "PHONE",
-    selector: (row: Buyer) => row.phoneNumber,
+    selector: (row: Buyer) => row?.phoneNumber,
     sortable: true,
   },
   {
@@ -159,7 +159,9 @@ const BuyerManagementPage = () => {
         return (
           buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.abn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          buyer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          buyer.contactName.some((contact) =>
+            contact.toLowerCase().includes(searchTerm.toLowerCase())
+          ) ||
           buyer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -451,8 +453,8 @@ const BuyerManagementPage = () => {
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
-                Are you sure you want to move trash {selectedRows.length} selected
-                buyer(s)?
+                Are you sure you want to move trash {selectedRows.length}{" "}
+                selected buyer(s)?
               </p>
               <div className="flex justify-center gap-3">
                 <button

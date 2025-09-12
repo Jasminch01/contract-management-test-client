@@ -32,7 +32,7 @@ const BuyerInformationPage = () => {
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.back()
+    router.back();
   };
 
   const handleRefresh = () => {
@@ -192,9 +192,17 @@ const BuyerInformationPage = () => {
               { label: "ABN", value: buyerData.abn },
               { label: "Email", value: buyerData.email },
               { label: "Office Address", value: buyerData.officeAddress },
-              { label: "Contact Name", value: buyerData.contactName },
+              {
+                label: "Contact Names",
+                value: Array.isArray(buyerData.contactName)
+                  ? buyerData.contactName.join(", ")
+                  : buyerData.contactName,
+              },
               { label: "Phone Number", value: buyerData.phoneNumber },
-              { label: "Account Number", value: buyerData?.accountNumber || "" },
+              {
+                label: "Account Number",
+                value: buyerData?.accountNumber || "",
+              },
             ].map((item, index) => (
               <React.Fragment key={index}>
                 <div className="border-b border-r border-gray-300 p-4 bg-gray-50 text-gray-700 font-medium">

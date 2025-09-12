@@ -71,7 +71,7 @@ export interface Buyer {
   abn: string;
   officeAddress: string;
   accountNumber: string;
-  contactName: string;
+  contactName: string[]; // Now an array instead of string
   email: string;
   phoneNumber: string;
   isDeleted?: boolean;
@@ -82,19 +82,6 @@ export interface Buyer {
 export type ContractStatus = "Draft" | "Incomplete" | "Complete" | "Invoiced";
 
 // For the array of contracts
-
-export interface Buyer {
-  _id?: string;
-  name: string;
-  abn: string;
-  email: string;
-  accountNumber: string;
-  officeAddress: string;
-  contactName: string;
-  phoneNumber: string;
-  isDeleted?: boolean;
-  createdAt?: string;
-}
 
 export type BulkHandlerName =
   | "Viterra"
@@ -120,7 +107,7 @@ export interface Seller {
   authorityToAct?: string;
   address?: string;
   mainNgr?: string;
-  contactName: string;
+  contactName: string[];
   locationZone?: string[];
   phoneNumber?: string;
   authorityActFormPdf?: string;
@@ -160,6 +147,8 @@ export interface TContract {
   termsAndConditions: string;
   notes: string;
   ngrNumber?: string;
+  buyerContactName?: string;
+  sellerContactName?: string;
   tonnes: string;
   tolerance: string;
   season: string;
@@ -201,6 +190,8 @@ export interface TUpdateContract {
   notes: string;
   tonnes: string;
   ngrNumber?: string;
+  buyerContactName?: string;
+  sellerContactName?: string;
   tolerance: string;
   season: string;
   status?: string;

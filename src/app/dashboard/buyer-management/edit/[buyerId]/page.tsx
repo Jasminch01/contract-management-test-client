@@ -18,6 +18,7 @@ const BuyerInformationEditPage = () => {
     null
   );
   const [hasChanges, setHasChanges] = useState(false);
+  const [currentContactName, setCurrentContactName] = useState("");
 
   // Query to fetch buyer data
   const {
@@ -72,7 +73,7 @@ const BuyerInformationEditPage = () => {
       // Invalidate queries to ensure server consistency
       queryClient.invalidateQueries({ queryKey: ["buyer", buyerIdString] });
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
-       queryClient.invalidateQueries({ queryKey: ["contract"] });
+      queryClient.invalidateQueries({ queryKey: ["contract"] });
 
       // Navigate back to buyer management
       router.push(`/dashboard/buyer-management`);
@@ -87,8 +88,17 @@ const BuyerInformationEditPage = () => {
   // Set local state when data is fetched
   useEffect(() => {
     if (fetchedBuyerData) {
-      setBuyerData(fetchedBuyerData);
-      setOriginalBuyerData(fetchedBuyerData);
+      // Ensure contactName is always an array
+      const normalizedData = {
+        ...fetchedBuyerData,
+        contactName: Array.isArray(fetchedBuyerData.contactName)
+          ? fetchedBuyerData.contactName
+          : fetchedBuyerData.contactName
+          ? [fetchedBuyerData.contactName]
+          : [],
+      };
+      setBuyerData(normalizedData);
+      setOriginalBuyerData(normalizedData);
     }
   }, [fetchedBuyerData]);
 
@@ -149,13 +159,51 @@ const BuyerInformationEditPage = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Skip contactName as it's handled separately as an array
+    if (name !== "contactName") {
+      setBuyerData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          [name]: value,
+        };
+      });
+    }
+  };
+
+  const addContactName = () => {
+    if (
+      currentContactName.trim() &&
+      !buyerData.contactName.includes(currentContactName.trim())
+    ) {
+      setBuyerData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          contactName: [...prev.contactName, currentContactName.trim()],
+        };
+      });
+      setCurrentContactName("");
+    } else if (buyerData.contactName.includes(currentContactName.trim())) {
+      toast.error("Contact name already exists");
+    }
+  };
+
+  const removeContactName = (nameToRemove: string) => {
     setBuyerData((prev) => {
       if (!prev) return null;
       return {
         ...prev,
-        [name]: value,
+        contactName: prev.contactName.filter((name) => name !== nameToRemove),
       };
     });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addContactName();
+    }
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -165,6 +213,13 @@ const BuyerInformationEditPage = () => {
 
   const handleSave = async () => {
     if (!buyerData) return;
+
+    // Validation
+    if (buyerData.contactName.length === 0) {
+      toast.error("Please add at least one contact name");
+      return;
+    }
+
     updateBuyerMutation.mutate(buyerData);
   };
 
@@ -172,6 +227,7 @@ const BuyerInformationEditPage = () => {
     if (originalBuyerData) {
       setBuyerData({ ...originalBuyerData });
     }
+    setCurrentContactName("");
     setHasChanges(false);
   };
 
@@ -213,12 +269,56 @@ const BuyerInformationEditPage = () => {
               value={buyerData.officeAddress || ""}
               onChange={handleInputChange}
             />
-            <Field
-              label="Buyer Contact Name"
-              name="contactName"
-              value={buyerData.contactName || ""}
-              onChange={handleInputChange}
-            />
+
+            {/* Contact Name Field - Multiple contacts */}
+            <div className="">
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Buyer Contact Name *
+              </label>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={currentContactName}
+                    onChange={(e) => setCurrentContactName(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Enter contact name and press Enter"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
+                    disabled={updateBuyerMutation.isPending}
+                  />
+                </div>
+
+                {/* Display added contact names */}
+                {buyerData.contactName.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {buyerData.contactName.map((name, index) => (
+                      <div
+                        key={index}
+                        className="bg-[#2A5D36] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                      >
+                        <span>{name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeContactName(name)}
+                          className="text-white hover:text-gray-300 font-bold text-lg leading-none"
+                          disabled={updateBuyerMutation.isPending}
+                          style={{ fontSize: "14px" }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {buyerData.contactName.length === 0 && (
+                  <p className="text-red-500 text-xs">
+                    At least one contact name is required
+                  </p>
+                )}
+              </div>
+            </div>
+
             <Field
               label="Buyer Phone Number"
               name="phoneNumber"
@@ -246,7 +346,10 @@ const BuyerInformationEditPage = () => {
               </button>
               <button
                 onClick={handleSave}
-                disabled={updateBuyerMutation.isPending}
+                disabled={
+                  updateBuyerMutation.isPending ||
+                  buyerData.contactName.length === 0
+                }
                 className="py-2 px-5 bg-[#2A5D36] text-white rounded flex items-center gap-2 hover:bg-[#1e4a2a] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <MdSave className="text-lg" />

@@ -339,6 +339,7 @@ const CreateContractForm = () => {
     setFormData((prev) => ({
       ...prev,
       buyer: buyer._id as string,
+      buyerContactName: buyer.contactName[0],
     }));
   };
 
@@ -348,6 +349,7 @@ const CreateContractForm = () => {
     setFormData((prev) => ({
       ...prev,
       seller: seller._id as string,
+      sellerContactName: seller.contactName[0],
     }));
   };
 
@@ -485,6 +487,7 @@ const CreateContractForm = () => {
     };
 
     createContractMutation.mutate(newContract);
+    // console.log(newContract)
   };
 
   const handleSaveDraft = async (e: React.FormEvent) => {

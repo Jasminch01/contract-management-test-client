@@ -290,7 +290,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Broker</div>
               <div className="w-1/2 p-3">
                 {/* {contract.seller.legalName || "N/A"} */}
-                Growth Grain Services
+                Growth Grain Services 
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -351,7 +351,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.buyer?.contactName || "N/A"}
+                {contract?.buyerContactName || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -406,7 +406,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract?.seller?.legalName || "N/A"}
+                {contract?.sellerContactName|| "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
