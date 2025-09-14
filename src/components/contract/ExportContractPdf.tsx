@@ -17,12 +17,12 @@ const contractPdfStyles = StyleSheet.create({
   },
   container: {
     paddingTop: 30,
-    height: "100%", // Take full available height
+    height: "100%",
     display: "flex",
     flexDirection: "column",
   },
   content: {
-    flexGrow: 1, // Grow to fill available space
+    flexGrow: 1,
     paddingTop: 10,
     paddingBottom: 10,
   },
@@ -125,7 +125,7 @@ const contractPdfStyles = StyleSheet.create({
     marginBottom: 8,
   },
   footerNote: {
-    marginTop: "auto", // Push to bottom
+    marginTop: "auto",
     fontSize: 9,
     fontStyle: "italic",
     paddingHorizontal: 10,
@@ -135,6 +135,19 @@ const contractPdfStyles = StyleSheet.create({
 });
 
 const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
+  const formatDateWithOrdinal = (date: Date) => {
+    const day = date.getDate();
+    const month = date.toLocaleDateString("en-GB", { month: "long" });
+    const year = date.getFullYear();
+
+    let suffix = "TH";
+    if (day === 1 || day === 21 || day === 31) suffix = "ST";
+    else if (day === 2 || day === 22) suffix = "ND";
+    else if (day === 3 || day === 23) suffix = "RD";
+
+    return `${day}${suffix} ${month.toUpperCase()} ${year}`;
+  };
+
   return (
     <Document>
       {contracts.map((contract, index) => (
@@ -153,7 +166,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       GROWTH GRAIN SERVICES
                     </Text>
                     <Text style={contractPdfStyles.abn}>
-                      ABN 64 157 832 216
+                      ABN 54 157 832 245
                     </Text>
                   </View>
                 </View>
@@ -166,15 +179,22 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                   <Text style={contractPdfStyles.partyText}>
                     {contract.buyer?.name || "N/A"}
                   </Text>
-                  <Text style={contractPdfStyles.partyText}>Top Box Stock</Text>
-                  <Text style={contractPdfStyles.partyText}>
-                    Minimum VIC, 3004
-                  </Text>
                   <Text style={contractPdfStyles.partyText}>
                     {contract.buyer?.officeAddress || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.buyer?.email || "N/A"}
+                    ABN : {contract.buyer?.abn || "N/A"}
+                  </Text>
+                  <Text style={contractPdfStyles.partyText}>
+                    Email : {contract.buyer?.email || "N/A"}
+                  </Text>
+                  <Text style={contractPdfStyles.partyText}>
+                    Contact : {contract?.buyerContactName || "N/A"}
+                  </Text>
+                  <Text style={contractPdfStyles.partyText}>
+                    {contract.conveyance === "Port Zone"
+                      ? `Contact Number : ${contract?.contractNumber || "N/A"}`
+                      : `Buyer Contract : ${contract?.contractNumber || "N/A"}`}
                   </Text>
                 </View>
 
@@ -187,10 +207,13 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     {contract.seller?.address || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.seller?.contactName || "N/A"}
+                    NGR : {contract.ngrNumber || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    {contract.seller?.email || contract.seller?.email || "N/A"}
+                    Email : {contract.seller?.email || "N/A"}
+                  </Text>
+                  <Text style={contractPdfStyles.partyText}>
+                    Contact : {contract?.sellerContactName || "N/A"}
                   </Text>
                 </View>
               </View>
@@ -208,9 +231,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       Broker Ref:
                     </Text>
                     <Text style={contractPdfStyles.brokerRefItem}>
-                      {contract.sellerContractReference ||
-                        contract.contractNumber ||
-                        "N/A"}
+                      {contract.contractNumber || "N/A"}
                     </Text>
                     <Text
                       style={[
@@ -221,119 +242,275 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       Contract Date:
                     </Text>
                     <Text style={contractPdfStyles.brokerRefItem}>
-                      {contract.createdAt ||
-                        new Date(contract.createdAt).toLocaleDateString() ||
-                        "N/A"}
+                      {contract.contractDate
+                        ? new Date(contract.contractDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : "N/A"}
                     </Text>
                   </View>
                 </View>
               </View>
 
-              {/* Contract Details - Main content area */}
+              {/* Contract Details - Conditional rendering based on conveyance */}
               <View style={contractPdfStyles.detailsSection}>
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Commodity:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.commodity || contract.grade || "N/A"}
-                  </Text>
-                </View>
+                {contract.conveyance === "Port Zone" ? (
+                  <>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Certification Scheme:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.certificationScheme || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Season:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.season || contract.season || "N/A"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Commodity:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.commodity || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Quality:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.grade || "H1 AS PER GTA CSG-101 STANDARDS"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Season:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.season || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Quantity:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.tonnes || "0"} METRIC TONNES - NIL TOLERANCE
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Quality:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.grade || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Price:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    A${contract.priceExGST || contract.priceExGST || "0"} PER
-                    TONNE IN DISPOT YITTERM, ROCKVORTHY
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Quantity:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.tonnes || "0"} METRIC TONNES -{" "}
+                        {contract.tolerance || "NIL"} TOLERANCE
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>
-                    Delivery Period:
-                  </Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.deliveryOption || "N/A"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Price:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        A${contract.priceExGST || "0"} PER TONNE IN{" "}
+                        {contract.deliveryDestination || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Payment:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    5 DARS END OF WEEK OF CULVERT SANDAR IS END OF WEED
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Delivery Period:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract?.deliveryPeriod?.start
+                          ? `${
+                              new Date(contract.deliveryPeriod.start)
+                                .toISOString()
+                                .split("T")[0]
+                            } - ${
+                              new Date(
+                                contract.deliveryPeriod.end ||
+                                  contract.deliveryPeriod.start
+                              )
+                                .toISOString()
+                                .split("T")[0]
+                            }`
+                          : "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Freight:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.freight || "N/A"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Payment:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.paymentTerms || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Weight:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.weights || "N/A"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Freight:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.freight || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>
-                    Terms & Conditions:
-                  </Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    WHEN NOT IN CONFLICT WITH THE ABOVE CONDITIONS THIS CONTRACT
-                    EXPRESSLY INCORPORATES THE TERMS & CONDITIONS OF THE GTA NO
-                    3 CONTRACT INCLUDING THE GTA TRADE RULES AND DISPURE
-                    RESOLUTION RULES
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Weight:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.weights || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>
-                    Special Conditions:
-                  </Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    {contract.specialCondition?.toUpperCase() || "N/A"}
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Terms & Conditions:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.termsAndConditions || "N/A"}
+                      </Text>
+                    </View>
 
-                <View style={contractPdfStyles.detailRow}>
-                  <Text style={contractPdfStyles.detailLabel}>Brokerage:</Text>
-                  <Text style={contractPdfStyles.detailValue}>
-                    AT SELLERS COST AT A$1.00 PER TONNE (EXCLUSIVE OF GST)
-                    INVOICE TO SELLER TO BE FORWARDED ON SEPARATELY TO THIS
-                    CONTRACT
-                  </Text>
-                </View>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Special Conditions:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.specialCondition?.toUpperCase() || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Brokerage:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        BROKERAGE PAYABLE BY{" "}
+                        {contract.brokeragePayableBy?.toUpperCase() || "N/A"} AT
+                        A${contract.brokerRate || "0"} PER TONNE (EXCLUSIVE OF
+                        GST) INVOICE TO{" "}
+                        {contract.brokeragePayableBy?.toUpperCase() || "N/A"} TO
+                        BE FORWARDED ON SEPARATELY TO THIS CONTRACT
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Commodity:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.commodity || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Season:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.season || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Quality:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.grade || "N/A"} AS PER GTA CSG-101 STANDARDS
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Quantity:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.tonnes || "0"} METRIC TONNES -{" "}
+                        {contract.tolerance || "NIL"} TOLERANCE
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Price:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        A${contract.priceExGST || "0"} PER TONNE IN{" "}
+                        {contract.deliveryDestination || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Delivery Period:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract?.deliveryPeriod?.start &&
+                        contract?.deliveryPeriod?.end
+                          ? `${formatDateWithOrdinal(
+                              new Date(contract.deliveryPeriod.start)
+                            )} - ${formatDateWithOrdinal(
+                              new Date(contract.deliveryPeriod.end)
+                            )}`
+                          : "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Payment:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.paymentTerms || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Freight:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.freight || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>Weight:</Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.weights || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Terms & Conditions:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.termsAndConditions || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Special Conditions:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.specialCondition?.toUpperCase() || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
+                        Brokerage:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        AT SELLERS COST AT A$1.00 PER TONNE (EXCLUSIVE OF GST)
+                        INVOICE TO SELLER TO BE FORWARDED ON SEPARATELY TO THIS
+                        CONTRACT
+                      </Text>
+                    </View>
+                  </>
+                )}
               </View>
 
-              {/* Footer Note - positioned at bottom */}
+              {/* Footer Note */}
               <Text style={contractPdfStyles.footerNote}>
-                Growth Grain Services as broker does not guarentee the
+                Growth Grain Services as broker does not guarantee the
                 performance of this contract. Both the buyer and the seller are
                 bound by the above contract and mentioned GTA contracts to
-                execute the contract. Seller is resposible for any applicable
+                execute the contract. Seller is responsible for any applicable
                 levies/royalties
               </Text>
             </View>
