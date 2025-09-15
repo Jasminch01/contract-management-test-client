@@ -108,7 +108,6 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                     <span className="w-1/4 font-semibold">Quantity:</span>
                     <span className="w-3/4">
                       {contract.tonnes} METRIC TONNES - {contract.tolerance}{" "}
-                      TOLERANCE
                     </span>
                   </div>
 

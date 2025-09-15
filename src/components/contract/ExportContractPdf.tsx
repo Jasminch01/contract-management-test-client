@@ -296,7 +296,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
                         {contract.tonnes || "0"} METRIC TONNES -{" "}
-                        {contract.tolerance || "NIL"} TOLERANCE
+                        {contract.tolerance}
                       </Text>
                     </View>
 
