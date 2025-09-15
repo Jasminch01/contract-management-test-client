@@ -833,18 +833,6 @@ const CreateContractForm = () => {
                 </div>
               )}
             </div>
-            {/* {formData.attachedSellerContract && (
-              <div className="mt-2">
-                <a
-                  href={formData.attachedSellerContract}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 text-sm underline"
-                >
-                  View uploaded contract
-                </a>
-              </div>
-            )} */}
           </div>
 
           {/* Commodity */}

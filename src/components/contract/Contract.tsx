@@ -458,6 +458,14 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
+                Conveyance
+              </div>
+              <div className="w-1/2 p-3">
+                {contract.conveyance || "N/A"}
+              </div>
+            </div>
+            <div className="flex border-b border-gray-300">
+              <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Certification Scheme
               </div>
               <div className="w-1/2 p-3">
