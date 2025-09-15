@@ -37,7 +37,11 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>ABN : {contract.buyer.abn}</p>
                 <p>Email : {contract.buyer.email}</p>
                 <p>Contact : {contract?.buyerContactName}</p>
-               {contract.conveyance === "Port Zone" ?  <p>Contract Number : {contract?.contractNumber}</p> :<p> Buyer Contract : {contract?.contractNumber}</p> }
+                {contract.conveyance === "Port Zone" ? (
+                  <p>Contract Number : {contract?.contractNumber}</p>
+                ) : (
+                  <p> Buyer Contract : {contract?.contractNumber}</p>
+                )}
               </div>
 
               <div className="pb-1 space-y-2">
@@ -114,12 +118,39 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                         Delivery Period:
                       </span>
                       <span className="w-3/4">
-                        {
-                          contract?.deliveryPeriod?.start
-                            .toString()
-                            .split("T")[0]
-                        }{" "}
-                        - {contract?.deliveryPeriod?.end.toString().split("T")[0]}
+                        {contract?.deliveryPeriod?.start &&
+                          contract?.deliveryPeriod?.end &&
+                          `${new Date(contract.deliveryPeriod.start)
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()} - ${new Date(
+                            contract.deliveryPeriod.end
+                          )
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()}`}
                       </span>
                     </div>
 
@@ -142,7 +173,9 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                       <div className="font-semibold w-1/4">
                         Terms & Conditions:
                       </div>
-                      <p className="text-xs w-3/4">{contract.termsAndConditions}</p>
+                      <p className="text-xs w-3/4">
+                        {contract.termsAndConditions}
+                      </p>
                     </div>
 
                     <div className="flex pb-1">
