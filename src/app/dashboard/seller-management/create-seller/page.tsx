@@ -418,7 +418,7 @@ const CreateSellerPage = () => {
                         value={currentContactName}
                         onChange={(e) => setCurrentContactName(e.target.value)}
                         onKeyDown={handleKeyPress}
-                        placeholder="Enter contact name"
+                        placeholder="Enter contact name - Multi value input press Enter to add"
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
                         disabled={createSellerMutation.isPending}
                       />

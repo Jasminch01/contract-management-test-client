@@ -282,7 +282,7 @@ const BuyerInformationEditPage = () => {
                     value={currentContactName}
                     onChange={(e) => setCurrentContactName(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder="Enter contact name and press Enter"
+                    placeholder="Enter contact name - Multi value input press Enter to add"
                     className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-green-700"
                     disabled={updateBuyerMutation.isPending}
                   />
