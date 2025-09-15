@@ -44,7 +44,7 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
               <p>Email : {selectedBuyer?.email}</p>
               <p>Contact : {contract?.buyerContactName}</p>
               {contract.conveyance === "Port Zone" ? (
-                <p>Contact Number : {contract?.contractNumber}</p>
+                <p>Contract Number : {contract?.contractNumber}</p>
               ) : (
                 <p>Buyer Contract : {contract?.contractNumber}</p>
               )}

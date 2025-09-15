@@ -481,7 +481,7 @@ const EditableContract: React.FC<ContractProps> = ({
         <p className="text-lg text-center col-span-1">
           {contract.commodity} - {contract.season}
         </p>
-        <div></div> {/* Empty div to balance the grid */}
+        <div  ></div> {/* Empty div to balance the grid */}
       </div>
 
       <div className="flex flex-col items-center mx-auto max-w-6xl gap-6 xl:overflow-y-scroll xl:h-[40rem]">

@@ -37,7 +37,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>ABN : {contract.buyer.abn}</p>
                 <p>Email : {contract.buyer.email}</p>
                 <p>Contact : {contract?.buyerContactName}</p>
-               {contract.conveyance === "Port Zone" ?  <p>Contact Number : {contract?.contractNumber}</p> :<p> Buyer Contract : {contract?.contractNumber}</p> }
+               {contract.conveyance === "Port Zone" ?  <p>Contract Number : {contract?.contractNumber}</p> :<p> Buyer Contract : {contract?.contractNumber}</p> }
               </div>
 
               <div className="pb-1 space-y-2">
