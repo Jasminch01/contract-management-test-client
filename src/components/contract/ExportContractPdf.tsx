@@ -135,19 +135,6 @@ const contractPdfStyles = StyleSheet.create({
 });
 
 const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
-  const formatDateWithOrdinal = (date: Date) => {
-    const day = date.getDate();
-    const month = date.toLocaleDateString("en-GB", { month: "long" });
-    const year = date.getFullYear();
-
-    let suffix = "TH";
-    if (day === 1 || day === 21 || day === 31) suffix = "ST";
-    else if (day === 2 || day === 22) suffix = "ND";
-    else if (day === 3 || day === 23) suffix = "RD";
-
-    return `${day}${suffix} ${month.toUpperCase()} ${year}`;
-  };
-
   return (
     <Document>
       {contracts.map((contract, index) => (
@@ -313,20 +300,39 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                         Delivery Period:
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        {contract?.deliveryPeriod?.start
-                          ? `${
-                              new Date(contract.deliveryPeriod.start)
-                                .toISOString()
-                                .split("T")[0]
-                            } - ${
-                              new Date(
-                                contract.deliveryPeriod.end ||
-                                  contract.deliveryPeriod.start
-                              )
-                                .toISOString()
-                                .split("T")[0]
-                            }`
-                          : "N/A"}
+                        {contract?.deliveryPeriod?.start &&
+                          contract?.deliveryPeriod?.end &&
+                          `${new Date(contract.deliveryPeriod.start)
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()} - ${new Date(
+                            contract.deliveryPeriod.end
+                          )
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()}`}
                       </Text>
                     </View>
 
@@ -438,13 +444,38 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
                         {contract?.deliveryPeriod?.start &&
-                        contract?.deliveryPeriod?.end
-                          ? `${formatDateWithOrdinal(
-                              new Date(contract.deliveryPeriod.start)
-                            )} - ${formatDateWithOrdinal(
-                              new Date(contract.deliveryPeriod.end)
-                            )}`
-                          : "N/A"}
+                          contract?.deliveryPeriod?.end &&
+                          `${new Date(contract.deliveryPeriod.start)
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()} - ${new Date(
+                            contract.deliveryPeriod.end
+                          )
+                            .toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                            .replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              if (day === 1 || day === 21 || day === 31)
+                                return day + "ST";
+                              if (day === 2 || day === 22) return day + "ND";
+                              if (day === 3 || day === 23) return day + "RD";
+                              return day + "TH";
+                            })
+                            .toUpperCase()}`}
                       </Text>
                     </View>
 

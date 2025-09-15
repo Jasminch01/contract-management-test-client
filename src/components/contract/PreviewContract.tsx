@@ -124,8 +124,39 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                       Delivery Period:
                     </span>
                     <span className="w-3/4">
-                      {contract?.deliveryPeriod?.start.toString().split("T")[0]}{" "}
-                      - {contract?.deliveryPeriod?.end.toString().split("T")[0]}
+                      {contract?.deliveryPeriod?.start &&
+                        contract?.deliveryPeriod?.end &&
+                        `${new Date(contract.deliveryPeriod.start)
+                          .toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                          .replace(/(\d+)/, (match) => {
+                            const day = parseInt(match);
+                            if (day === 1 || day === 21 || day === 31)
+                              return day + "ST";
+                            if (day === 2 || day === 22) return day + "ND";
+                            if (day === 3 || day === 23) return day + "RD";
+                            return day + "TH";
+                          })
+                          .toUpperCase()} - ${new Date(
+                          contract.deliveryPeriod.end
+                        )
+                          .toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                          .replace(/(\d+)/, (match) => {
+                            const day = parseInt(match);
+                            if (day === 1 || day === 21 || day === 31)
+                              return day + "ST";
+                            if (day === 2 || day === 22) return day + "ND";
+                            if (day === 3 || day === 23) return day + "RD";
+                            return day + "TH";
+                          })
+                          .toUpperCase()}`}
                     </span>
                   </div>
 
