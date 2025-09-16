@@ -30,6 +30,61 @@ export const getsellers = async (): Promise<Seller[]> => {
   }
 };
 
+export const searchSellers = async (query: string): Promise<Seller[]> => {
+  try {
+    if (!query || !query.trim()) {
+      return [];
+    }
+
+    const { data } = await instance.get<Seller[]>(`sellers/search?q=${encodeURIComponent(query.trim())}`);
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error searching sellers:", error.message);
+    } else {
+      console.error("Unexpected error searching sellers:", error);
+    }
+    return [];
+  }
+};
+
+// interface GetSellersParams {
+//   search?: string;
+//   limit?: number;
+// }
+
+// export const getsellers = async (
+//   params: GetSellersParams = {}
+// ): Promise<Seller[]> => {
+//   try {
+//     const { search, limit = 10 } = params;
+
+//     // Build query parameters
+//     const queryParams = new URLSearchParams();
+
+//     if (limit) {
+//       queryParams.append("limit", limit.toString());
+//     }
+
+//     if (search && search.trim()) {
+//       queryParams.append("search", search.trim());
+//     }
+
+//     const queryString = queryParams.toString();
+//     const url = queryString ? `sellers?${queryString}` : "sellers";
+
+//     const { data } = await instance.get<Seller[]>(url);
+//     return data;
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error("Axios error fetching sellers:", error.message);
+//     } else {
+//       console.error("Unexpected error fetching sellers:", error);
+//     }
+//     return [];
+//   }
+// };
+
 export const createSeller = async (newSeller: Seller) => {
   try {
     const data = await instance.post(`sellers`, newSeller);

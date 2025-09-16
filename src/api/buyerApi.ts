@@ -30,6 +30,24 @@ export const getBuyers = async (): Promise<Buyer[]> => {
   }
 };
 
+export const searchBuyers = async (query: string): Promise<Buyer[]> => {
+  try {
+    if (!query || !query.trim()) {
+      return [];
+    }
+
+    const { data } = await instance.get<Buyer[]>(`buyers/search?q=${encodeURIComponent(query.trim())}`);
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error searching sellers:", error.message);
+    } else {
+      console.error("Unexpected error searching sellers:", error);
+    }
+    return [];
+  }
+};
+
 export const createBuyer = async (newBuyer: Buyer) => {
   try {
     const data = await instance.post(`buyers`, newBuyer);
