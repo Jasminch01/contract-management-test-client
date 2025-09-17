@@ -258,9 +258,6 @@ const ContractManagementPage = () => {
       params.sortBy = paginationState.sortBy;
       params.sortOrder = paginationState.sortOrder;
     }
-
-    console.log("API Params:", params); // 🔍 Debug log
-
     return params;
   }, [paginationState]);
 
@@ -275,7 +272,6 @@ const ContractManagementPage = () => {
   } = useQuery<ContractsPaginatedResponse>({
     queryKey: ["contracts", paginationState],
     queryFn: () => {
-      console.log("Fetching contracts with state:", paginationState); // 🔍 Debug log
       return fetchContracts(buildQueryParams());
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -298,8 +294,6 @@ const ContractManagementPage = () => {
   const deleteMutation = useMutation({
     mutationFn: moveContractToTrash,
     onSuccess: () => {
-      console.log("Delete successful, invalidating queries...");
-
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 

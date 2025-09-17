@@ -120,7 +120,7 @@
               onKeyPress={handleKeyPress}
               onBlur={applyFilters} // Apply filters when input loses focus
             />
-            <LuSearch />
+            <LuSearch className="cursor-pointer" />
           </div>
         </div>
 
