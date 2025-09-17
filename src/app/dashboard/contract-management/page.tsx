@@ -173,7 +173,7 @@ const ContractManagementPage = () => {
   // Pagination state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     page: 1,
-    limit: 25,
+    limit: 10,
     searchFilters: {},
     status: "all",
     sortBy: "",
