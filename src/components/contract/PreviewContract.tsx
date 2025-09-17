@@ -44,9 +44,9 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
               <p>Email : {selectedBuyer?.email}</p>
               <p>Contact : {contract?.buyerContactName}</p>
               {contract.conveyance === "Port Zone" ? (
-                <p>Contract Number : {contract?.contractNumber}</p>
+                <p>Contract Number : {contract?.buyerContractReference}</p>
               ) : (
-                <p>Buyer Contract : {contract?.contractNumber}</p>
+                <p>Buyer Contract : {contract?.buyerContractReference}</p>
               )}
             </div>
 
@@ -219,16 +219,13 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
 
                   <div className="flex pb-1">
                     <span className="w-1/4 font-semibold">Quality:</span>
-                    <span className="w-3/4">
-                      {contract.grade} AS PER GTA CSG-101 STANDARDS
-                    </span>
+                    <span className="w-3/4">{contract.grade}</span>
                   </div>
 
                   <div className="flex pb-1">
                     <span className="w-1/4 font-semibold">Quantity:</span>
                     <span className="w-3/4">
-                      {contract.tonnes} METRIC TONNES - {contract.tolerance}{" "}
-                      TOLERANCE
+                      {contract.tonnes} METRIC TONNES - {contract.tolerance}
                     </span>
                   </div>
 
@@ -316,11 +313,13 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
 
                   <div className="pb-1 flex">
                     <span className="font-semibold mb-1 w-1/4">Brokerage:</span>
-                    <span className="text-xs w-3/4">
-                      AT SELLERS COST AT A$1.00 PER TONNE (EXCLUSIVE OF GST)
-                      INVOICE TO SELLER TO BE FORWARDED ON SEPARATELY TO THIS
-                      CONTRACT
-                    </span>
+                    <p className="text-xs w-3/4">
+                      BROKERAGE PAYABLE BY{" "}
+                      {contract.brokeragePayableBy?.toUpperCase()} AT A$
+                      {contract.brokerRate} PER TONNE (EXCLUSIVE OF GST) INVOICE
+                      TO {contract.brokeragePayableBy?.toUpperCase()} TO BE
+                      FORWARDED ON SEPARATELY TO THIS CONTRACT
+                    </p>
                   </div>
                 </>
               )}

@@ -407,7 +407,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
-                Buyer contract Referance
+                Buyer contract Reference
               </div>
               <div className="w-1/2 p-3">
                 {contract.buyerContractReference || "N/A"}
@@ -499,7 +499,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
-                Seller Contract Referance
+                Seller Contract Reference
               </div>
               <div className="w-1/2 p-3">
                 {contract.sellerContractReference || "N/A"}

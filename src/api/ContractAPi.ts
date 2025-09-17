@@ -1,6 +1,6 @@
-import { TContract, TUpdateContract } from "@/types/types";
+import { FetchContractsParams, TContract, TUpdateContract } from "@/types/types";
 import { instance } from "./api";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 export const createContract = async (contract: TUpdateContract) => {
   try {
@@ -8,25 +8,71 @@ export const createContract = async (contract: TUpdateContract) => {
     return res;
   } catch (error) {
     // console.log(error);
-    throw error
+    throw error;
   }
 };
 
 // API functions
-export const fetchContracts = async (): Promise<TContract[]> => {
+interface ContractsPaginatedResponse {
+  page: number;
+  totalPages: number;
+  total: number;
+  data: TContract[];
+}
+
+
+export const fetchContracts = async (
+  params: FetchContractsParams = {}
+): Promise<ContractsPaginatedResponse> => {
   try {
-    const { data } = await instance.get("contracts");
-    return data;
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    // ✅ Tell axios the response type
+    const response: AxiosResponse<ContractsPaginatedResponse> = await instance.get(
+      `contracts?${queryParams.toString()}`
+    );
+
+    // ✅ Return just the data (typed)
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Axios error fetching buyers:", error.message);
+      console.error("Axios error fetching contracts:", error.message);
     } else {
-      console.error("Unexpected error fetching buyers:", error);
-      
+      console.error("Unexpected error fetching contracts:", error);
     }
-    return [];
+
+    // ✅ Return correct empty structure
+    return {
+      page: 1,
+      totalPages: 0,
+      total: 0,
+      data: [],
+    };
   }
 };
+
+
+// export const fetchContracts = async (): Promise<TContract[]> => {
+//   try {
+//     const { data } = await instance.get("contracts");
+//     return data;
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error("Axios error fetching buyers:", error.message);
+//     } else {
+//       console.error("Unexpected error fetching buyers:", error);
+
+//     }
+//     return [];
+//   }
+// };
 
 //fetch contract
 export const fetchContract = async (id: string) => {

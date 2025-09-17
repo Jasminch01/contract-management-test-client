@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -14,7 +15,21 @@ import ExportCsv from "@/components/contract/ExportCsv";
 import PdfExportButton from "@/components/contract/PdfExportButton";
 import AdvanceSearchFilter from "@/components/contract/AdvanceSearchFilter";
 import { fetchContracts, moveContractToTrash } from "@/api/ContractAPi";
-import { TContract } from "@/types/types";
+import {
+  TContract,
+  FetchContractsParams,
+  ContractsPaginatedResponse,
+} from "@/types/types";
+
+// Types for pagination parameters
+interface PaginationState {
+  page: number;
+  limit: number;
+  searchFilters: Record<string, string>;
+  status: string;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}
 
 const columns = [
   {
@@ -25,67 +40,78 @@ const columns = [
       return date.toLocaleDateString();
     },
     sortable: true,
+    sortField: "contractDate",
   },
   {
     name: "CONTRACT NUMBER",
     selector: (row: TContract) => row?.contractNumber || "",
     sortable: true,
+    sortField: "contractNumber",
   },
   {
     name: "SEASON",
     selector: (row: TContract) => row?.season || "",
     sortable: true,
+    sortField: "season",
   },
   {
     name: "NGR",
     selector: (row: TContract) => row?.ngrNumber || row?.seller?.mainNgr || "",
     sortable: true,
+    sortField: "ngrNumber",
   },
   {
     name: "SELLER",
     selector: (row: TContract) => row?.seller?.legalName || "",
     sortable: true,
+    sortField: "seller.legalName",
   },
   {
     name: "GRADE",
     selector: (row: TContract) => row?.grade || "",
     sortable: true,
+    sortField: "grade",
   },
   {
     name: "TONNES",
     selector: (row: TContract) => row?.tonnes || 0,
     sortable: true,
+    sortField: "tonnes",
   },
   {
     name: "BUYER",
     selector: (row: TContract) => row?.buyer?.name || "",
     sortable: true,
+    sortField: "buyer.name",
   },
   {
     name: "DESTINATION",
     selector: (row: TContract) => row?.deliveryDestination || "",
     sortable: true,
+    sortField: "deliveryDestination",
   },
   {
     name: "CONTRACT PRICE",
     selector: (row: TContract) => row?.priceExGST || 0,
     sortable: true,
+    sortField: "priceExGST",
   },
   {
     name: "STATUS",
     selector: (row: TContract) => row?.status || "",
     sortable: true,
+    sortField: "status",
     cell: (row: TContract) => (
       <p className={`text-xs flex items-center gap-x-3`}>
         <RiCircleFill
           className={`${
             row.status?.toLowerCase() === "complete"
-              ? "text-[#108A2B]" // Green for completed
+              ? "text-[#108A2B]"
               : row.status?.toLowerCase() === "invoiced"
-              ? "text-[#3B82F6]" // Blue for invoiced
+              ? "text-[#3B82F6]"
               : row.status?.toLowerCase() === "draft"
-              ? "text-[#EF4444]" // Red for draft
-              : "text-[#FAD957]" // Yellow for incomplete (default)
+              ? "text-[#EF4444]"
+              : "text-[#FAD957]"
           }`}
         />
         {row.status || "Unknown"}
@@ -130,95 +156,158 @@ const statusOptions = [
   { value: "Draft", label: "Draft" },
 ];
 
+const rowsPerPageOptions = [10, 25, 50, 100];
+
 const ContractManagementPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // State management with better initialization
+  // State management
   const [isMounted, setIsMounted] = useState(false);
-  const [masterData, setMasterData] = useState<TContract[]>([]);
-  const [data, setData] = useState<TContract[]>([]);
   const [selectedRows, setSelectedRows] = useState<TContract[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("all");
   const [toggleCleared, setToggleCleared] = useState(false);
-  const [searchFilteredData, setSearchFilteredData] = useState<TContract[]>([]);
+
+  // Pagination state
+  const [paginationState, setPaginationState] = useState<PaginationState>({
+    page: 1,
+    limit: 25,
+    searchFilters: {},
+    status: "all",
+    sortBy: "",
+    sortOrder: "asc",
+  });
+
+  // Track if search filters are active
+  const [hasSearchFilters, setHasSearchFilters] = useState(false);
+
+  // Handle search filter changes from AdvanceSearchFilter component
+  const handleAdvanceFilterChange = useCallback(
+    (filters: Record<string, string>) => {
+      const hasFilters =
+        Object.keys(filters).length > 0 &&
+        Object.values(filters).some((v) => v.trim() !== "");
+
+      setPaginationState((prev) => ({
+        ...prev,
+        searchFilters: filters,
+        page: 1, // Reset to first page when filters change
+      }));
+
+      setHasSearchFilters(hasFilters);
+
+      // Clear selections when filters change
+      setSelectedRows([]);
+      setToggleCleared((prev) => !prev);
+    },
+    []
+  );
 
   // Set mounted state on client
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  // Fetch contracts using TanStack Query
+
+  // Build query parameters for API
+  const buildQueryParams = useCallback((): FetchContractsParams => {
+    const params: FetchContractsParams = {
+      page: paginationState.page,
+      limit: paginationState.limit,
+    };
+
+    // ✅ Add search filters with proper mapping
+    Object.entries(paginationState.searchFilters).forEach(([key, value]) => {
+      if (value && value.trim() !== "") {
+        // Map the filter keys to API parameter names that match backend
+        switch (key) {
+          case "ngr":
+            params.ngrNumber = value.trim();
+            break;
+          case "commodity":
+            params.commodity = value.trim();
+            break;
+          case "seller":
+            params.sellerName = value.trim();
+            break;
+          case "buyer":
+            params.buyerName = value.trim();
+            break;
+          case "grade":
+            params.grade = value.trim();
+            break;
+          case "tonnes":
+            params.tonnes = value.trim();
+            break;
+          case "contractNumber":
+            params.contractNumber = value.trim();
+            break;
+          default:
+            // For any other filters, use the key as-is
+            (params as any)[key] = value.trim();
+        }
+      }
+    });
+
+    if (paginationState.status !== "all") {
+      params.status = paginationState.status;
+    }
+
+    if (paginationState.sortBy) {
+      params.sortBy = paginationState.sortBy;
+      params.sortOrder = paginationState.sortOrder;
+    }
+
+    console.log("API Params:", params); // 🔍 Debug log
+
+    return params;
+  }, [paginationState]);
+
+  // Fetch contracts using TanStack Query with pagination
   const {
-    data: contracts = [],
+    data: contractsResponse,
     isLoading,
     isError,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["contracts"],
-    queryFn: fetchContracts,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    enabled: isMounted, // Only fetch after component is mounted
+    isFetching,
+  } = useQuery<ContractsPaginatedResponse>({
+    queryKey: ["contracts", paginationState],
+    queryFn: () => {
+      console.log("Fetching contracts with state:", paginationState); // 🔍 Debug log
+      return fetchContracts(buildQueryParams());
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isMounted,
   });
 
-  // FIXED: Better data synchronization
+  // Extract data from response
+  const contracts = contractsResponse?.data || [];
+  const totalPages = contractsResponse?.totalPages || 0;
+  const totalRecords = contractsResponse?.total || 0;
+  const currentPage = contractsResponse?.page || 1;
+
+  // Update filter active state
   useEffect(() => {
-    if (contracts && isMounted) {
-      // Filter out deleted contracts if needed
-      const activeContracts = contracts.filter(
-        (contract) => !contract.isDeleted
-      );
+    setIsFilterActive(paginationState.status !== "all" || hasSearchFilters);
+  }, [paginationState.status, hasSearchFilters]);
 
-      setMasterData((prev) => {
-        // Only update if data has changed to prevent unnecessary renders
-        return JSON.stringify(prev) !== JSON.stringify(activeContracts)
-          ? activeContracts
-          : prev;
-      });
-      setSearchFilteredData((prev) => {
-        return JSON.stringify(prev) !== JSON.stringify(activeContracts)
-          ? activeContracts
-          : prev;
-      });
-
-      // Apply current filters to new data
-      let filteredData = activeContracts;
-      if (selectedStatus !== "all") {
-        filteredData = filteredData.filter(
-          (contract) =>
-            contract.status?.toLowerCase() === selectedStatus.toLowerCase()
-        );
-      }
-      setData((prev) => {
-        return JSON.stringify(prev) !== JSON.stringify(filteredData)
-          ? filteredData
-          : prev;
-      });
-    }
-  }, [contracts, isMounted, selectedStatus]); // Added selectedStatus to dependencies
-
-  // FIXED: Delete mutation with better error handling and state management
+  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: moveContractToTrash,
     onSuccess: () => {
       console.log("Delete successful, invalidating queries...");
 
-      // Invalidate and refetch both queries
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
 
-      // Clear selections and close modal
       setSelectedRows([]);
       setToggleCleared((prev) => !prev);
       setIsDeleteConfirmOpen(false);
 
       toast.success("Contract(s) deleted successfully");
-
-      // Removed refetch() to rely on automatic refetch from invalidateQueries
     },
     onError: (error) => {
       console.error("Error deleting contracts:", error);
@@ -233,7 +322,7 @@ const ContractManagementPage = () => {
     }
   };
 
-  // FIXED: Handle row selection with better validation
+  // Handle row selection
   const handleChange = (selected: {
     allSelected: boolean;
     selectedCount: number;
@@ -245,50 +334,59 @@ const ContractManagementPage = () => {
     setSelectedRows(validSelectedRows);
   };
 
-  // FIXED: Handle filter change from search component
-  const handleFilterChange = useCallback(
-    (filteredData: TContract[]) => {
-      setSearchFilteredData(filteredData);
+  // Handle pagination change
+  const handlePageChange = (page: number) => {
+    setPaginationState((prev) => ({ ...prev, page }));
+    setSelectedRows([]); // Clear selections on page change
+    setToggleCleared((prev) => !prev);
+  };
 
-      // Apply status filter directly without calling applyFilters
-      let finalData = filteredData;
-      if (selectedStatus !== "all") {
-        finalData = filteredData.filter(
-          (contract) =>
-            contract.status?.toLowerCase() === selectedStatus.toLowerCase()
-        );
-      }
-      setData(finalData);
-    },
-    [selectedStatus]
-  );
+  // Handle rows per page change
+  const handlePerRowsChange = (newPerPage: number) => {
+    setPaginationState((prev) => ({
+      ...prev,
+      limit: newPerPage,
+      page: 1, // Reset to first page
+    }));
+    setSelectedRows([]);
+    setToggleCleared((prev) => !prev);
+  };
 
-  // FIXED: Handle status change with proper filter application
-  const handleStatusChange = useCallback(
-    (value: string) => {
-      setSelectedStatus(value);
-      setIsFilterActive(value !== "all");
-      setIsFilterOpen(false);
+  // Handle sorting
+  const handleSort = (column: any, sortDirection: "asc" | "desc") => {
+    setPaginationState((prev) => ({
+      ...prev,
+      sortBy: column.sortField || column.selector,
+      sortOrder: sortDirection,
+      page: 1, // Reset to first page when sorting
+    }));
+  };
 
-      // Apply filter directly without calling applyFilters
-      let filteredData = searchFilteredData;
-      if (value !== "all") {
-        filteredData = searchFilteredData.filter(
-          (contract) => contract.status?.toLowerCase() === value.toLowerCase()
-        );
-      }
-      setData(filteredData);
-    },
-    [searchFilteredData]
-  );
-
-  // FIXED: Clear filter function
-  const clearFilter = useCallback(() => {
-    setSelectedStatus("all");
-    setIsFilterActive(false);
+  // Handle status filter change
+  const handleStatusChange = useCallback((value: string) => {
+    setPaginationState((prev) => ({
+      ...prev,
+      status: value,
+      page: 1, // Reset to first page
+    }));
     setIsFilterOpen(false);
-    setData(searchFilteredData); // Just set data directly without filtering
-  }, [searchFilteredData]);
+    setSelectedRows([]);
+    setToggleCleared((prev) => !prev);
+  }, []);
+
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setPaginationState((prev) => ({
+      ...prev,
+      status: "all",
+      searchFilters: {},
+      page: 1,
+    }));
+    setHasSearchFilters(false);
+    setIsFilterOpen(false);
+    setSelectedRows([]);
+    setToggleCleared((prev) => !prev);
+  }, []);
 
   // Handle delete selected contracts
   const handleDelete = () => {
@@ -299,7 +397,7 @@ const ContractManagementPage = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  // FIXED: Confirm delete with better validation
+  // Confirm delete
   const confirmDelete = () => {
     const selectedIds = selectedRows
       .filter((row): row is TContract => row != null && row._id != null)
@@ -440,20 +538,17 @@ Growth Grain Services`;
       toast.error("Failed to generate PDF and prepare email");
     }
   };
+
   // Function to generate PDF blob using your existing ExportContractPdf component
   const generatePDFBlobFromComponent = async (
     contracts: TContract[]
   ): Promise<Blob | null> => {
     try {
-      // Import the pdf function from @react-pdf/renderer
       const { pdf } = await import("@react-pdf/renderer");
-
-      // Dynamically import your ExportContractPdf component to avoid SSR issues
       const ExportContractPdf = (
         await import("@/components/contract/ExportContractPdf")
       ).default;
 
-      // Generate PDF blob using your existing component
       const blob = await pdf(
         <ExportContractPdf contracts={contracts} />
       ).toBlob();
@@ -469,11 +564,10 @@ Growth Grain Services`;
   const uploadPDFToCloudinary = async (
     pdfBlob: Blob,
     filename: string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> => {
     const formData = new FormData();
     formData.append("file", pdfBlob, filename);
-    formData.append("resource_type", "raw"); // Important for PDF files
+    formData.append("resource_type", "raw");
     formData.append(
       "upload_preset",
       process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
@@ -553,11 +647,9 @@ Growth Grain Services`;
           </Link>
         </div>
 
+        {/* Advanced Search Filter */}
         <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 relative">
-          <AdvanceSearchFilter
-            data={masterData}
-            onFilterChange={handleFilterChange}
-          />
+          <AdvanceSearchFilter onFilterChange={handleAdvanceFilterChange} />
         </div>
       </div>
 
@@ -566,7 +658,30 @@ Growth Grain Services`;
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 px-4">
           <div className="w-full md:w-auto">
             <p className="text-lg font-semibold">
-              List of Contracts ({data.length})
+              List of Contracts ({totalRecords} total)
+              {isFilterActive && (
+                <span className="text-sm font-normal text-gray-600">
+                  {` - Showing ${contracts.length} filtered results`}
+                </span>
+              )}
+            </p>
+            <p className="text-sm text-gray-500">
+              Page {currentPage} of {totalPages}
+              {totalPages > 0 && (
+                <span>
+                  {" "}
+                  • Showing {(currentPage - 1) * paginationState.limit +
+                    1} to{" "}
+                  {Math.min(currentPage * paginationState.limit, totalRecords)}{" "}
+                  entries
+                </span>
+              )}
+              {hasSearchFilters && (
+                <span className="ml-2 text-blue-600">
+                  • Active search filters:{" "}
+                  {Object.keys(paginationState.searchFilters).join(", ")}
+                </span>
+              )}
             </p>
           </div>
 
@@ -631,13 +746,24 @@ Growth Grain Services`;
               <RiDeleteBin6Fill className="text-red-500" />
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </button>
+
+            {/* Filter Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors`}
+                className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors ${
+                  isFilterActive ? "bg-blue-50 border-blue-300" : ""
+                }`}
               >
-                <IoFilterSharp />
+                <IoFilterSharp
+                  className={isFilterActive ? "text-blue-600" : ""}
+                />
                 Filter
+                {isFilterActive && (
+                  <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
+                )}
               </button>
 
               {isFilterOpen && (
@@ -651,14 +777,14 @@ Growth Grain Services`;
                   <div className="max-h-60 overflow-y-auto">
                     <div
                       className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
-                        selectedStatus === "all"
+                        paginationState.status === "all"
                           ? "bg-blue-50 text-blue-600"
                           : "hover:bg-gray-50"
                       }`}
                       onClick={() => handleStatusChange("all")}
                     >
                       <span className="flex-grow">All</span>
-                      {selectedStatus === "all" && (
+                      {paginationState.status === "all" && (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 text-blue-500"
@@ -677,14 +803,14 @@ Growth Grain Services`;
                       <div
                         key={option.value}
                         className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
-                          selectedStatus === option.value
+                          paginationState.status === option.value
                             ? "bg-blue-50 text-blue-600"
                             : "hover:bg-gray-50"
                         }`}
                         onClick={() => handleStatusChange(option.value)}
                       >
                         <span className="flex-grow">{option.label}</span>
-                        {selectedStatus === option.value && (
+                        {paginationState.status === option.value && (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-4 w-4 text-blue-500"
@@ -705,9 +831,9 @@ Growth Grain Services`;
                   {isFilterActive && (
                     <div
                       className="border-t border-gray-200 px-4 py-2 text-sm cursor-pointer text-red-500 hover:bg-red-50 flex items-center justify-between"
-                      onClick={clearFilter}
+                      onClick={clearFilters}
                     >
-                      <span>Clear filter</span>
+                      <span>Clear all filters</span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4"
@@ -730,37 +856,96 @@ Growth Grain Services`;
           </div>
         </div>
 
-        {/* DataTable */}
+        {/* DataTable with Server-side Pagination */}
         <div className="overflow-x-auto border border-gray-300">
           <DataTable
             columns={columns}
-            data={data}
+            data={contracts}
             customStyles={customStyles}
             onRowClicked={handleRowClicked}
             selectableRows
             onSelectedRowsChange={handleChange}
             clearSelectedRows={toggleCleared}
             fixedHeader
-            fixedHeaderScrollHeight="600px"
+            fixedHeaderScrollHeight="550px"
             highlightOnHover
             selectableRowsHighlight
             responsive
-            pagination
             pointerOnHover
+            progressPending={isFetching}
+            progressComponent={
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2A5D36]"></div>
+                <span className="ml-3 text-gray-600">Loading...</span>
+              </div>
+            }
+            // Server-side pagination
+            pagination
+            paginationServer
+            paginationTotalRows={totalRecords}
+            paginationDefaultPage={currentPage}
+            paginationPerPage={paginationState.limit}
+            paginationRowsPerPageOptions={rowsPerPageOptions}
+            onChangeRowsPerPage={handlePerRowsChange}
+            onChangePage={handlePageChange}
+            paginationComponentOptions={{
+              rowsPerPageText: "Rows per page:",
+              rangeSeparatorText: "of",
+              noRowsPerPage: false,
+              selectAllRowsItem: false,
+              selectAllRowsItemText: "All",
+            }}
+            // Server-side sorting
+            sortServer
+            onSort={handleSort}
+            // No data component
             noDataComponent={
               <div className="p-10 text-center text-gray-500">
-                {masterData.length === 0
+                {totalRecords === 0 &&
+                !hasSearchFilters &&
+                paginationState.status === "all"
                   ? "No contracts found. Create your first contract to get started."
                   : "No contracts found matching your current filters."}
+                {isFilterActive && (
+                  <div className="mt-4">
+                    <button
+                      onClick={clearFilters}
+                      className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                )}
               </div>
             }
           />
         </div>
+
+        {/* Additional pagination info */}
+        {totalRecords > 0 && (
+          <div className="mt-4 px-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
+            <div>
+              Showing {(currentPage - 1) * paginationState.limit + 1} to{" "}
+              {Math.min(currentPage * paginationState.limit, totalRecords)} of{" "}
+              {totalRecords} entries
+              {isFilterActive && (
+                <span> (filtered from {totalRecords} total entries)</span>
+              )}
+            </div>
+            <div className="mt-2 sm:mt-0">
+              {selectedRows.length > 0 && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                  {selectedRows.length} selected
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
             <div className="px-5 py-3 border-b border-[#D3D3D3]">
               <h3 className="text-lg font-semibold flex gap-x-5 items-center">
@@ -770,30 +955,33 @@ Growth Grain Services`;
             </div>
             <div className="mt-5 px-5 pb-5">
               <p className="mb-4 text-center">
-                Are you sure you want to move trash{" "}
+                Are you sure you want to move{" "}
                 {selectedRows.length > 1
                   ? `these ${selectedRows.length} contracts`
-                  : "this contract"}
-                ?
+                  : "this contract"}{" "}
+                to trash?
                 <br />
+                <span className="text-sm text-gray-500 mt-2 block">
+                  This action can be undone from the trash.
+                </span>
               </p>
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => setIsDeleteConfirmOpen(false)}
                   disabled={deleteMutation.isPending}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={deleteMutation.isPending}
-                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#a52a2a] disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-[#BF3131] text-white rounded hover:bg-[#a52a2a] disabled:opacity-50 flex items-center gap-2 transition-colors"
                 >
                   {deleteMutation.isPending && (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   )}
-                  {deleteMutation.isPending ? "Moving..." : "Move"}
+                  {deleteMutation.isPending ? "Moving..." : "Move to Trash"}
                 </button>
               </div>
             </div>

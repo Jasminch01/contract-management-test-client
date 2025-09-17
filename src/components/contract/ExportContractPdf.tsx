@@ -180,8 +180,12 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
                     {contract.conveyance === "Port Zone"
-                      ? `Contract Number : ${contract?.contractNumber || "N/A"}`
-                      : `Buyer Contract : ${contract?.contractNumber || "N/A"}`}
+                      ? `Contract Number : ${
+                          contract?.buyerContractReference || "N/A"
+                        }`
+                      : `Buyer Contract : ${
+                          contract?.buyerContractReference || "N/A"
+                        }`}
                   </Text>
                 </View>
 
@@ -416,7 +420,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                         Quality:
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        {contract.grade || "N/A"} AS PER GTA CSG-101 STANDARDS
+                        {contract.grade || "N/A"}
                       </Text>
                     </View>
 
@@ -426,7 +430,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
                         {contract.tonnes || "0"} METRIC TONNES -{" "}
-                        {contract.tolerance || "NIL"} TOLERANCE
+                        {contract.tolerance || "NIL"}
                       </Text>
                     </View>
 
@@ -527,9 +531,12 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                         Brokerage:
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        AT SELLERS COST AT A$1.00 PER TONNE (EXCLUSIVE OF GST)
-                        INVOICE TO SELLER TO BE FORWARDED ON SEPARATELY TO THIS
-                        CONTRACT
+                        BROKERAGE PAYABLE BY{" "}
+                        {contract.brokeragePayableBy?.toUpperCase() || "N/A"} AT
+                        A${contract.brokerRate || "0"} PER TONNE (EXCLUSIVE OF
+                        GST) INVOICE TO{" "}
+                        {contract.brokeragePayableBy?.toUpperCase() || "N/A"} TO
+                        BE FORWARDED ON SEPARATELY TO THIS CONTRACT
                       </Text>
                     </View>
                   </>

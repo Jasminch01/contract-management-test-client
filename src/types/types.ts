@@ -197,3 +197,58 @@ export interface TUpdateContract {
   status?: string;
   contractDate: string; // Added contractDate
 }
+
+// Add these interfaces to your existing types/types.ts file
+
+// Add these interfaces to your existing types/types.ts file
+
+export interface FetchContractsParams {
+  page?: number;
+  limit?: number;
+  search?: string; // Global search (keep for backward compatibility)
+  status?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+
+  // Specific field filters for AdvanceSearchFilter
+  contractNumber?: string;
+  ngrNumber?: string;
+  commodity?: string;
+  sellerName?: string;
+  buyerName?: string;
+  grade?: string;
+  tonnes?: string;
+
+  // Add any other filter parameters your API supports
+  season?: string;
+  buyerId?: string;
+  sellerId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  deliveryDestination?: string;
+  priceFrom?: number;
+  priceTo?: number;
+}
+
+export interface ContractsPaginatedResponse {
+  page: number;
+  totalPages: number;
+  total: number;
+  data: TContract[];
+  // Optional additional metadata
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
+  limit?: number;
+}
+
+// If you want to add more specific pagination metadata
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
+  recordsPerPage: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  startRecord: number;
+  endRecord: number;
+}
