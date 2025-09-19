@@ -169,7 +169,6 @@ const ContractManagementPage = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [toggleCleared, setToggleCleared] = useState(false);
-
   // Pagination state
   const [paginationState, setPaginationState] = useState<PaginationState>({
     page: 1,
@@ -284,7 +283,6 @@ const ContractManagementPage = () => {
   const totalPages = contractsResponse?.totalPages || 0;
   const totalRecords = contractsResponse?.total || 0;
   const currentPage = contractsResponse?.page || 1;
-
   // Update filter active state
   useEffect(() => {
     setIsFilterActive(paginationState.status !== "all" || hasSearchFilters);

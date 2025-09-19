@@ -156,7 +156,8 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                             if (day === 3 || day === 23) return day + "RD";
                             return day + "TH";
                           })
-                          .toUpperCase()}`}
+                          .toUpperCase()}`}{" "}
+                      - {contract?.deliveryOption}
                     </span>
                   </div>
 
@@ -208,6 +209,15 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                 <>
                   {/* Default layout for non-portzone conveyance */}
                   <div className="flex pb-1">
+                    <span className="w-1/4 font-semibold">
+                      Certification Scheme:
+                    </span>
+                    <span className="w-3/4">
+                      {contract?.certificationScheme || "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="flex pb-1">
                     <span className="w-1/4 font-semibold">Commodity:</span>
                     <span className="w-3/4">{contract.commodity}</span>
                   </div>
@@ -232,8 +242,10 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                   <div className="flex pb-1">
                     <span className="w-1/4 font-semibold">Price:</span>
                     <span className="w-3/4">
-                      A${contract.priceExGST} PER TONNE IN{" "}
-                      {contract.deliveryDestination}
+                      {contract.conveyance === "Deliverd Destination" ||
+                      contract.conveyance === "Deliverd Site"
+                        ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
+                        : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                     </span>
                   </div>
 
@@ -274,7 +286,8 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                             if (day === 3 || day === 23) return day + "RD";
                             return day + "TH";
                           })
-                          .toUpperCase()}`}
+                          .toUpperCase()}`}{" "}
+                      - {contract?.deliveryOption}
                     </span>
                   </div>
 

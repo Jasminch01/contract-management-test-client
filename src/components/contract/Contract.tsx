@@ -32,10 +32,10 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
             <div className="mb-4 grid grid-cols-2 gap-2 text-xs px-20">
               <div className="pb-1 space-y-2">
                 <h2 className="font-bold text-sm">Buyer</h2>
-                <p>{contract.buyer.name}</p>
-                <p>{contract.buyer.officeAddress}</p>
-                <p>ABN : {contract.buyer.abn}</p>
-                <p>Email : {contract.buyer.email}</p>
+                <p>{contract?.buyer?.name}</p>
+                <p>{contract?.buyer?.officeAddress}</p>
+                <p>ABN : {contract?.buyer?.abn}</p>
+                <p>Email : {contract?.buyer?.email}</p>
                 <p>Contact : {contract?.buyerContactName}</p>
                 {contract.conveyance === "Port Zone" ? (
                   <p>Contract Number : {contract?.contractNumber}</p>
@@ -108,7 +108,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                     <div className="flex pb-1">
                       <span className="w-1/4 font-semibold">Price:</span>
                       <span className="w-3/4">
-                        A${contract.priceExGST} PER TONNE IN{" "}
+                        A${contract.priceExGST} PER TONNE
                         {contract.deliveryDestination}
                       </span>
                     </div>
@@ -150,7 +150,8 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                               if (day === 3 || day === 23) return day + "RD";
                               return day + "TH";
                             })
-                            .toUpperCase()}`}
+                            .toUpperCase()}`}{" "}
+                        - {contract?.deliveryOption}
                       </span>
                     </div>
 
@@ -202,6 +203,15 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                   <>
                     {/* Default layout for non-portzone conveyance */}
                     <div className="flex pb-1">
+                      <span className="w-1/4 font-semibold">
+                        Certification Scheme:
+                      </span>
+                      <span className="w-3/4">
+                        {contract?.certificationScheme || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="flex pb-1">
                       <span className="w-1/4 font-semibold">Commodity:</span>
                       <span className="w-3/4">{contract.commodity}</span>
                     </div>
@@ -229,8 +239,10 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                     <div className="flex pb-1">
                       <span className="w-1/4 font-semibold">Price:</span>
                       <span className="w-3/4">
-                        A${contract.priceExGST} PER TONNE IN{" "}
-                        {contract.deliveryDestination}
+                        {contract.conveyance === "Deliverd Destination" ||
+                        contract.conveyance === "Deliverd Site"
+                          ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
+                          : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                       </span>
                     </div>
 
@@ -271,7 +283,8 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                               if (day === 3 || day === 23) return day + "RD";
                               return day + "TH";
                             })
-                            .toUpperCase()}`}
+                            .toUpperCase()}`}{" "}
+                        - {contract.deliveryOption}
                       </span>
                     </div>
 
@@ -460,9 +473,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Conveyance
               </div>
-              <div className="w-1/2 p-3">
-                {contract.conveyance || "N/A"}
-              </div>
+              <div className="w-1/2 p-3">{contract.conveyance || "N/A"}</div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">

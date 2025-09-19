@@ -198,14 +198,10 @@ export interface TUpdateContract {
   contractDate: string; // Added contractDate
 }
 
-// Add these interfaces to your existing types/types.ts file
-
-// Add these interfaces to your existing types/types.ts file
-
 export interface FetchContractsParams {
   page?: number;
   limit?: number;
-  search?: string; // Global search (keep for backward compatibility)
+  search?: string;
   status?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
@@ -235,7 +231,6 @@ export interface ContractsPaginatedResponse {
   totalPages: number;
   total: number;
   data: TContract[];
-  // Optional additional metadata
   hasNextPage?: boolean;
   hasPrevPage?: boolean;
   limit?: number;

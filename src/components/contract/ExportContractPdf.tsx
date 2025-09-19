@@ -294,7 +294,7 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     <View style={contractPdfStyles.detailRow}>
                       <Text style={contractPdfStyles.detailLabel}>Price:</Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        A${contract.priceExGST || "0"} PER TONNE IN{" "}
+                        A${contract?.priceExGST} PER TONNE{" "}
                         {contract.deliveryDestination || "N/A"}
                       </Text>
                     </View>
@@ -336,7 +336,8 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                               if (day === 3 || day === 23) return day + "RD";
                               return day + "TH";
                             })
-                            .toUpperCase()}`}
+                            .toUpperCase()}`}{" "}
+                        - {contract.deliveryOption}
                       </Text>
                     </View>
 
@@ -401,6 +402,15 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                   <>
                     <View style={contractPdfStyles.detailRow}>
                       <Text style={contractPdfStyles.detailLabel}>
+                        Certification Scheme:
+                      </Text>
+                      <Text style={contractPdfStyles.detailValue}>
+                        {contract.certificationScheme || "N/A"}
+                      </Text>
+                    </View>
+
+                    <View style={contractPdfStyles.detailRow}>
+                      <Text style={contractPdfStyles.detailLabel}>
                         Commodity:
                       </Text>
                       <Text style={contractPdfStyles.detailValue}>
@@ -437,8 +447,10 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     <View style={contractPdfStyles.detailRow}>
                       <Text style={contractPdfStyles.detailLabel}>Price:</Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        A${contract.priceExGST || "0"} PER TONNE IN{" "}
-                        {contract.deliveryDestination || "N/A"}
+                        {contract.conveyance === "Deliverd Destination" ||
+                        contract.conveyance === "Deliverd Site"
+                          ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
+                          : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                       </Text>
                     </View>
 
@@ -479,7 +491,8 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                               if (day === 3 || day === 23) return day + "RD";
                               return day + "TH";
                             })
-                            .toUpperCase()}`}
+                            .toUpperCase()}`}{" "}
+                        - {contract?.deliveryOption}
                       </Text>
                     </View>
 
