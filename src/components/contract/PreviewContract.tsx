@@ -242,9 +242,11 @@ const PreviewContract: React.FC<PreviewContractProps> = ({
                   <div className="flex pb-1">
                     <span className="w-1/4 font-semibold">Price:</span>
                     <span className="w-3/4">
-                      {contract.conveyance === "Deliverd Destination" ||
+                      {contract.conveyance === "Del Destination" ||
                       contract.conveyance === "Deliverd Site"
                         ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
+                        : contract.conveyance === "Del Mz"
+                        ? `A$${contract.priceExGST} PER TONNE Deliverd`
                         : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                     </span>
                   </div>

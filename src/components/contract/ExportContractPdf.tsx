@@ -447,9 +447,11 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     <View style={contractPdfStyles.detailRow}>
                       <Text style={contractPdfStyles.detailLabel}>Price:</Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        {contract.conveyance === "Deliverd Destination" ||
+                        {contract.conveyance === "Del Destination" ||
                         contract.conveyance === "Deliverd Site"
                           ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
+                          : contract.conveyance === "Del Mz"
+                          ? `A$${contract.priceExGST} PER TONNE Deliverd`
                           : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                       </Text>
                     </View>
