@@ -628,7 +628,7 @@ const EditableContract: React.FC<ContractProps> = ({
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
-                Buyer Contract Referance
+                Buyer Contract Reference
               </div>
               <div className="w-1/2 p-3">
                 <input

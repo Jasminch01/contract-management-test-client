@@ -174,7 +174,7 @@ const SellerInformationPage = () => {
             value={sellerData?.phoneNumber || "N/A"}
           />
           <div className="border-b border-r border-gray-300 p-3 text-[#1A1A1A] flex items-center min-h-[60px]">
-            Authority to act
+            Authority To Act
           </div>
           <div className="border-b border-gray-300 p-3 flex items-center min-h-[60px]">
             {sellerData?.authorityActFormPdf ? (

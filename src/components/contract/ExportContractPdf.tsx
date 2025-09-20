@@ -204,7 +204,11 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     Email : {contract.seller?.email || "N/A"}
                   </Text>
                   <Text style={contractPdfStyles.partyText}>
-                    Contact : {contract?.sellerContactName || "N/A"}
+                    Contact : {contract?.sellerContactName}{" "}
+                    {contract?.seller.phoneNumber}
+                  </Text>
+                  <Text style={contractPdfStyles.partyText}>
+                    ABN : {contract?.seller?.abn}
                   </Text>
                 </View>
               </View>
@@ -447,11 +451,11 @@ const ExportContractPdf = ({ contracts }: { contracts: TContract[] }) => {
                     <View style={contractPdfStyles.detailRow}>
                       <Text style={contractPdfStyles.detailLabel}>Price:</Text>
                       <Text style={contractPdfStyles.detailValue}>
-                        {contract.conveyance === "Del Destination" ||
-                        contract.conveyance === "Delivered Site"
+                        {contract.conveyance === "Delivered Site"
                           ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
-                          : contract.conveyance === "Del Mz"
-                          ? `A$${contract.priceExGST} PER TONNE Deliverd`
+                          : contract.conveyance === "Del MZ" ||
+                            contract.conveyance === "Del Destination"
+                          ? `A$${contract.priceExGST} PER TONNE DELIVERED ${contract.deliveryDestination}`
                           : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                       </Text>
                     </View>

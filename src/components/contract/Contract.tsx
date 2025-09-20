@@ -50,7 +50,11 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>{contract.seller.address}</p>
                 <p>NGR : {contract.ngrNumber || "N/A"}</p>
                 <p>Email : {contract.seller.email}</p>
-                <p>Contact : {contract?.sellerContactName}</p>
+                <p>
+                  Contact : {contract?.sellerContactName}{" "}
+                  {contract?.seller.phoneNumber}
+                </p>
+                <p>ABN : {contract?.seller?.abn}</p>
               </div>
             </div>
 
@@ -108,7 +112,8 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                     <div className="flex pb-1">
                       <span className="w-1/4 font-semibold">Price:</span>
                       <span className="w-3/4">
-                        A${contract.priceExGST} PER TONNE {contract.deliveryDestination}
+                        A${contract.priceExGST} PER TONNE{" "}
+                        {contract.deliveryDestination}
                       </span>
                     </div>
 
@@ -238,11 +243,11 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                     <div className="flex pb-1">
                       <span className="w-1/4 font-semibold">Price:</span>
                       <span className="w-3/4">
-                        {contract.conveyance === "Del Destination" ||
-                        contract.conveyance === "Delivered Site"
+                        {contract.conveyance === "Delivered Site"
                           ? `A$${contract.priceExGST} PER TONNE IN DEPOT ${contract.deliveryDestination}`
-                          : contract.conveyance === "Del Mz"
-                          ? `A$${contract.priceExGST} PER TONNE Deliverd`
+                          : contract.conveyance === "Del MZ" ||
+                            contract.conveyance === "Del Destination"
+                          ? `A$${contract.priceExGST} PER TONNE DELIVERED ${contract.deliveryDestination}`
                           : `A$${contract.priceExGST} PER TONNE ${contract.deliveryDestination}`}
                       </span>
                     </div>
