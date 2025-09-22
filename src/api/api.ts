@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import toast from "react-hot-toast";
-
+import { userLogOut } from "./Auth";
 export const instance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   withCredentials: true,
@@ -23,8 +23,7 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // cookieStore.delete("token");
-
+      userLogOut();
       // Show toast immediately
       toast.error("Your session has expired. Redirecting to login...", {
         duration: 3000,
@@ -37,15 +36,15 @@ instance.interceptors.response.use(
       });
 
       // Smooth redirect with delay
-      // setTimeout(() => {
-      //   // Add a fade-out effect to the page before redirect
-      //   document.body.style.opacity = "0.7";
-      //   document.body.style.transition = "opacity 0.3s ease-out";
+      setTimeout(() => {
+        // Add a fade-out effect to the page before redirect
+        document.body.style.opacity = "0.7";
+        document.body.style.transition = "opacity 0.3s ease-out";
 
-      //   setTimeout(() => {
-      //     window.location.href = "/auth/login";
-      //   }, 300);
-      // }, 3000);
+        setTimeout(() => {
+          window.location.href = "/auth/login";
+        }, 300);
+      }, 3000);
     }
 
     return Promise.reject(error);

@@ -6,8 +6,7 @@ import { useState } from "react"; // Import useState
 import { FaBars, FaTrash } from "react-icons/fa"; // Import hamburger icon
 import Image from "next/image";
 import { useClerk } from "@clerk/nextjs";
-
-// import { userLogOut } from "@/api/Auth";
+import { userLogOut } from "@/api/Auth";
 
 const menus = [
   {
@@ -44,6 +43,7 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     signOut();
+    userLogOut();
     router.push("/auth/login");
   };
 
