@@ -37,15 +37,15 @@ instance.interceptors.response.use(
       });
 
       // Smooth redirect with delay
-      setTimeout(() => {
-        // Add a fade-out effect to the page before redirect
-        document.body.style.opacity = "0.7";
-        document.body.style.transition = "opacity 0.3s ease-out";
+      // setTimeout(() => {
+      //   // Add a fade-out effect to the page before redirect
+      //   document.body.style.opacity = "0.7";
+      //   document.body.style.transition = "opacity 0.3s ease-out";
 
-        setTimeout(() => {
-          window.location.href = "/auth/login";
-        }, 300);
-      }, 3000);
+      //   setTimeout(() => {
+      //     window.location.href = "/auth/login";
+      //   }, 300);
+      // }, 3000);
     }
 
     return Promise.reject(error);

@@ -26,9 +26,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       setIsAuthenticating(true);
       try {
-        console.log("Attempting backend authentication...");
+        // console.log("Attempting backend authentication...");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const res = await userLogin(userEmail, userId);
-        console.log("Backend authentication successful:", res);
+        // console.log("Backend authentication successful:", res);
         setAuthCompleted(true);
       } catch (error) {
         console.error("Backend authentication failed:", error);
