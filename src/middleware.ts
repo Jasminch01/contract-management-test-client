@@ -7,7 +7,7 @@
 //   console.log(authToken);
 //   const pathname = request.nextUrl.pathname;
 
-//   const isLoginPage = pathname === "/auth/login"; 
+//   const isLoginPage = pathname === "/auth/login";
 //   const isRegisterPage = pathname === "/auth/register";
 //   const isAuthPage = isLoginPage || isRegisterPage;
 //   const isRootPage = pathname === "/";
@@ -69,20 +69,54 @@
 // //   ],
 // // }
 
+// import { NextResponse } from "next/server";
+// import type { NextRequest } from "next/server";
+
+// export function middleware(request: NextRequest) {
+//   const pathname = request.nextUrl.pathname;
+
+//   // Redirect root to login page
+//   if (pathname === "/") {
+//     return NextResponse.redirect(new URL("/dashboard", request.url));
+//   }
+
+//   return NextResponse.next();
+// }
+
+// export const config = {
+//   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+// };
+
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-
-  // Redirect root to login page
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+export default clerkMiddleware(async (auth, req) => {
+  const { userId, } = await auth();
+  
+  // If user is on root path
+  if (req.nextUrl.pathname === '/') {
+    if (userId) {
+      // User exists - redirect to dashboard
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    } else {
+      // No user - redirect to login
+      return NextResponse.redirect(new URL('/auth/login', req.url));
+    }
   }
-
-  return NextResponse.next();
-}
+  
+  // Protect dashboard route - redirect to login if no user
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!userId) {
+      return NextResponse.redirect(new URL('/auth/login', req.url));
+    }
+  }
+});
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
 };

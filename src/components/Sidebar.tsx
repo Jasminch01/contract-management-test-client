@@ -5,6 +5,8 @@ import { MdOutlineLogout } from "react-icons/md";
 import { useState } from "react"; // Import useState
 import { FaBars, FaTrash } from "react-icons/fa"; // Import hamburger icon
 import Image from "next/image";
+import { useClerk } from "@clerk/nextjs";
+
 // import { userLogOut } from "@/api/Auth";
 
 const menus = [
@@ -35,15 +37,13 @@ const menus = [
 ];
 
 const Sidebar = () => {
+  const { signOut } = useClerk();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to manage sidebar visibility
   const router = useRouter();
 
   const handleLogout = async () => {
-    // const res = await userLogOut();
-    // if (res) {
-    // }
-    localStorage.removeItem("accesstoken");
+    signOut();
     router.push("/auth/login");
   };
 

@@ -6,21 +6,8 @@ export const instance: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Add request interceptor
 instance.interceptors.request.use(
   (config) => {
-    // Check if we're in the browser environment
-    if (typeof window !== "undefined") {
-      try {
-        const token = localStorage.getItem("accesstoken");
-        if (token) {
-          // Set authorization header with "Bearer" prefix to match backend
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      } catch (error) {
-        console.error("Error accessing localStorage:", error);
-      }
-    }
     return config;
   },
   (error) => {
@@ -28,34 +15,15 @@ instance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-// Add response interceptor
-// instance.interceptors.response.use(
-//   (response) => {
-//     return response.data;
-//   },
-//   (error) => {
-//     // Handle response error (e.g., redirect to login on 401)
-//     if (error.response?.status === 401) {
-//       // Handle unauthorized access
-//       setTimeout(() => {
-//         toast.error(
-//           "Your session has expired. You will be redirected to the login page."
-//         );
-//       }, 3000);
-//       window.location.href = "/auth/login";
-//       localStorage.removeItem("accesstoken");
-//     }
-//     return Promise.reject(error);
-//   }
-// );
 
+// Or you can remove the interceptor entirely if not needed
 instance.interceptors.response.use(
   (response) => {
     return response.data;
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("accesstoken");
+      cookieStore.delete("token");
 
       // Show toast immediately
       toast.error("Your session has expired. Redirecting to login...", {

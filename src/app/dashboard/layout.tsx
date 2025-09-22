@@ -1,158 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-
-// Utility function to get token from localStorage
-function getTokenFromStorage(key: string): string | null {
-  if (typeof window === "undefined") return null;
-
-  try {
-    return localStorage.getItem(key);
-  } catch (error) {
-    console.error("Error reading from localStorage:", error);
-    return null;
-  }
-}
-
-// Function to remove token from localStorage
-function removeTokenFromStorage(key: string): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    localStorage.removeItem(key);
-  } catch (error) {
-    console.error("Error removing from localStorage:", error);
-  }
-}
-
-// Function to set token in cookie (for middleware access)
-function setTokenInCookie(token: string): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    // Set cookie that expires in 7 days
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    document.cookie = `accesstoken=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
-  } catch (error) {
-    console.error("Error setting cookie:", error);
-  }
-}
-
-// Function to remove token from cookie
-function removeTokenFromCookie(): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    document.cookie =
-      "accesstoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  } catch (error) {
-    console.error("Error removing cookie:", error);
-  }
-}
-
-// Function to decode JWT token
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function decodeJWT(token: string): any {
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("Error decoding JWT:", error);
-    return null;
-  }
-}
-
-// Function to validate token including expiration check
-function isValidToken(token: string): boolean {
-  try {
-    // Basic checks
-    if (!token || token.length < 10) return false;
-
-    // Decode the token to check expiration
-    const decoded = decodeJWT(token);
-    if (!decoded) return false;
-
-    // Check if token has expired
-    if (decoded.exp && typeof decoded.exp === "number") {
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (decoded.exp < currentTime) {
-        // console.log("Token has expired");
-        return false;
-      }
-    }
-
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { useUser } from "@clerk/nextjs";
+import { userLogin } from "@/api/Auth";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authCompleted, setAuthCompleted] = useState(false);
+
+  const userEmail = user?.primaryEmailAddress?.emailAddress as string;
+  const userId = user?.id as string;
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // Only run if Clerk is loaded and we have user data
+    if (!isLoaded || !user || !userEmail || !userId || authCompleted) return;
+
+    const userSignIn = async () => {
+      if (isAuthenticating) return; // Prevent multiple simultaneous calls
+
+      setIsAuthenticating(true);
       try {
-        // Get token from localStorage
-        const token = getTokenFromStorage("accesstoken");
-
-        if (!token) {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          return;
-        }
-
-        // Validate token including expiration
-        if (isValidToken(token)) {
-          // Set token in cookie for middleware access
-          setTokenInCookie(token);
-          setIsAuthenticated(true);
-        } else {
-          throw new Error("Invalid or expired token");
-        }
+        console.log("Attempting backend authentication...");
+        const res = await userLogin(userEmail, userId);
+        console.log("Backend authentication successful:", res);
+        setAuthCompleted(true);
       } catch (error) {
-        console.error("Auth check error:", error);
-        setIsAuthenticated(false);
-        // Remove invalid tokens
-        removeTokenFromStorage("accesstoken");
-        removeTokenFromStorage("refreshtoken");
-        removeTokenFromCookie();
+        console.error("Backend authentication failed:", error);
+        // You might want to handle this error - maybe redirect to login
+        // or show an error message
       } finally {
-        setIsLoading(false);
+        setIsAuthenticating(false);
       }
     };
 
-    checkAuth();
-  }, []);
+    userSignIn();
+  }, [isLoaded, user, userEmail, userId, authCompleted, isAuthenticating]); // Add dependencies
 
-  useEffect(() => {
-    if (isAuthenticated === false && !isLoading) {
-      // Redirect to login page
-      router.push("/auth/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
+  // Show loading while Clerk is loading or while authenticating
+  if (!isLoaded || (user && !authCompleted && isAuthenticating)) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <span className="ml-3">
+          {!isLoaded ? "Loading..." : "Authenticating..."}
+        </span>
+      </div>
+    );
+  }
 
-  // Show nothing while redirecting
-  if (isAuthenticated === false) {
+  // If no user after Clerk is loaded, let Clerk handle redirect
+  if (!user) {
     return null;
   }
 
-  // Authenticated - render dashboard
+  // Render dashboard only after authentication is complete
   return (
     <div className="md:flex">
       <Sidebar />

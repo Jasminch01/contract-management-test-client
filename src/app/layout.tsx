@@ -1,6 +1,7 @@
 import "./globals.css";
 import localFont from "next/font/local";
 import QueryProvider from "@/provider/QueryProvider";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const satoshiFont = localFont({
   src: [
@@ -35,11 +36,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <link rel="shortcut icon" href="/Favicon.png" type="image/x-icon" />
-      <body className={satoshiFont.className}>
-        <QueryProvider>
-          <div>{children}</div>
-        </QueryProvider>
-      </body>
+      <ClerkProvider>
+        <body className={satoshiFont.className}>
+          <QueryProvider>
+            <div>{children}</div>
+          </QueryProvider>
+        </body>
+      </ClerkProvider>
     </html>
   );
 }
