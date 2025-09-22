@@ -23,7 +23,7 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      cookieStore.delete("token");
+      // cookieStore.delete("token");
 
       // Show toast immediately
       toast.error("Your session has expired. Redirecting to login...", {
