@@ -1,16 +1,27 @@
 import axios, { AxiosInstance } from "axios";
 import toast from "react-hot-toast";
 import { userLogOut } from "./Auth";
-// import { Clerk } from "@clerk/clerk-js";
+import { Clerk } from "@clerk/clerk-js";
 
 //singleton Clerk instance
-// const clerk = new Clerk(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!);
+const clerk = new Clerk(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!);
 
-// await clerk.load();
+await clerk.load();
 export const instance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   withCredentials: true,
 });
+
+async function safeClerkSignOut() {
+  if (typeof window === "undefined") return; // ✅ prevent SSR crash
+  if (window.Clerk) {
+    try {
+      await window.Clerk.signOut();
+    } catch (err) {
+      console.error("Clerk signout failed:", err);
+    }
+  }
+}
 
 instance.interceptors.request.use(
   (config) => {
@@ -28,12 +39,7 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // try {
-      //   // Clerk signout
-      //   await clerk.signOut();
-      // } catch (err) {
-      //   console.error("Clerk signout failed:", err);
-      // }
+      safeClerkSignOut();
       userLogOut();
       // Show toast immediately
       toast.error("Your session has expired. Redirecting to login...", {
