@@ -42,13 +42,13 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
 
   // Query for initial sellers list (limit 10)
   const {
-    data: initialSellers = [],
+    data: initialSellersResponse,
     isLoading: isLoadingInitial,
     isError: isErrorInitial,
     refetch: refetchInitial,
   } = useQuery({
     queryKey: ["sellers", "initial"],
-    queryFn: getsellers,
+    queryFn: () => getsellers({ limit: 10 }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     enabled: isDropdownOpen && !debouncedSearchTerm.trim(),
@@ -69,9 +69,14 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
     enabled: isDropdownOpen && !!debouncedSearchTerm.trim(),
   });
 
+  // Extract sellers array from paginated response
+  const initialSellers = initialSellersResponse?.data || [];
+
   // Determine which data to show
   const sellers = debouncedSearchTerm.trim() ? searchResults : initialSellers;
-  const isLoading = debouncedSearchTerm.trim() ? isLoadingSearch : isLoadingInitial;
+  const isLoading = debouncedSearchTerm.trim()
+    ? isLoadingSearch
+    : isLoadingInitial;
   const isError = debouncedSearchTerm.trim() ? isErrorSearch : isErrorInitial;
   const isFetching = debouncedSearchTerm.trim() ? isFetchingSearch : false;
 
@@ -162,9 +167,7 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
           onClick={handleToggleDropdown}
           disabled={false}
         >
-          {selectedSeller
-            ? selectedSeller.legalName
-            : "Select Seller"}
+          {selectedSeller ? selectedSeller.legalName : "Select Seller"}
           <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -238,10 +241,9 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
           {isError && (
             <div className="p-4 text-center">
               <p className="text-red-600 text-sm mb-2">
-                {searchTerm 
+                {searchTerm
                   ? `Failed to search for "${searchTerm}"`
-                  : "Failed to load sellers"
-                }
+                  : "Failed to load sellers"}
               </p>
               <button
                 type="button"
@@ -269,7 +271,9 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
                     <div
                       key={seller._id}
                       className={`px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors ${
-                        selectedSeller?._id === seller._id ? "bg-blue-50 text-blue-700" : ""
+                        selectedSeller?._id === seller._id
+                          ? "bg-blue-50 text-blue-700"
+                          : ""
                       }`}
                       onClick={() => handleSelectSeller(seller)}
                     >
@@ -313,7 +317,9 @@ const SellerSelect = ({ onSelect }: SellerSelectProps) => {
                 ) : (
                   <div className="p-4 text-center">
                     <p className="text-gray-500 text-sm">
-                      {searchTerm ? `Searching for "${searchTerm}"...` : "Loading..."}
+                      {searchTerm
+                        ? `Searching for "${searchTerm}"...`
+                        : "Loading..."}
                     </p>
                   </div>
                 )}

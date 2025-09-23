@@ -106,18 +106,22 @@ const EditableContract: React.FC<ContractProps> = ({
     "Invoiced",
     "Draft",
   ];
-  const { data: sellers = [] } = useQuery({
+
+  const { data: sellersResponse } = useQuery({
     queryKey: ["sellers"],
-    queryFn: getsellers,
+    queryFn: () => getsellers({ limit: 100 }), // Pass parameters and call as function
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
-  const { data: buyers = [] } = useQuery({
+
+  const { data: buyersResponse } = useQuery({
     queryKey: ["buyers"],
-    queryFn: getBuyers,
+    queryFn: () => getBuyers({ limit: 100 }), // Pass parameters and call as function
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
+  const sellers = sellersResponse?.data || [];
+  const buyers = buyersResponse?.data || [];
 
   // Get the selected buyer and seller objects for display
   const selectedBuyer = buyers.find(
@@ -434,7 +438,7 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {_id,createdAt,updatedAt,_v,contractNumber,
+    const { _id,createdAt, updatedAt, _v, contractNumber,
       ...updatedContract
     } = contractToSave;
     updateContractMutation.mutate(updatedContract);
@@ -481,7 +485,7 @@ const EditableContract: React.FC<ContractProps> = ({
         <p className="text-lg text-center col-span-1">
           {contract.commodity} - {contract.season}
         </p>
-        <div  ></div> {/* Empty div to balance the grid */}
+        <div></div> {/* Empty div to balance the grid */}
       </div>
 
       <div className="flex flex-col items-center mx-auto max-w-6xl gap-6 xl:overflow-y-scroll xl:h-[40rem]">

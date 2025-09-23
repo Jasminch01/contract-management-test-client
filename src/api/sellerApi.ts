@@ -52,7 +52,25 @@ export const getsellers = async (
     };
   }
 };
+export const searchSellers = async (query: string): Promise<Seller[]> => {
+  try {
+    if (!query || !query.trim()) {
+      return [];
+    }
 
+    const { data } = await instance.get<Seller[]>(
+      `sellers/search?q=${encodeURIComponent(query.trim())}`
+    );
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error searching sellers:", error.message);
+    } else {
+      console.error("Unexpected error searching sellers:", error);
+    }
+    return [];
+  }
+};
 export const createSeller = async (newSeller: Seller) => {
   try {
     const data = await instance.post(`sellers`, newSeller);

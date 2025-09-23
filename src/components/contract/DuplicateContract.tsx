@@ -106,18 +106,21 @@ const EditableContract: React.FC<ContractProps> = ({
     }
   };
 
-  const { data: sellers = [] } = useQuery({
+  const { data: sellersResponse } = useQuery({
     queryKey: ["sellers"],
-    queryFn: getsellers,
+    queryFn: () => getsellers(), // Pass parameters and call as function
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
-  const { data: buyers = [] } = useQuery({
+
+  const { data: buyersResponse } = useQuery({
     queryKey: ["buyers"],
-    queryFn: getBuyers,
+    queryFn: () => getBuyers(), // Pass parameters and call as function
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
+  const sellers = sellersResponse?.data || [];
+  const buyers = buyersResponse?.data || [];
 
   // Get the selected buyer and seller objects for display
   const selectedBuyer = buyers.find(

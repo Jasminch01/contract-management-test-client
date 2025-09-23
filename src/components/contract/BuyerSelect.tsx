@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IoIosAdd, IoIosSearch, IoIosClose } from "react-icons/io";
 import { Buyer } from "@/types/types";
-import { getBuyers, searchBuyers, } from "@/api/buyerApi";
+import { getBuyers, searchBuyers } from "@/api/buyerApi";
 import { useRouter } from "next/navigation";
 
 interface BuyerSelectProps {
@@ -42,13 +42,13 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
 
   // Query for initial buyers list (limit 10)
   const {
-    data: initialBuyers = [],
+    data: initialBuyersResponse,
     isLoading: isLoadingInitial,
     isError: isErrorInitial,
     refetch: refetchInitial,
   } = useQuery({
     queryKey: ["buyers", "initial"],
-    queryFn: getBuyers,
+    queryFn: () => getBuyers({ limit: 10 }), // Pass limit parameter
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     enabled: isDropdownOpen && !debouncedSearchTerm.trim(),
@@ -69,9 +69,14 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
     enabled: isDropdownOpen && !!debouncedSearchTerm.trim(),
   });
 
+  // Extract buyers array from paginated response
+  const initialBuyers = initialBuyersResponse?.data || [];
+
   // Determine which data to show
   const buyers = debouncedSearchTerm.trim() ? searchResults : initialBuyers;
-  const isLoading = debouncedSearchTerm.trim() ? isLoadingSearch : isLoadingInitial;
+  const isLoading = debouncedSearchTerm.trim()
+    ? isLoadingSearch
+    : isLoadingInitial;
   const isError = debouncedSearchTerm.trim() ? isErrorSearch : isErrorInitial;
   const isFetching = debouncedSearchTerm.trim() ? isFetchingSearch : false;
 
@@ -162,9 +167,7 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
           onClick={handleToggleDropdown}
           disabled={false}
         >
-          {selectedBuyer
-            ? selectedBuyer.name
-            : "Select Buyer"}
+          {selectedBuyer ? selectedBuyer.name : "Select Buyer"}
           <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -238,10 +241,9 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
           {isError && (
             <div className="p-4 text-center">
               <p className="text-red-600 text-sm mb-2">
-                {searchTerm 
+                {searchTerm
                   ? `Failed to search for "${searchTerm}"`
-                  : "Failed to load buyers"
-                }
+                  : "Failed to load buyers"}
               </p>
               <button
                 type="button"
@@ -269,7 +271,9 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
                     <div
                       key={buyer._id}
                       className={`px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors ${
-                        selectedBuyer?._id === buyer._id ? "bg-blue-50 text-blue-700" : ""
+                        selectedBuyer?._id === buyer._id
+                          ? "bg-blue-50 text-blue-700"
+                          : ""
                       }`}
                       onClick={() => handleSelectBuyer(buyer)}
                     >
@@ -313,7 +317,9 @@ const BuyerSelect = ({ onSelect }: BuyerSelectProps) => {
                 ) : (
                   <div className="p-4 text-center">
                     <p className="text-gray-500 text-sm">
-                      {searchTerm ? `Searching for "${searchTerm}"...` : "Loading..."}
+                      {searchTerm
+                        ? `Searching for "${searchTerm}"...`
+                        : "Loading..."}
                     </p>
                   </div>
                 )}
