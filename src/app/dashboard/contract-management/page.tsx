@@ -216,7 +216,7 @@ const ContractManagementPage = () => {
       limit: paginationState.limit,
     };
 
-    // ✅ Add search filters with proper mapping
+    // Add search filters with proper mapping
     Object.entries(paginationState.searchFilters).forEach(([key, value]) => {
       if (value && value.trim() !== "") {
         // Map the filter keys to API parameter names that match backend
@@ -243,7 +243,6 @@ const ContractManagementPage = () => {
             params.contractNumber = value.trim();
             break;
           default:
-            // For any other filters, use the key as-is
             (params as any)[key] = value.trim();
         }
       }

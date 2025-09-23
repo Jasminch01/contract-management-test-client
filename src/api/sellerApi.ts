@@ -1,6 +1,10 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { instance } from "./api";
-import { Seller } from "@/types/types";
+import {
+  FetchSellersParams,
+  Seller,
+  SellersPaginatedResponse,
+} from "@/types/types";
 
 export const getseller = async (sellerId: string) => {
   try {
@@ -16,74 +20,38 @@ export const getseller = async (sellerId: string) => {
   }
 };
 
-export const getsellers = async (): Promise<Seller[]> => {
+export const getsellers = async (
+  params: FetchSellersParams = {}
+): Promise<SellersPaginatedResponse> => {
   try {
-    const { data } = await instance.get<Seller[]>(`sellers`);
-    return data;
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    const response: AxiosResponse<SellersPaginatedResponse> =
+      await instance.get(`sellers?${queryParams.toString()}`);
+
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error("Axios error fetching sellers:", error.message);
     } else {
       console.error("Unexpected error fetching sellers:", error);
     }
-    return [];
+
+    // Return correct empty structure
+    return {
+      page: 1,
+      totalPages: 0,
+      total: 0,
+      data: [],
+    };
   }
 };
-
-export const searchSellers = async (query: string): Promise<Seller[]> => {
-  try {
-    if (!query || !query.trim()) {
-      return [];
-    }
-
-    const { data } = await instance.get<Seller[]>(`sellers/search?q=${encodeURIComponent(query.trim())}`);
-    return data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Axios error searching sellers:", error.message);
-    } else {
-      console.error("Unexpected error searching sellers:", error);
-    }
-    return [];
-  }
-};
-
-// interface GetSellersParams {
-//   search?: string;
-//   limit?: number;
-// }
-
-// export const getsellers = async (
-//   params: GetSellersParams = {}
-// ): Promise<Seller[]> => {
-//   try {
-//     const { search, limit = 10 } = params;
-
-//     // Build query parameters
-//     const queryParams = new URLSearchParams();
-
-//     if (limit) {
-//       queryParams.append("limit", limit.toString());
-//     }
-
-//     if (search && search.trim()) {
-//       queryParams.append("search", search.trim());
-//     }
-
-//     const queryString = queryParams.toString();
-//     const url = queryString ? `sellers?${queryString}` : "sellers";
-
-//     const { data } = await instance.get<Seller[]>(url);
-//     return data;
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       console.error("Axios error fetching sellers:", error.message);
-//     } else {
-//       console.error("Unexpected error fetching sellers:", error);
-//     }
-//     return [];
-//   }
-// };
 
 export const createSeller = async (newSeller: Seller) => {
   try {

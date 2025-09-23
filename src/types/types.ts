@@ -236,14 +236,43 @@ export interface ContractsPaginatedResponse {
   limit?: number;
 }
 
-// If you want to add more specific pagination metadata
-export interface PaginationMeta {
-  currentPage: number;
+// Types
+export interface FetchBuyersParams {
+  page?: number;
+  limit?: number;
+  name?: string;
+  abn?: string;
+  contactName?: string;
+  email?: string;
+  phoneNumber?: string;
+  dateFilter?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface BuyersPaginatedResponse {
+  page: number;
   totalPages: number;
-  totalRecords: number;
-  recordsPerPage: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-  startRecord: number;
-  endRecord: number;
+  total: number;
+  data: Buyer[];
+}
+
+export interface FetchSellersParams {
+  page?: number;
+  limit?: number;
+  legalName?: string;
+  abn?: string;
+  contactName?: string;
+  email?: string;
+  phoneNumber?: string;
+  dateFilter?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface SellersPaginatedResponse {
+  page: number;
+  totalPages: number;
+  total: number;
+  data: Seller[];
 }

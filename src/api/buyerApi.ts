@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { instance } from "./api";
-import { Buyer } from "@/types/types";
+import { Buyer, BuyersPaginatedResponse, FetchBuyersParams } from "@/types/types";
 
 export const getBuyer = async (buyerId: string) => {
   try {
@@ -16,17 +16,38 @@ export const getBuyer = async (buyerId: string) => {
   }
 };
 
-export const getBuyers = async (): Promise<Buyer[]> => {
+export const getBuyers = async (
+  params: FetchBuyersParams = {}
+): Promise<BuyersPaginatedResponse> => {
   try {
-    const { data } = await instance.get<Buyer[]>(`buyers`);
-    return data;
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    const response: AxiosResponse<BuyersPaginatedResponse> = await instance.get(
+      `buyers?${queryParams.toString()}`
+    );
+
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error("Axios error fetching buyers:", error.message);
     } else {
       console.error("Unexpected error fetching buyers:", error);
     }
-    return [];
+
+    // Return correct empty structure
+    return {
+      page: 1,
+      totalPages: 0,
+      total: 0,
+      data: [],
+    };
   }
 };
 
@@ -36,7 +57,9 @@ export const searchBuyers = async (query: string): Promise<Buyer[]> => {
       return [];
     }
 
-    const { data } = await instance.get<Buyer[]>(`buyers/search?q=${encodeURIComponent(query.trim())}`);
+    const { data } = await instance.get<Buyer[]>(
+      `buyers/search?q=${encodeURIComponent(query.trim())}`
+    );
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
