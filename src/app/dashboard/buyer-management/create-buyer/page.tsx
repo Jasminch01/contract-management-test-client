@@ -1,10 +1,9 @@
-
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Buyer } from "@/types/types"; // Import from types
+import { Buyer, BuyersPaginatedResponse } from "@/types/types"; // Import both types
 import { createBuyer } from "@/api/buyerApi";
 
 const CreateBuyerPage = () => {
@@ -29,13 +28,22 @@ const CreateBuyerPage = () => {
     onSuccess: (data) => {
       // Invalidate and refetch the buyers list
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
+
       // This provides instant feedback without waiting for refetch
-      queryClient.setQueryData(["buyers"], (oldData: Buyer[] | undefined) => {
-        if (oldData) {
-          return [data, ...oldData];
+      queryClient.setQueryData(
+        ["buyers"],
+        (oldData: BuyersPaginatedResponse | undefined) => {
+
+          if (oldData && oldData.data && Array.isArray(oldData.data)) {
+            // Return updated pagination object with new buyer prepended
+            return {
+              ...oldData,
+              data: [data, ...oldData.data],
+              total: oldData.total + 1, // Increment total count
+            };
+          }
         }
-        return [data];
-      });
+      );
 
       toast.success("Buyer created successfully!");
       router.push("/dashboard/buyer-management");
@@ -43,6 +51,7 @@ const CreateBuyerPage = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       console.error("Create buyer error:", error);
+      console.log(error);
       toast.error(error?.message || "Failed to create buyer");
     },
   });
@@ -90,7 +99,13 @@ const CreateBuyerPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
+    // Contact name validation - Check this FIRST (same as seller page)
+    if (formData.contactName.length === 0) {
+      toast.error("Please add at least one contact name");
+      return;
+    }
+
+    // Basic validation for other required fields
     if (
       !formData.name ||
       !formData.abn ||
@@ -99,11 +114,6 @@ const CreateBuyerPage = () => {
       !formData.phoneNumber
     ) {
       toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (formData.contactName.length === 0) {
-      toast.error("Please add at least one contact name");
       return;
     }
 
@@ -120,11 +130,11 @@ const CreateBuyerPage = () => {
 
     // Use the mutation instead of direct API call
     createBuyerMutation.mutate(newBuyer);
-    // console.log(newBuyer);
   };
 
   return (
     <div className="max-w-7xl mx-auto mt-10 md:mt-32 px-4">
+      <Toaster />
       <div className="flex justify-center">
         <form onSubmit={handleSubmit} className="w-full max-w-4xl">
           {/* Heading Section */}
@@ -238,7 +248,6 @@ const CreateBuyerPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
-                  required
                   disabled={createBuyerMutation.isPending}
                 />
               </div>
@@ -252,7 +261,6 @@ const CreateBuyerPage = () => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A5D36] focus:border-transparent"
-                  required
                   disabled={createBuyerMutation.isPending}
                 />
               </div>

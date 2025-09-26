@@ -718,7 +718,6 @@ const handleSellerContact = (contactName) => {
                   className="mt-1 w-full xl:w-[250px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                   calendarClassName="w-full sm:w-auto"
                   dateFormat="MMM d, yyyy"
-                  minDate={new Date()}
                   maxDate={addDays(new Date(), 365)}
                   shouldCloseOnSelect={false}
                   selectsDisabledDaysInRange

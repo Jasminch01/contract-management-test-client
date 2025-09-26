@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
 
@@ -20,9 +21,9 @@ type DeletedItem =
   | (Seller & { type: "Seller" })
   | (TContract & { type: "Contract" });
 
-// API functions
-const fetchDeletedItems = async (): Promise<TrashData> => {
-  const response = await getTrashData();
+// Updated API function with pagination
+const fetchDeletedItems = async (page: number, limit: number, type?: string): Promise<TrashData & { pagination: any, summary: any }> => {
+  const response = await getTrashData(page, limit, type);
   return response;
 };
 
@@ -43,6 +44,10 @@ const RubbishBin = () => {
   const [selectedRows, setSelectedRows] = useState<DeletedItem[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const queryClient = useQueryClient();
 
@@ -60,17 +65,25 @@ const RubbishBin = () => {
     }, 3000);
   };
 
-  // Fetch deleted items using TanStack Query
+  // Convert activeFilters to API type parameter
+  const getTypeFilter = () => {
+    if (activeFilters.length === 1) {
+      return activeFilters[0].toLowerCase() + 's'; // Convert to plural for API
+    }
+    return null; // Return all types if multiple or no filters
+  };
+
+  // Fetch deleted items using TanStack Query with pagination
   const {
-    data: deletedData,
+    data: deletedResponse,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["deletedItems"],
-    queryFn: fetchDeletedItems,
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchInterval: 60000, // Refetch every minute for live updates
+    queryKey: ["deletedItems", currentPage, itemsPerPage, getTypeFilter()],
+    queryFn: () => fetchDeletedItems(currentPage, itemsPerPage, getTypeFilter()),
+    staleTime: 30000,
+    refetchInterval: 60000,
     refetchOnWindowFocus: true,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -99,6 +112,7 @@ const RubbishBin = () => {
     mutationFn: emptyTrash,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deletedItems"] });
+      setCurrentPage(1); // Reset to first page after emptying
       setShowEmptyModal(false);
       showNotification("Rubbish bin emptied successfully", "success");
     },
@@ -127,11 +141,11 @@ const RubbishBin = () => {
 
   // Process deleted items data
   const deletedItems: DeletedItem[] = React.useMemo(() => {
-    if (!deletedData) return [];
+    if (!deletedResponse) return [];
 
-    const deletedBuyers = deletedData.buyers || [];
-    const deletedSellers = deletedData.sellers || [];
-    const deletedContracts = deletedData.contracts || [];
+    const deletedBuyers = deletedResponse.buyers || [];
+    const deletedSellers = deletedResponse.sellers || [];
+    const deletedContracts = deletedResponse.contracts || [];
 
     return [
       ...deletedContracts.map((c: TContract) => ({
@@ -147,7 +161,7 @@ const RubbishBin = () => {
         type: "Buyer" as const,
       })),
     ];
-  }, [deletedData]);
+  }, [deletedResponse]);
 
   // Handle error state
   useEffect(() => {
@@ -159,16 +173,15 @@ const RubbishBin = () => {
   // Filter dropdown ref for outside click detection
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // Filter effect
+  // Update filtered items (for display purposes, actual filtering is done server-side)
   useEffect(() => {
-    if (activeFilters.length === 0) {
-      setFilteredItems(deletedItems);
-    } else {
-      setFilteredItems(
-        deletedItems.filter((item) => activeFilters.includes(item.type))
-      );
-    }
-  }, [activeFilters, deletedItems]);
+    setFilteredItems(deletedItems);
+  }, [deletedItems]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilters]);
 
   // Outside click effect to close filter dropdown
   useEffect(() => {
@@ -181,12 +194,10 @@ const RubbishBin = () => {
       }
     };
 
-    // Add event listener when filter is open
     if (showFilterDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
-    // Cleanup
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -196,9 +207,9 @@ const RubbishBin = () => {
     if (activeFilters.includes(type)) {
       setActiveFilters(activeFilters.filter((t) => t !== type));
     } else {
-      setActiveFilters([...activeFilters, type]);
+      // For server-side filtering, only allow one filter at a time
+      setActiveFilters([type]);
     }
-    // Close dropdown after selection
     setShowFilterDropdown(false);
   };
 
@@ -233,7 +244,7 @@ const RubbishBin = () => {
   };
 
   const handleEmptyRubbishBin = async () => {
-    if (deletedItems.length === 0) {
+    if (deletedResponse?.summary?.totalDeleted === 0) {
       showNotification("Rubbish bin is already empty", "info");
       return;
     }
@@ -254,7 +265,6 @@ const RubbishBin = () => {
       return;
     }
 
-    // Extract IDs from selectedRows if they are objects, or use them directly if they are strings
     const itemIds = selectedRows
       .map((item) => (typeof item === "string" ? item : item._id))
       .filter((id): id is string => id !== undefined);
@@ -265,6 +275,18 @@ const RubbishBin = () => {
     }
 
     restoreItemsMutation.mutate(itemIds);
+  };
+
+  // Pagination handlers for DataTable
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedRows([]); // Clear selections when changing pages
+  };
+
+  const handlePerRowsChange = (newPerPage: number) => {
+    setItemsPerPage(newPerPage);
+    setCurrentPage(1); // Reset to first page
+    setSelectedRows([]); // Clear selections
   };
 
   const columns = [
@@ -409,7 +431,7 @@ const RubbishBin = () => {
           <button
             onClick={handleEmptyRubbishBin}
             className="px-4 py-2 rounded-md border border-gray-300 flex items-center gap-2 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50"
-            disabled={emptyTrashMutation.isPending || deletedItems.length === 0}
+            disabled={emptyTrashMutation.isPending || (deletedResponse?.summary?.totalDeleted === 0)}
           >
             <RiDeleteBin6Fill className="text-red-500" />
             {emptyTrashMutation.isPending ? "Emptying..." : "Empty Rubbish Bin"}
@@ -423,19 +445,19 @@ const RubbishBin = () => {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {deletedItems.filter((item) => item.type === "Buyer").length}
+                {deletedResponse?.summary?.totalBuyers || 0}
               </div>
               <div className="text-sm text-gray-600">Deleted Buyers</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">
-                {deletedItems.filter((item) => item.type === "Seller").length}
+                {deletedResponse?.summary?.totalSellers || 0}
               </div>
               <div className="text-sm text-gray-600">Deleted Sellers</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">
-                {deletedItems.filter((item) => item.type === "Contract").length}
+                {deletedResponse?.summary?.totalContracts || 0}
               </div>
               <div className="text-sm text-gray-600">Deleted Contracts</div>
             </div>
@@ -450,9 +472,9 @@ const RubbishBin = () => {
               List of deleted items
             </h2>
             <p className="text-sm text-gray-500">
-              {filteredItems.length} deleted items found
+              {filteredItems.length} of {deletedResponse?.pagination?.totalItems || 0} items
               {activeFilters.length > 0 &&
-                ` (filtered by ${activeFilters?.join(", ")})`}
+                ` (filtered by ${activeFilters.join(", ")})`}
             </p>
           </div>
 
@@ -550,6 +572,13 @@ const RubbishBin = () => {
             progressPending={isLoading}
             selectableRows
             pagination
+            paginationServer
+            paginationTotalRows={deletedResponse?.pagination?.totalItems || 0}
+            paginationDefaultPage={currentPage}
+            paginationPerPage={itemsPerPage}
+            onChangeRowsPerPage={handlePerRowsChange}
+            onChangePage={handlePageChange}
+            paginationRowsPerPageOptions={[5, 10, 25, 50, 100]}
             highlightOnHover
             noDataComponent={
               <div className="p-4">
@@ -571,7 +600,7 @@ const RubbishBin = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
                 Permanently Delete Items
@@ -605,14 +634,14 @@ const RubbishBin = () => {
 
         {/* Empty Trash Confirmation Modal */}
         {showEmptyModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
                 Empty Rubbish Bin
               </h3>
               <p className="text-gray-600 mb-6 text-center">
                 Are you sure you want to empty the entire rubbish bin? This will
-                permanently delete all {deletedItems.length} items and cannot be
+                permanently delete all {deletedResponse?.summary?.totalDeleted || 0} items and cannot be
                 undone.
               </p>
               <div className="flex gap-3 justify-center">
