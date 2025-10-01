@@ -479,8 +479,7 @@ console.log(start, end)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, updatedAt, _v, contractNumber, ...updatedContract } =
       contractToSave;
-    // updateContractMutation.mutate(updatedContract);
-    console.log(updatedContract)
+    updateContractMutation.mutate(updatedContract);
   };
 
   const handleCancel = () => {
