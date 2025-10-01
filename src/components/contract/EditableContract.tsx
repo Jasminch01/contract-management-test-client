@@ -414,7 +414,6 @@ const handleSellerContact = (contactName) => {
     if (update[0] && update[1]) {
       const start = `${update[0].toLocaleDateString()}`;
       const end = `${update[1].toLocaleDateString()}`;
-console.log(start, end)
       setContract((prev) => ({
         ...prev,
         deliveryPeriod: { start, end },
