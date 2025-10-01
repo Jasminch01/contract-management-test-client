@@ -414,7 +414,7 @@ const handleSellerContact = (contactName) => {
     if (update[0] && update[1]) {
       const start = `${update[0].toLocaleDateString()}`;
       const end = `${update[1].toLocaleDateString()}`;
-
+console.log(start, end)
       setContract((prev) => ({
         ...prev,
         deliveryPeriod: { start, end },
@@ -479,7 +479,8 @@ const handleSellerContact = (contactName) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, updatedAt, _v, contractNumber, ...updatedContract } =
       contractToSave;
-    updateContractMutation.mutate(updatedContract);
+    // updateContractMutation.mutate(updatedContract);
+    console.log(updatedContract)
   };
 
   const handleCancel = () => {
@@ -692,7 +693,7 @@ const handleSellerContact = (contactName) => {
                     {contract?.deliveryPeriod?.start &&
                     !isNaN(Date.parse(contract.deliveryPeriod.start))
                       ? new Date(contract.deliveryPeriod.start)
-                          .toISOString()
+                          .toLocaleDateString()
                           .split("T")[0]
                       : "N/A"}
                   </p>
@@ -701,7 +702,7 @@ const handleSellerContact = (contactName) => {
                     {contract?.deliveryPeriod?.end &&
                     !isNaN(Date.parse(contract.deliveryPeriod.end))
                       ? new Date(contract.deliveryPeriod.end)
-                          .toISOString()
+                          .toLocaleDateString()
                           .split("T")[0]
                       : "N/A"}
                   </p>

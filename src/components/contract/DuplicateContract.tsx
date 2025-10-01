@@ -733,13 +733,13 @@ const handleSellerContact = (contactName) => {
                   <p className="text-sm">
                     Start :{" "}
                     {new Date(contract?.deliveryPeriod?.start)
-                      .toISOString()
+                      .toLocaleDateString()
                       .split("T")[0] || "N/A"}
                   </p>
                   <p className="text-sm">
                     End :{" "}
                     {new Date(contract?.deliveryPeriod?.end)
-                      .toISOString()
+                      .toLocaleDateString()
                       .split("T")[0] || "N/A"}
                   </p>
                 </div>
