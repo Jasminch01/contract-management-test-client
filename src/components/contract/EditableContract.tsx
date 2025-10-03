@@ -29,8 +29,8 @@ import { getBuyers } from "@/api/buyerApi";
 import PreviewContract from "./PreviewContract";
 import { updateContract } from "@/api/ContractAPi";
 import toast from "react-hot-toast";
-import BuyerSelect from "./BuyerSelect"; 
-import SellerSelect from "./SellerSelect"; 
+import BuyerSelect from "./BuyerSelect";
+import SellerSelect from "./SellerSelect";
 
 // Main Contract Component
 interface ContractProps {
@@ -91,8 +91,6 @@ const EditableContract: React.FC<ContractProps> = ({
     ...initialContract,
     deliveryPeriod: initialContract.deliveryPeriod || { start: "", end: "" },
   });
-
-  console.log(contract?.deliveryPeriod.start)
   const [hasChanges, setHasChanges] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
@@ -292,7 +290,7 @@ const EditableContract: React.FC<ContractProps> = ({
       buyer: selectedBuyer._id,
     }));
     setHasChanges(true);
-    
+
     // Auto-select first contact name if available
     if (selectedBuyer.contactName && selectedBuyer.contactName.length > 0) {
       const firstContactName = selectedBuyer.contactName[0];
@@ -311,30 +309,30 @@ const EditableContract: React.FC<ContractProps> = ({
   };
 
   // Handle seller selection from SellerSelect component
-const handleSellerSelect = (selectedSeller: Seller) => {
-  setContract((prev) => ({
-    ...prev,
-    seller: selectedSeller._id,
-    ngrNumber: selectedSeller.mainNgr,
-  }));
-  setHasChanges(true);
-  
-  // Auto-select first contact name if available - ADD THIS SECTION:
-  if (selectedSeller.contactName && selectedSeller.contactName.length > 0) {
-    const firstContactName = selectedSeller.contactName[0];
-    setSelectedSellerContactName(firstContactName);
+  const handleSellerSelect = (selectedSeller: Seller) => {
     setContract((prev) => ({
       ...prev,
-      sellerContactName: firstContactName,
+      seller: selectedSeller._id,
+      ngrNumber: selectedSeller.mainNgr,
     }));
-  } else {
-    setSelectedSellerContactName("");
-    setContract((prev) => ({
-      ...prev,
-      sellerContactName: "",
-    }));
-  }
-};
+    setHasChanges(true);
+
+    // Auto-select first contact name if available - ADD THIS SECTION:
+    if (selectedSeller.contactName && selectedSeller.contactName.length > 0) {
+      const firstContactName = selectedSeller.contactName[0];
+      setSelectedSellerContactName(firstContactName);
+      setContract((prev) => ({
+        ...prev,
+        sellerContactName: firstContactName,
+      }));
+    } else {
+      setSelectedSellerContactName("");
+      setContract((prev) => ({
+        ...prev,
+        sellerContactName: "",
+      }));
+    }
+  };
 
   const handleContactSelect = (contactName) => {
     if (contactName !== contract.buyerContactName) {
@@ -344,17 +342,17 @@ const handleSellerSelect = (selectedSeller: Seller) => {
     setShowContactDropdown(false);
   };
 
-const handleSellerContact = (contactName) => {
-  if (contactName !== contract.sellerContactName) {
-    setSelectedSellerContactName(contactName);
-    setContract((prev) => ({
-      ...prev,
-      sellerContactName: contactName, // Add this line
-    }));
-    setHasChanges(true);
-  }
-  setShowSellerContactDropdown(false);
-};
+  const handleSellerContact = (contactName) => {
+    if (contactName !== contract.sellerContactName) {
+      setSelectedSellerContactName(contactName);
+      setContract((prev) => ({
+        ...prev,
+        sellerContactName: contactName, // Add this line
+      }));
+      setHasChanges(true);
+    }
+    setShowSellerContactDropdown(false);
+  };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -478,8 +476,9 @@ const handleSellerContact = (contactName) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, updatedAt, _v, contractNumber, ...updatedContract } =
-      contractToSave;
+    const { _id, createdAt, updatedAt,_v, contractNumber,
+      ...updatedContract
+    } = contractToSave;
     updateContractMutation.mutate(updatedContract);
   };
 
@@ -687,26 +686,34 @@ const handleSellerContact = (contactName) => {
             <div className="flex border-b border-gray-300 w-full">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivery Period
-                  <div>
-                    <p className="text-sm">
-                      Start :{" "}
-                      {contract?.deliveryPeriod?.start &&
-                      !isNaN(Date.parse(contract.deliveryPeriod.start))
-                        ? new Date(contract.deliveryPeriod.start)
-                            .toLocaleDateString()
-                            .split("T")[0]
-                        : "N/A"}
-                    </p>
-                    <p className="text-sm">
-                      End :{" "}
-                      {contract?.deliveryPeriod?.end &&
-                      !isNaN(Date.parse(contract.deliveryPeriod.end))
-                        ? new Date(contract.deliveryPeriod.end)
-                            .toLocaleDateString()
-                            .split("T")[0]
-                        : "N/A"}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-sm">
+                    Start :{" "}
+                    {contract?.deliveryPeriod?.start &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.start))
+                      ? new Date(
+                          contract.deliveryPeriod.start
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    End :{" "}
+                    {contract?.deliveryPeriod?.end &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.end))
+                      ? new Date(
+                          contract.deliveryPeriod.end
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "N/A"}
+                  </p>
+                </div>
               </div>
               <div className="w-1/2 p-3">
                 <DatePicker
@@ -941,7 +948,9 @@ const handleSellerContact = (contactName) => {
                 {/* Show selected buyer name */}
                 {selectedBuyer && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
-                    <span className="text-blue-800 font-medium">Selected: </span>
+                    <span className="text-blue-800 font-medium">
+                      Selected:{" "}
+                    </span>
                     <span className="text-blue-700">{selectedBuyer.name}</span>
                   </div>
                 )}
@@ -975,25 +984,28 @@ const handleSellerContact = (contactName) => {
                   onClick={() => setShowContactDropdown(!showContactDropdown)}
                 >
                   <span className="text-gray-700">
-                    {selectedBuyerContactName || contract.buyerContactName || "No contact selected"}
+                    {selectedBuyerContactName ||
+                      contract.buyerContactName ||
+                      "No contact selected"}
                   </span>
-                  {selectedBuyer?.contactName && selectedBuyer.contactName.length > 0 && (
-                    <svg
-                      className={`w-4 h-4 text-gray-500 transition-transform ${
-                        showContactDropdown ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  )}
+                  {selectedBuyer?.contactName &&
+                    selectedBuyer.contactName.length > 0 && (
+                      <svg
+                        className={`w-4 h-4 text-gray-500 transition-transform ${
+                          showContactDropdown ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    )}
                 </div>
 
                 {showContactDropdown && selectedBuyer?.contactName && (
@@ -1001,7 +1013,8 @@ const handleSellerContact = (contactName) => {
                     {selectedBuyer.contactName.map((contactName, index) => {
                       // Check if this contact name is the currently selected/existing one
                       const isSelected =
-                        contactName === (selectedBuyerContactName || contract.buyerContactName);
+                        contactName ===
+                        (selectedBuyerContactName || contract.buyerContactName);
 
                       return (
                         <div
@@ -1037,11 +1050,13 @@ const handleSellerContact = (contactName) => {
                 )}
 
                 {/* Show info if no contact names available */}
-                {selectedBuyer && (!selectedBuyer.contactName || selectedBuyer.contactName.length === 0) && (
-                  <div className="mt-1 text-xs text-gray-500">
-                    No contact names available for this buyer
-                  </div>
-                )}
+                {selectedBuyer &&
+                  (!selectedBuyer.contactName ||
+                    selectedBuyer.contactName.length === 0) && (
+                    <div className="mt-1 text-xs text-gray-500">
+                      No contact names available for this buyer
+                    </div>
+                  )}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
@@ -1079,8 +1094,12 @@ const handleSellerContact = (contactName) => {
                 {/* Show selected seller name */}
                 {selectedSeller && (
                   <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
-                    <span className="text-green-800 font-medium">Selected: </span>
-                    <span className="text-green-700">{selectedSeller.legalName}</span>
+                    <span className="text-green-800 font-medium">
+                      Selected:{" "}
+                    </span>
+                    <span className="text-green-700">
+                      {selectedSeller.legalName}
+                    </span>
                   </div>
                 )}
               </div>
@@ -1153,9 +1172,10 @@ const handleSellerContact = (contactName) => {
                   }
                 >
                   <span className="text-gray-700">
-  {selectedSellerContactName || contract.sellerContactName || "No contact selected"}
-</span>
-                 
+                    {selectedSellerContactName ||
+                      contract.sellerContactName ||
+                      "No contact selected"}
+                  </span>
                 </div>
 
                 {showSellerContactDropdown && selectedSeller?.contactName && (

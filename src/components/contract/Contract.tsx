@@ -443,15 +443,28 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
               <div className="w-1/2 p-3">
                 <p>
                   start :{" "}
-                  {new Date(contract?.deliveryPeriod?.start)
-                    .toLocaleDateString()
-                    .split("T")[0] || "N/A"}
+                  {contract?.deliveryPeriod?.start
+                    ? new Date(
+                        contract.deliveryPeriod.start
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "N/A"}
                 </p>
                 <p>
                   end :{" "}
-                  {new Date(contract?.deliveryPeriod?.end)
-                    .toLocaleDateString()
-                    .split("T")[0] || "N/A"}
+                  {contract?.deliveryPeriod?.end
+                    ? new Date(contract.deliveryPeriod.end).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        }
+                      )
+                    : "N/A"}
                 </p>
               </div>
             </div>

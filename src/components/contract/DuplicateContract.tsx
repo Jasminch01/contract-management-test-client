@@ -730,18 +730,28 @@ const EditableContract: React.FC<ContractProps> = ({
                 <div>
                   <p className="text-sm">
                     Start :{" "}
-                    {contract?.deliveryPeriod?.start
+                    {contract?.deliveryPeriod?.start &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.start))
                       ? new Date(
                           contract.deliveryPeriod.start
-                        ).toLocaleDateString()
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                       : "N/A"}
                   </p>
                   <p className="text-sm">
                     End :{" "}
-                    {contract?.deliveryPeriod?.end
+                    {contract?.deliveryPeriod?.end &&
+                    !isNaN(Date.parse(contract.deliveryPeriod.end))
                       ? new Date(
                           contract.deliveryPeriod.end
-                        ).toLocaleDateString()
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                       : "N/A"}
                   </p>
                 </div>
