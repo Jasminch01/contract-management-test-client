@@ -91,6 +91,8 @@ const EditableContract: React.FC<ContractProps> = ({
     ...initialContract,
     deliveryPeriod: initialContract.deliveryPeriod || { start: "", end: "" },
   });
+
+  console.log(contract?.deliveryPeriod.start)
   const [hasChanges, setHasChanges] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showBrokeragePayableDropdown, setShowBrokeragePayableDropdown] =
@@ -685,26 +687,26 @@ const handleSellerContact = (contactName) => {
             <div className="flex border-b border-gray-300 w-full">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivery Period
-                <div>
-                  <p className="text-sm">
-                    Start :{" "}
-                    {contract?.deliveryPeriod?.start &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.start))
-                      ? new Date(contract.deliveryPeriod.start)
-                          .toLocaleDateString()
-                          .split("T")[0]
-                      : "N/A"}
-                  </p>
-                  <p className="text-sm">
-                    End :{" "}
-                    {contract?.deliveryPeriod?.end &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.end))
-                      ? new Date(contract.deliveryPeriod.end)
-                          .toLocaleDateString()
-                          .split("T")[0]
-                      : "N/A"}
-                  </p>
-                </div>
+                  <div>
+                    <p className="text-sm">
+                      Start :{" "}
+                      {contract?.deliveryPeriod?.start &&
+                      !isNaN(Date.parse(contract.deliveryPeriod.start))
+                        ? new Date(contract.deliveryPeriod.start)
+                            .toLocaleDateString()
+                            .split("T")[0]
+                        : "N/A"}
+                    </p>
+                    <p className="text-sm">
+                      End :{" "}
+                      {contract?.deliveryPeriod?.end &&
+                      !isNaN(Date.parse(contract.deliveryPeriod.end))
+                        ? new Date(contract.deliveryPeriod.end)
+                            .toLocaleDateString()
+                            .split("T")[0]
+                        : "N/A"}
+                    </p>
+                  </div>
               </div>
               <div className="w-1/2 p-3">
                 <DatePicker

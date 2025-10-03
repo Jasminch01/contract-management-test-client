@@ -444,13 +444,13 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>
                   start :{" "}
                   {new Date(contract?.deliveryPeriod?.start)
-                    .toISOString()
+                    .toLocaleDateString()
                     .split("T")[0] || "N/A"}
                 </p>
                 <p>
                   end :{" "}
                   {new Date(contract?.deliveryPeriod?.end)
-                    .toISOString()
+                    .toLocaleDateString()
                     .split("T")[0] || "N/A"}
                 </p>
               </div>

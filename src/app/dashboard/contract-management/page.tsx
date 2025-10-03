@@ -74,7 +74,7 @@ const columns = [
   },
   {
     name: "TONNES",
-    selector: (row: TContract) => row?.tonnes || 0,
+    selector: (row: TContract) => row?.tonnes || "",
     sortable: true,
     sortField: "tonnes",
   },
@@ -174,7 +174,7 @@ const ContractManagementPage = () => {
     page: 1,
     limit: 10,
     searchFilters: {},
-    status: "all",
+    status: "",
     sortBy: "",
     sortOrder: "asc",
   });
@@ -284,7 +284,7 @@ const ContractManagementPage = () => {
   const currentPage = contractsResponse?.page || 1;
   // Update filter active state
   useEffect(() => {
-    setIsFilterActive(paginationState.status !== "all" || hasSearchFilters);
+    setIsFilterActive(hasSearchFilters);
   }, [paginationState.status, hasSearchFilters]);
 
   // Delete mutation
@@ -766,7 +766,7 @@ Growth Grain Services`;
                   </div>
 
                   <div className="max-h-60 overflow-y-auto">
-                    <div
+                    {/* <div
                       className={`px-4 py-2 text-sm cursor-pointer flex items-center ${
                         paginationState.status === "all"
                           ? "bg-blue-50 text-blue-600"
@@ -789,7 +789,7 @@ Growth Grain Services`;
                           />
                         </svg>
                       )}
-                    </div>
+                    </div> */}
                     {statusOptions.map((option) => (
                       <div
                         key={option.value}
