@@ -346,40 +346,96 @@ const EditableContract: React.FC<ContractProps> = ({
   };
 
   const handleDateChange = (update: [Date | null, Date | null]) => {
-    try {
-      const [start, end] = update;
-      setDateRange(update);
+    setDateRange(update);
 
-      // Only update contract when both dates are selected and valid
-      if (start && end && start instanceof Date && end instanceof Date) {
-        // Validate dates are not invalid
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-          // Use ISO string for consistent date formatting
-          const startStr = start.toLocaleDateString().split("T")[0]; // YYYY-MM-DD format
-          const endStr = end.toLocaleDateString().split("T")[0];
+    // Convert date range to YYYY-MM-DD format without timezone conversion
+    if (update[0] && update[1]) {
+      const formatDateLocal = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
 
-          setContract((prev) => ({
-            ...prev,
-            deliveryPeriod: { start: startStr, end: endStr },
-          }));
-          setHasChanges(true);
-        }
-      } else if (!start && !end) {
-        // Clear dates when picker is cleared
-        setContract((prev) => ({
-          ...prev,
-          deliveryPeriod: { start: "", end: "" },
-        }));
-        setHasChanges(true);
-      }
-    } catch (error) {
-      console.error("Date handling error:", error);
-      // Reset to safe state on error
-      setDateRange([null, null]);
+      const start = formatDateLocal(update[0]);
+      const end = formatDateLocal(update[1]);
+
+      setContract((prev) => ({
+        ...prev,
+        deliveryPeriod: { start, end },
+      }));
+      setHasChanges(true);
+    } else {
       setContract((prev) => ({
         ...prev,
         deliveryPeriod: { start: "", end: "" },
       }));
+    }
+  };
+
+  // const handleDateChange = (update: [Date | null, Date | null]) => {
+  //   try {
+  //     const [start, end] = update;
+  //     setDateRange(update);
+
+  //     // Only update contract when both dates are selected and valid
+  //     if (start && end && start instanceof Date && end instanceof Date) {
+  //       // Validate dates are not invalid
+  //       if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+  //         // Use ISO string for consistent date formatting
+  //         const startStr = start.toLocaleDateString().split("T")[0]; // YYYY-MM-DD format
+  //         const endStr = end.toLocaleDateString().split("T")[0];
+
+  //         setContract((prev) => ({
+  //           ...prev,
+  //           deliveryPeriod: { start: startStr, end: endStr },
+  //         }));
+  //         setHasChanges(true);
+  //       }
+  //     } else if (!start && !end) {
+  //       // Clear dates when picker is cleared
+  //       setContract((prev) => ({
+  //         ...prev,
+  //         deliveryPeriod: { start: "", end: "" },
+  //       }));
+  //       setHasChanges(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Date handling error:", error);
+  //     // Reset to safe state on error
+  //     setDateRange([null, null]);
+  //     setContract((prev) => ({
+  //       ...prev,
+  //       deliveryPeriod: { start: "", end: "" },
+  //     }));
+  //   }
+  // };
+
+  const formatDateDisplay = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+
+    try {
+      // Handle both ISO string and date-only format
+      const dateOnly = dateString.includes("T")
+        ? dateString.split("T")[0]
+        : dateString;
+
+      const parts = dateOnly.split("-");
+
+      if (parts.length !== 3) return "N/A";
+
+      const [year, month, day] = parts;
+
+      // Format as "Oct 1, 2025" style
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return "N/A";
     }
   };
   // Handle buyer contract file upload
@@ -729,39 +785,20 @@ const EditableContract: React.FC<ContractProps> = ({
                 Delivery Period
                 <div>
                   <p className="text-sm">
-                    Start :{" "}
-                    {contract?.deliveryPeriod?.start &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.start))
-                      ? new Date(
-                          contract.deliveryPeriod.start
-                        ).toLocaleDateString({
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "N/A"}
+                    Start : {formatDateDisplay(contract?.deliveryPeriod?.start)}
                   </p>
                   <p className="text-sm">
-                    End :{" "}
-                    {contract?.deliveryPeriod?.end &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.end))
-                      ? new Date(
-                          contract.deliveryPeriod.end
-                        ).toLocaleDateString({
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "N/A"}
+                    End : {formatDateDisplay(contract?.deliveryPeriod?.end)}
                   </p>
-                </div>
+                </div>  
               </div>
               <div className="w-1/2 p-3">
                 <DatePicker
                   selectsRange={true}
-                  startDate={startDate} // This uses the destructured value from dateRange
-                  endDate={endDate} // This uses the destructured value from dateRange
+                  startDate={startDate}
+                  endDate={endDate}
                   onChange={handleDateChange}
+                  F
                   isClearable={true}
                   placeholderText="Select date range"
                   className="mt-1 w-full xl:w-[250px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -774,6 +811,7 @@ const EditableContract: React.FC<ContractProps> = ({
                 />
               </div>
             </div>
+
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">
                 Delivery Option
@@ -1344,11 +1382,11 @@ const EditableContract: React.FC<ContractProps> = ({
                         onChange={handleSellerContractUpload}
                         disabled={uploadingSellerContract}
                         className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-gray-50 file:text-gray-700
-                hover:file:bg-gray-100 disabled:opacity-50"
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-gray-50 file:text-gray-700
+                  hover:file:bg-gray-100 disabled:opacity-50"
                       />
                       {uploadingSellerContract && (
                         <div className="absolute right-2">
@@ -1370,11 +1408,11 @@ const EditableContract: React.FC<ContractProps> = ({
                         onChange={handleBuyerContractUpload}
                         disabled={uploadingBuyerContract}
                         className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-gray-50 file:text-gray-700
-                hover:file:bg-gray-100 disabled:opacity-50"
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-gray-50 file:text-gray-700
+                  hover:file:bg-gray-100 disabled:opacity-50"
                       />
                       {uploadingBuyerContract && (
                         <div className="absolute right-2">

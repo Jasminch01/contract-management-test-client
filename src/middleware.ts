@@ -87,27 +87,70 @@
 //   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 // };
 
+// import { clerkMiddleware } from "@clerk/nextjs/server";
+// import { NextResponse } from "next/server";
+
+// export default clerkMiddleware(async (auth, req) => {
+//   const { userId, } = await auth();
+
+//   console.log(userId)
+
+//   // If user is on root path
+//   if (req.nextUrl.pathname === '/') {
+//     if (userId) {
+//       // User exists - redirect to dashboard
+//       return NextResponse.redirect(new URL('/dashboard', req.url));
+//     } else {
+//       // No user - redirect to login
+//       return NextResponse.redirect(new URL('/auth/login', req.url));
+//     }
+//   }
+
+//   // Protect dashboard route - redirect to login if no user
+//   if (req.nextUrl.pathname.startsWith('/dashboard')) {
+//     if (!userId) {
+//       return NextResponse.redirect(new URL('/auth/login', req.url));
+//     }
+//   }
+// });
+
+// export const config = {
+//   matcher: [
+//     // Skip Next.js internals and all static files, unless found in search params
+//     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+//     // Always run for API routes
+//     "/(api|trpc)(.*)",
+//   ],
+// };
+
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, } = await auth();
-  
+  const { userId } = await auth();
+
   // If user is on root path
-  if (req.nextUrl.pathname === '/') {
+  if (req.nextUrl.pathname === "/") {
     if (userId) {
       // User exists - redirect to dashboard
-      return NextResponse.redirect(new URL('/dashboard', req.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     } else {
       // No user - redirect to login
-      return NextResponse.redirect(new URL('/auth/login', req.url));
+      return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }
-  
+
+  // If logged-in user tries to access auth pages, redirect to dashboard
+  if (req.nextUrl.pathname.startsWith("/auth")) {
+    if (userId) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+
   // Protect dashboard route - redirect to login if no user
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
     if (!userId) {
-      return NextResponse.redirect(new URL('/auth/login', req.url));
+      return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }
 });

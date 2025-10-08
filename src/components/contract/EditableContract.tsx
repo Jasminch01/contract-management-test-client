@@ -410,10 +410,18 @@ const EditableContract: React.FC<ContractProps> = ({
   const handleDateChange = (update: [Date | null, Date | null]) => {
     setDateRange(update);
 
-    // Convert date range to string for storage in contract
+    // Convert date range to YYYY-MM-DD format without timezone conversion
     if (update[0] && update[1]) {
-      const start = `${update[0].toLocaleDateString()}`;
-      const end = `${update[1].toLocaleDateString()}`;
+      const formatDateLocal = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const start = formatDateLocal(update[0]);
+      const end = formatDateLocal(update[1]);
+
       setContract((prev) => ({
         ...prev,
         deliveryPeriod: { start, end },
@@ -424,6 +432,54 @@ const EditableContract: React.FC<ContractProps> = ({
         ...prev,
         deliveryPeriod: { start: "", end: "" },
       }));
+    }
+  };
+
+  // const handleDateChange = (update: [Date | null, Date | null]) => {
+  //   setDateRange(update);
+
+  //   // Convert date range to string for storage in contract
+  //   if (update[0] && update[1]) {
+  //     const start = `${update[0].toLocaleDateString()}`;
+  //     const end = `${update[1].toLocaleDateString()}`;
+  //     setContract((prev) => ({
+  //       ...prev,
+  //       deliveryPeriod: { start, end },
+  //     }));
+  //     setHasChanges(true);
+  //   } else {
+  //     setContract((prev) => ({
+  //       ...prev,
+  //       deliveryPeriod: { start: "", end: "" },
+  //     }));
+  //   }
+  // };
+
+  const formatDateDisplay = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+
+    try {
+      // Handle both ISO string and date-only format
+      const dateOnly = dateString.includes("T")
+        ? dateString.split("T")[0]
+        : dateString;
+
+      const parts = dateOnly.split("-");
+
+      if (parts.length !== 3) return "N/A";
+
+      const [year, month, day] = parts;
+
+      // Format as "Oct 1, 2025" style
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return "N/A";
     }
   };
 
@@ -476,7 +532,7 @@ const EditableContract: React.FC<ContractProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt, updatedAt,_v, contractNumber,
+    const { _id, createdAt,updatedAt, _v, contractNumber,
       ...updatedContract
     } = contractToSave;
     updateContractMutation.mutate(updatedContract);
@@ -688,30 +744,10 @@ const EditableContract: React.FC<ContractProps> = ({
                 Delivery Period
                 <div>
                   <p className="text-sm">
-                    Start :{" "}
-                    {contract?.deliveryPeriod?.start &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.start))
-                      ? new Date(
-                          contract.deliveryPeriod.start
-                        ).toLocaleDateString({
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "N/A"}
+                    Start : {formatDateDisplay(contract?.deliveryPeriod?.start)}
                   </p>
                   <p className="text-sm">
-                    End :{" "}
-                    {contract?.deliveryPeriod?.end &&
-                    !isNaN(Date.parse(contract.deliveryPeriod.end))
-                      ? new Date(
-                          contract.deliveryPeriod.end
-                        ).toLocaleDateString({
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "N/A"}
+                    End : {formatDateDisplay(contract?.deliveryPeriod?.end)}
                   </p>
                 </div>
               </div>
