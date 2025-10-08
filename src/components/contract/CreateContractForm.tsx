@@ -559,9 +559,7 @@ const CreateContractForm = () => {
                 isClearable={true}
                 placeholderText="Select date range"
                 className="w-full focus:outline-none "
-                // calendarClassName="w-full"
                 dateFormat="MMM d, yyyy"
-                minDate={new Date()}
                 maxDate={addDays(new Date(), 365)}
                 shouldCloseOnSelect={false}
                 selectsDisabledDaysInRange
