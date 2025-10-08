@@ -360,6 +360,7 @@ const ContractManagementPage = () => {
       status: value,
       page: 1, // Reset to first page
     }));
+    setHasSearchFilters(true);
     setIsFilterOpen(false);
     setSelectedRows([]);
     setToggleCleared((prev) => !prev);
