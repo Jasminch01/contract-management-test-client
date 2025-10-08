@@ -693,7 +693,7 @@ const EditableContract: React.FC<ContractProps> = ({
                     !isNaN(Date.parse(contract.deliveryPeriod.start))
                       ? new Date(
                           contract.deliveryPeriod.start
-                        ).toLocaleDateString("en-US", {
+                        ).toLocaleDateString({
                           year: "numeric",
                           month: "short",
                           day: "numeric",
@@ -706,7 +706,7 @@ const EditableContract: React.FC<ContractProps> = ({
                     !isNaN(Date.parse(contract.deliveryPeriod.end))
                       ? new Date(
                           contract.deliveryPeriod.end
-                        ).toLocaleDateString("en-US", {
+                        ).toLocaleDateString({
                           year: "numeric",
                           month: "short",
                           day: "numeric",
