@@ -18,6 +18,10 @@ const menus = [
     link: "/dashboard/contract-management",
   },
   {
+    page: "Invoicing",
+    link: "/dashboard/invoicing",
+  },
+  {
     page: "Buyer Management",
     link: "/dashboard/buyer-management",
   },

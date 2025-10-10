@@ -92,7 +92,7 @@ export const updateDeliveredBid = async (
   // console.log("Sending payload to backend:", JSON.stringify(payload));
 
   const response = await instance.post("delivered-bids", payload);
-  if (!response.data || response.status !== 200) {
+  if (!response.data) {
     throw new Error(`Failed to update delivered bid: ${response.data?.message || "Unknown error"}`);
   }
   return {
@@ -129,9 +129,9 @@ export const createDeliveredBid = async (
   // console.log("Sending payload to backend:", JSON.stringify(payload));
 
   const response = await instance.post("delivered-bids", payload);
-  // if (!response.data || response.status !== 200) {
-  //   throw new Error(`Failed to create delivered bid: ${response.data?.message || "Unknown error"}`);
-  // }
+  if (!response.data) {
+    throw new Error(`Failed to create delivered bid: ${response.data?.message || "Unknown error"}`);
+  }
   return {
     ...response.data,
     location: response.data.label,

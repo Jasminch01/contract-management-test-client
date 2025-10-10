@@ -21,6 +21,10 @@ import {
   ContractsPaginatedResponse,
 } from "@/types/types";
 
+import { IoReceiptOutline } from "react-icons/io5";
+import { MdCheckCircle } from "react-icons/md";
+import axios from "axios";
+
 // Types for pagination parameters
 interface PaginationState {
   page: number;
@@ -178,6 +182,116 @@ const ContractManagementPage = () => {
     sortBy: "",
     sortOrder: "asc",
   });
+
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceFormData, setInvoiceFormData] = useState({
+    invoiceDate: new Date().toISOString().split("T")[0],
+    dueDate: "",
+    reference: "",
+    notes: "",
+  });
+
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (data: {
+      contractId: string;
+      invoiceDate: string;
+      dueDate: string;
+      reference: string;
+      notes: string;
+    }) => {
+      const response = await axios.post("/api/xero/create-invoice", data);
+
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      setIsInvoiceModalOpen(false);
+      setSelectedRows([]);
+      setToggleCleared((prev) => !prev);
+
+      toast.success(
+        <div>
+          <p>Invoice created successfully!</p>
+          <a
+            href={data.xeroUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline text-sm"
+          >
+            View in Xero
+          </a>
+        </div>
+      );
+    },
+    onError: (error: any) => {
+      console.error("Error creating invoice:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create invoice";
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleCreateInvoice = () => {
+    if (selectedRows.length !== 1) {
+      toast.error("Please select exactly one contract to create invoice");
+      return;
+    }
+
+    const contract = selectedRows[0];
+
+    // Validation checks
+    if (!contract?._id) {
+      toast.error("Selected contract is invalid");
+      return;
+    }
+
+    if (contract.status?.toLowerCase() === "draft") {
+      toast.error("Cannot create invoice for draft contracts");
+      return;
+    }
+
+    // if (contract.xeroInvoiceId) {
+    //   toast.error("Invoice already exists for this contract");
+    //   return;
+    // }
+
+    if (!contract.buyer?.name || !contract.buyer?.email) {
+      toast.error("Buyer information is incomplete");
+      return;
+    }
+
+    // Set default due date (30 days from invoice date)
+    const defaultDueDate = new Date();
+    defaultDueDate.setDate(defaultDueDate.getDate() + 30);
+
+    setInvoiceFormData({
+      invoiceDate: new Date().toISOString().split("T")[0],
+      dueDate: defaultDueDate.toISOString().split("T")[0],
+      reference: `${contract.contractNumber} - ${contract.seller?.legalName}`,
+      notes: contract.notes || "",
+    });
+
+    setIsInvoiceModalOpen(true);
+  };
+
+  const confirmCreateInvoice = () => {
+    const contract = selectedRows[0];
+
+    if (!invoiceFormData.dueDate) {
+      toast.error("Please select a due date");
+      return;
+    }
+
+    createInvoiceMutation.mutate({
+      contractId: contract._id!,
+      invoiceDate: invoiceFormData.invoiceDate,
+      dueDate: invoiceFormData.dueDate,
+      reference: invoiceFormData.reference,
+      notes: invoiceFormData.notes,
+    });
+  };
 
   // Track if search filters are active
   const [hasSearchFilters, setHasSearchFilters] = useState(false);
@@ -680,6 +794,22 @@ Growth Grain Services`;
           {/* Action Buttons */}
           <div className="w-full md:w-auto lg:flex lg:flex-row gap-2 grid grid-cols-3">
             <button
+              onClick={handleCreateInvoice}
+              disabled={
+                selectedRows.length !== 1 ||
+                selectedRows[0]?.status?.toLowerCase() === "draft"
+              }
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+                selectedRows.length === 1 &&
+                selectedRows[0]?.status?.toLowerCase() !== "draft"
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50 pointer-events-none"
+              }`}
+            >
+              <IoReceiptOutline />
+              Create Invoice
+            </button>
+            <button
               onClick={handleDuplicate}
               className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
                 selectedRows.length > 0
@@ -976,6 +1106,201 @@ Growth Grain Services`;
                   {deleteMutation.isPending ? "Moving..." : "Move to Trash"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Xero Invoice Creation Modal */}
+      {isInvoiceModalOpen && selectedRows.length === 1 && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white">
+              <h3 className="text-xl font-semibold flex gap-x-3 items-center">
+                <IoReceiptOutline className="text-blue-600 text-2xl" />
+                Create Xero Invoice
+              </h3>
+            </div>
+
+            <div className="px-6 py-4">
+              {/* Contract Summary */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-800 mb-3">
+                  Contract Details
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Contract Number:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedRows[0]?.contractNumber}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Date:</span>
+                    <span className="ml-2 font-medium">
+                      {new Date(
+                        selectedRows[0]?.contractDate ||
+                          selectedRows[0]?.createdAt
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Buyer:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedRows[0]?.buyer?.name}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Seller:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedRows[0]?.seller?.legalName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Grade:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedRows[0]?.grade}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Tonnes:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedRows[0]?.tonnes}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-600">Price (Ex GST):</span>
+                    <span className="ml-2 font-medium text-green-600">
+                      ${selectedRows[0]?.priceExGST?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Form */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Invoice Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={invoiceFormData.invoiceDate}
+                      onChange={(e) =>
+                        setInvoiceFormData((prev) => ({
+                          ...prev,
+                          invoiceDate: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={invoiceFormData.dueDate}
+                      onChange={(e) =>
+                        setInvoiceFormData((prev) => ({
+                          ...prev,
+                          dueDate: e.target.value,
+                        }))
+                      }
+                      min={invoiceFormData.invoiceDate}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reference
+                  </label>
+                  <input
+                    type="text"
+                    value={invoiceFormData.reference}
+                    onChange={(e) =>
+                      setInvoiceFormData((prev) => ({
+                        ...prev,
+                        reference: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter invoice reference"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    value={invoiceFormData.notes}
+                    onChange={(e) =>
+                      setInvoiceFormData((prev) => ({
+                        ...prev,
+                        notes: e.target.value,
+                      }))
+                    }
+                    placeholder="Additional notes for the invoice"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Warning Message */}
+              <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 flex items-start gap-2">
+                  <IoWarning className="text-lg flex-shrink-0 mt-0.5" />
+                  <span>
+                    This will create a draft invoice in Xero. You can review and
+                    modify it before sending to the customer.
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 bg-white">
+              <button
+                onClick={() => {
+                  setIsInvoiceModalOpen(false);
+                  setInvoiceFormData({
+                    invoiceDate: new Date().toISOString().split("T")[0],
+                    dueDate: "",
+                    reference: "",
+                    notes: "",
+                  });
+                }}
+                disabled={createInvoiceMutation.isPending}
+                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmCreateInvoice}
+                disabled={
+                  createInvoiceMutation.isPending || !invoiceFormData.dueDate
+                }
+                className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+              >
+                {createInvoiceMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <MdCheckCircle />
+                    Create Invoice in Xero
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

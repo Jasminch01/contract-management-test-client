@@ -472,12 +472,6 @@ const HistoricalPricesPage = () => {
       },
     };
 
-    // Debug log
-    console.log(
-      "Sending delivered bid update/create:",
-      JSON.stringify(bidData)
-    );
-
     if (!selectedDate || isNaN(new Date(selectedDate).getTime())) {
       toast.error("Invalid date");
       return;
