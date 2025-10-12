@@ -233,48 +233,48 @@ const ContractManagementPage = () => {
     },
   });
 
-  const handleCreateInvoice = () => {
-    if (selectedRows.length !== 1) {
-      toast.error("Please select exactly one contract to create invoice");
-      return;
-    }
+  // const handleCreateInvoice = () => {
+  //   if (selectedRows.length !== 1) {
+  //     toast.error("Please select exactly one contract to create invoice");
+  //     return;
+  //   }
 
-    const contract = selectedRows[0];
+  //   const contract = selectedRows[0];
 
-    // Validation checks
-    if (!contract?._id) {
-      toast.error("Selected contract is invalid");
-      return;
-    }
+  //   // Validation checks
+  //   if (!contract?._id) {
+  //     toast.error("Selected contract is invalid");
+  //     return;
+  //   }
 
-    if (contract.status?.toLowerCase() === "draft") {
-      toast.error("Cannot create invoice for draft contracts");
-      return;
-    }
+  //   if (contract.status?.toLowerCase() === "draft") {
+  //     toast.error("Cannot create invoice for draft contracts");
+  //     return;
+  //   }
 
-    // if (contract.xeroInvoiceId) {
-    //   toast.error("Invoice already exists for this contract");
-    //   return;
-    // }
+  //   // if (contract.xeroInvoiceId) {
+  //   //   toast.error("Invoice already exists for this contract");
+  //   //   return;
+  //   // }
 
-    if (!contract.buyer?.name || !contract.buyer?.email) {
-      toast.error("Buyer information is incomplete");
-      return;
-    }
+  //   if (!contract.buyer?.name || !contract.buyer?.email) {
+  //     toast.error("Buyer information is incomplete");
+  //     return;
+  //   }
 
-    // Set default due date (30 days from invoice date)
-    const defaultDueDate = new Date();
-    defaultDueDate.setDate(defaultDueDate.getDate() + 30);
+  //   // Set default due date (30 days from invoice date)
+  //   const defaultDueDate = new Date();
+  //   defaultDueDate.setDate(defaultDueDate.getDate() + 30);
 
-    setInvoiceFormData({
-      invoiceDate: new Date().toISOString().split("T")[0],
-      dueDate: defaultDueDate.toISOString().split("T")[0],
-      reference: `${contract.contractNumber} - ${contract.seller?.legalName}`,
-      notes: contract.notes || "",
-    });
+  //   setInvoiceFormData({
+  //     invoiceDate: new Date().toISOString().split("T")[0],
+  //     dueDate: defaultDueDate.toISOString().split("T")[0],
+  //     reference: `${contract.contractNumber} - ${contract.seller?.legalName}`,
+  //     notes: contract.notes || "",
+  //   });
 
-    setIsInvoiceModalOpen(true);
-  };
+  //   setIsInvoiceModalOpen(true);
+  // };
 
   const confirmCreateInvoice = () => {
     const contract = selectedRows[0];
@@ -793,7 +793,7 @@ Growth Grain Services`;
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto lg:flex lg:flex-row gap-2 grid grid-cols-3">
-            <button
+            {/* <button
               onClick={handleCreateInvoice}
               disabled={
                 selectedRows.length !== 1 ||
@@ -808,7 +808,7 @@ Growth Grain Services`;
             >
               <IoReceiptOutline />
               Create Invoice
-            </button>
+            </button> */}
             <button
               onClick={handleDuplicate}
               className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
