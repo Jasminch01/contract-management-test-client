@@ -23,7 +23,11 @@ import {
 
 import { IoReceiptOutline } from "react-icons/io5";
 import { MdCheckCircle } from "react-icons/md";
-import axios from "axios";
+import {
+  authorizeXero,
+  createXeroInvoice,
+  getXeroConnectionStatus,
+} from "@/api/xeroApi";
 
 // Types for pagination parameters
 interface PaginationState {
@@ -191,6 +195,43 @@ const ContractManagementPage = () => {
     notes: "",
   });
 
+  const [xeroStatus, setXeroStatus] = useState<{
+    isConnected: boolean;
+    isTokenValid: boolean;
+    isChecking: boolean;
+  }>({
+    isConnected: false,
+    isTokenValid: false,
+    isChecking: false,
+  });
+
+  // Check Xero connection status on mount
+  useEffect(() => {
+    const checkXeroStatus = async () => {
+      try {
+        setXeroStatus((prev) => ({ ...prev, isChecking: true }));
+        const status = await getXeroConnectionStatus();
+        setXeroStatus({
+          isConnected: status.isConnected,
+          isTokenValid: status.isTokenValid,
+          isChecking: false,
+        });
+      } catch (error) {
+        console.error("Error checking Xero status:", error);
+        setXeroStatus({
+          isConnected: false,
+          isTokenValid: false,
+          isChecking: false,
+        });
+      }
+    };
+
+    if (isMounted) {
+      checkXeroStatus();
+    }
+  }, [isMounted]);
+
+  // Updated mutation for creating invoice
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: {
       contractId: string;
@@ -199,84 +240,160 @@ const ContractManagementPage = () => {
       reference: string;
       notes: string;
     }) => {
-      const response = await axios.post("/api/xero/create-invoice", data);
-
-      return response.data;
+      const result = await createXeroInvoice(data);
+      return result;
     },
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+
+      // Refresh Xero status
+      getXeroConnectionStatus().then((status) => {
+        setXeroStatus({
+          isConnected: status.isConnected,
+          isTokenValid: status.isTokenValid,
+          isChecking: false,
+        });
+      });
+
       setIsInvoiceModalOpen(false);
       setSelectedRows([]);
       setToggleCleared((prev) => !prev);
 
       toast.success(
         <div>
-          <p>Invoice created successfully!</p>
-          <a
-            href={data.xeroUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline text-sm"
-          >
-            View in Xero
-          </a>
-        </div>
+          <p className="font-semibold">Invoice created successfully!</p>
+          {response.data?.xeroUrl && (
+            <a
+              href={response.data.xeroUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline text-sm mt-1 inline-block"
+            >
+              View in Xero →
+            </a>
+          )}
+        </div>,
+        { duration: 5000 }
       );
     },
     onError: (error: any) => {
       console.error("Error creating invoice:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create invoice";
-      toast.error(errorMessage);
+
+      const errorMessage = error.message || "Failed to create invoice";
+
+      // Check if error is due to authorization
+      if (
+        errorMessage.includes("not connected") ||
+        errorMessage.includes("authorization") ||
+        errorMessage.includes("expired")
+      ) {
+        toast.error(
+          <div>
+            <p className="font-semibold">Xero Authorization Required</p>
+            <p className="text-sm mt-1">
+              Please reconnect to Xero and try again.
+            </p>
+          </div>,
+          { duration: 5000 }
+        );
+
+        // Update status
+        setXeroStatus({
+          isConnected: false,
+          isTokenValid: false,
+          isChecking: false,
+        });
+      } else {
+        toast.error(errorMessage, { duration: 4000 });
+      }
     },
   });
 
-  // const handleCreateInvoice = () => {
-  //   if (selectedRows.length !== 1) {
-  //     toast.error("Please select exactly one contract to create invoice");
-  //     return;
-  //   }
+  // Updated handleCreateInvoice function
+  const handleCreateInvoice = async () => {
+    if (selectedRows.length !== 1) {
+      toast.error("Please select exactly one contract to create invoice");
+      return;
+    }
 
-  //   const contract = selectedRows[0];
+    const contract = selectedRows[0];
 
-  //   // Validation checks
-  //   if (!contract?._id) {
-  //     toast.error("Selected contract is invalid");
-  //     return;
-  //   }
+    // Validation checks
+    if (!contract?._id) {
+      toast.error("Selected contract is invalid");
+      return;
+    }
 
-  //   if (contract.status?.toLowerCase() === "draft") {
-  //     toast.error("Cannot create invoice for draft contracts");
-  //     return;
-  //   }
+    if (contract.status?.toLowerCase() === "draft") {
+      toast.error("Cannot create invoice for draft contracts");
+      return;
+    }
 
-  //   // if (contract.xeroInvoiceId) {
-  //   //   toast.error("Invoice already exists for this contract");
-  //   //   return;
-  //   // }
+    if (!contract.buyer?.name || !contract.buyer?.email) {
+      toast.error("Buyer information is incomplete");
+      return;
+    }
 
-  //   if (!contract.buyer?.name || !contract.buyer?.email) {
-  //     toast.error("Buyer information is incomplete");
-  //     return;
-  //   }
+    try {
+      // Check Xero connection
+      const status = await getXeroConnectionStatus();
 
-  //   // Set default due date (30 days from invoice date)
-  //   const defaultDueDate = new Date();
-  //   defaultDueDate.setDate(defaultDueDate.getDate() + 30);
+      setXeroStatus({
+        isConnected: status.isConnected,
+        isTokenValid: status.isTokenValid,
+        isChecking: false,
+      });
 
-  //   setInvoiceFormData({
-  //     invoiceDate: new Date().toISOString().split("T")[0],
-  //     dueDate: defaultDueDate.toISOString().split("T")[0],
-  //     reference: `${contract.contractNumber} - ${contract.seller?.legalName}`,
-  //     notes: contract.notes || "",
-  //   });
+      // If not connected, authorize first
+      if (!status.isConnected || !status.isTokenValid) {
+        toast.loading("Connecting to Xero...");
 
-  //   setIsInvoiceModalOpen(true);
-  // };
+        try {
+          const authorized = await authorizeXero();
+          toast.dismiss();
 
-  const confirmCreateInvoice = () => {
+          if (!authorized) {
+            toast.error("Xero authorization failed. Please try again.");
+            return;
+          }
+
+          // Update status after authorization
+          const newStatus = await getXeroConnectionStatus();
+          setXeroStatus({
+            isConnected: newStatus.isConnected,
+            isTokenValid: newStatus.isTokenValid,
+            isChecking: false,
+          });
+
+          toast.success("Xero connected successfully!");
+        } catch (error: any) {
+          toast.dismiss();
+          console.error("Authorization error:", error);
+          toast.error(error.message || "Failed to connect to Xero");
+          return;
+        }
+      }
+
+      // Set default form data and open modal
+      const defaultDueDate = new Date();
+      defaultDueDate.setDate(defaultDueDate.getDate() + 30);
+
+      setInvoiceFormData({
+        invoiceDate: new Date().toISOString().split("T")[0],
+        dueDate: defaultDueDate.toISOString().split("T")[0],
+        reference: `${contract.contractNumber} - ${contract.seller?.legalName}`,
+        notes: contract.notes || "",
+      });
+
+      setIsInvoiceModalOpen(true);
+    } catch (error) {
+      console.error("Error checking Xero status:", error);
+      toast.error("Failed to verify Xero connection");
+    }
+  };
+
+  // Simplified confirmCreateInvoice function
+  const confirmCreateInvoice = async () => {
     const contract = selectedRows[0];
 
     if (!invoiceFormData.dueDate) {
@@ -284,6 +401,7 @@ const ContractManagementPage = () => {
       return;
     }
 
+    // Create invoice directly (connection is already verified)
     createInvoiceMutation.mutate({
       contractId: contract._id!,
       invoiceDate: invoiceFormData.invoiceDate,
@@ -793,22 +911,27 @@ Growth Grain Services`;
 
           {/* Action Buttons */}
           <div className="w-full md:w-auto lg:flex lg:flex-row gap-2 grid grid-cols-3">
-            {/* <button
+            <button
               onClick={handleCreateInvoice}
               disabled={
                 selectedRows.length !== 1 ||
-                selectedRows[0]?.status?.toLowerCase() === "draft"
+                selectedRows[0]?.status?.toLowerCase() === "draft" ||
+                xeroStatus.isChecking
               }
-              className={`w-full md:w-auto xl:px-3 xl:py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full md:w-auto xl:px-3 xl:py-2 border rounded flex items-center justify-center gap-2 text-sm transition-colors ${
                 selectedRows.length === 1 &&
-                selectedRows[0]?.status?.toLowerCase() !== "draft"
-                  ? "cursor-pointer"
-                  : "cursor-not-allowed opacity-50 pointer-events-none"
+                selectedRows[0]?.status?.toLowerCase() !== "draft" &&
+                !xeroStatus.isChecking
+                  ? "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer"
+                  : "border-gray-200 cursor-not-allowed opacity-50 pointer-events-none"
               }`}
             >
               <IoReceiptOutline />
-              Create Invoice
-            </button> */}
+              {!xeroStatus.isConnected && selectedRows.length === 1
+                ? "Connect & Create Invoice"
+                : "Create Invoice"}
+            </button>
+
             <button
               onClick={handleDuplicate}
               className={`w-full md:w-auto px-3 py-2 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm hover:bg-gray-100 transition-colors ${
@@ -1113,13 +1236,21 @@ Growth Grain Services`;
 
       {/* Xero Invoice Creation Modal */}
       {isInvoiceModalOpen && selectedRows.length === 1 && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white">
-              <h3 className="text-xl font-semibold flex gap-x-3 items-center">
-                <IoReceiptOutline className="text-blue-600 text-2xl" />
-                Create Xero Invoice
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold flex gap-x-3 items-center">
+                  <IoReceiptOutline className="text-blue-600 text-2xl" />
+                  Create Xero Invoice
+                </h3>
+
+                {/* Xero Status Indicator */}
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
+                  <MdCheckCircle className="text-green-600" />
+                  <span className="text-sm text-green-700">Connected</span>
+                </div>
+              </div>
             </div>
 
             <div className="px-6 py-4">
@@ -1251,17 +1382,17 @@ Growth Grain Services`;
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-              </div>
 
-              {/* Warning Message */}
-              <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-800 flex items-start gap-2">
-                  <IoWarning className="text-lg flex-shrink-0 mt-0.5" />
-                  <span>
-                    This will create a draft invoice in Xero. You can review and
-                    modify it before sending to the customer.
-                  </span>
-                </p>
+                {/* Info Message */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 flex items-start gap-2">
+                    <MdCheckCircle className="text-lg flex-shrink-0 mt-0.5" />
+                    <span>
+                      This will create a draft invoice in Xero. You can review
+                      and modify it before sending to the customer.
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -1284,17 +1415,15 @@ Growth Grain Services`;
               </button>
               <button
                 onClick={confirmCreateInvoice}
-                //todo: have to functional after complete
-                // disabled={
-                //   createInvoiceMutation.isPending || !invoiceFormData.dueDate
-                // }
-                disabled
+                disabled={
+                  createInvoiceMutation.isPending || !invoiceFormData.dueDate
+                }
                 className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
               >
                 {createInvoiceMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Creating...
+                    Creating Invoice...
                   </>
                 ) : (
                   <>

@@ -276,3 +276,81 @@ export interface SellersPaginatedResponse {
   total: number;
   data: Seller[];
 }
+
+
+// Add these types to your types/types.ts file
+
+export interface XeroConnectionStatus {
+  isConnected: boolean;
+  isTokenValid: boolean;
+  tenantId?: string;
+  tenantName?: string;
+  expiresAt?: string;
+}
+
+export interface CreateInvoiceRequest {
+  contractId: string;
+  invoiceDate: string;
+  dueDate: string;
+  reference: string;
+  notes: string;
+}
+
+export interface XeroInvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitAmount: number;
+  accountCode?: string;
+  taxType?: string;
+  lineAmount?: number;
+}
+
+export interface XeroContact {
+  contactID?: string;
+  name: string;
+  emailAddress?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface XeroInvoice {
+  invoiceID?: string;
+  invoiceNumber?: string;
+  type: 'ACCREC' | 'ACCPAY';
+  contact: XeroContact;
+  date: string;
+  dueDate: string;
+  lineItems: XeroInvoiceLineItem[];
+  reference?: string;
+  status?: 'DRAFT' | 'SUBMITTED' | 'AUTHORISED' | 'PAID';
+  lineAmountTypes?: 'Exclusive' | 'Inclusive' | 'NoTax';
+  subTotal?: number;
+  totalTax?: number;
+  total?: number;
+  currencyCode?: string;
+}
+
+export interface CreateInvoiceResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    invoiceId: string;
+    invoiceNumber: string;
+    xeroUrl: string;
+    invoice: XeroInvoice;
+  };
+}
+
+export interface XeroErrorResponse {
+  success: false;
+  message: string;
+  error?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  details?: any;
+}
+
+export interface XeroAuthorizationState {
+  isAuthorizing: boolean;
+  isConnected: boolean;
+  error?: string;
+}
