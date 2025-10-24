@@ -65,20 +65,6 @@ export interface PortZoneBid {
   updatedAt?: Date;
 }
 
-// export interface Buyer {
-//   _id?: string;
-//   name: string;
-//   abn: string;
-//   officeAddress: string;
-//   accountNumber: string;
-//   contactName: string[]; // Now an array instead of string
-//   email: string;
-//   phoneNumber: string;
-//   isDeleted?: boolean;
-//   deletedAt?: string;
-//   createdAt?: string;
-// }
-
 export interface ContactDetails {
   name: string;
   email: string;

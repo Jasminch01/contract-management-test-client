@@ -6,6 +6,7 @@ import { MdOutlineEdit } from "react-icons/md";
 interface ContractProps {
   contract: TContract;
 }
+
 const Contract: React.FC<ContractProps> = ({ contract }) => {
   const [preview, setPreview] = useState(false);
   if (preview) {
@@ -36,7 +37,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>{contract?.buyer?.officeAddress}</p>
                 <p>ABN : {contract?.buyer?.abn}</p>
                 <p>Email : {contract?.buyer?.email}</p>
-                <p>Contact : {contract?.buyerContactName}</p>
+                <p>Contact : {contract?.buyerContact?.name}</p>
                 {contract.conveyance === "Port Zone" ? (
                   <p>Contract Number : {contract?.contractNumber}</p>
                 ) : (
@@ -51,7 +52,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 <p>NGR : {contract.ngrNumber || "N/A"}</p>
                 <p>Email : {contract.seller.email}</p>
                 <p>
-                  Contact : {contract?.sellerContactName}{" "}
+                  Contact : {contract?.sellerContact?.name}{" "}
                   {contract?.seller.phoneNumber}
                 </p>
                 <p>ABN : {contract?.seller?.abn}</p>
@@ -567,17 +568,19 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract?.buyerContactName || "N/A"}
+                {contract?.buyer.contacts[0]?.name ||
+                  contract?.buyerContact?.name ||
+                  "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
-              <div className="w-1/2 p-3">{contract.buyer?.email || "N/A"}</div>
+              <div className="w-1/2 p-3">{contract.buyer?.email || contract.buyerContact?.email || "N/A"}</div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract.buyer?.phoneNumber || "N/A"}
+                {contract.buyer?.phoneNumber || contract.buyerContact?.phoneNumber || "N/A"}
               </div>
             </div>
           </div>
@@ -622,19 +625,23 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract?.sellerContactName || "N/A"}
+                {contract.seller.contactName[0].name||contract?.sellerContact?.name || "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
-                {contract?.seller?.email || "N/A"}
+                {contract?.seller?.email ||
+                  contract.sellerContact?.email ||
+                  "N/A"}
               </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract?.seller?.phoneNumber || "N/A"}
+                {contract?.seller?.phoneNumber ||
+                  contract.sellerContact?.phoneNumber ||
+                  "N/A"}
               </div>
             </div>
           </div>
@@ -678,7 +685,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                       target="_blank"
                       className="text-blue-600 hover:underline"
                     >
-                      Seller&apos;s Contract
+                      Buyer&apos;s Contract
                     </a>
                   ) : (
                     <p>N/A</p>
@@ -689,7 +696,7 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                       target="_blank"
                       className="text-blue-600 hover:underline"
                     >
-                      Buyer&apos;s Contract
+                      Seller&apos;s Contract
                     </a>
                   ) : (
                     <p>N/A</p>

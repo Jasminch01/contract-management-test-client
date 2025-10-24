@@ -36,7 +36,7 @@ export const fetchContracts = async (
     const response: AxiosResponse<ContractsPaginatedResponse> = await instance.get(
       `contracts?${queryParams.toString()}`
     );
-
+    console.log(response.data)
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

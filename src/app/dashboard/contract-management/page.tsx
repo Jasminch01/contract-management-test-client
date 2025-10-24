@@ -28,6 +28,7 @@ import {
   createXeroInvoice,
   getXeroConnectionStatus,
 } from "@/api/xeroApi";
+import { GiPaperClip } from "react-icons/gi";
 
 // Types for pagination parameters
 interface PaginationState {
@@ -107,6 +108,24 @@ const columns = [
     sortField: "seller.legalName",
   },
   {
+    name: "SELLER ATTACHMENT",
+    cell: (row: TContract) =>
+      row?.attachedSellerContract ? (
+        <a
+          href={row.attachedSellerContract}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-blue-600 hover:underline"
+        >
+          <GiPaperClip size={16} /> View
+        </a>
+      ) : (
+        <span className="text-gray-400">N/A</span>
+      ),
+    sortable: true,
+    sortField: "seller.legalName",
+  },
+  {
     name: "GRADE",
     selector: (row: TContract) => row?.grade || "",
     sortable: true,
@@ -123,6 +142,24 @@ const columns = [
     selector: (row: TContract) => row?.buyer?.name || "",
     sortable: true,
     sortField: "buyer.name",
+  },
+  {
+    name: "BUYER ATTACHMENT",
+    cell: (row: TContract) =>
+      row?.attachedBuyerContract ? (
+        <a
+          href={row.attachedBuyerContract}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-blue-600 hover:underline"
+        >
+          <GiPaperClip size={16} /> View
+        </a>
+      ) : (
+        <span className="text-gray-400">N/A</span>
+      ),
+    sortable: true,
+    sortField: "seller.legalName",
   },
   {
     name: "DESTINATION",
@@ -215,11 +252,11 @@ const ContractManagementPage = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [toggleCleared, setToggleCleared] = useState(false);
-  
+
   // Initialize pagination state with stored filters
   const getInitialPaginationState = (): PaginationState => {
     const storedFilters = loadFiltersFromStorage();
-    
+
     if (storedFilters) {
       return {
         page: storedFilters.page || 1,
@@ -230,7 +267,7 @@ const ContractManagementPage = () => {
         sortOrder: storedFilters.sortOrder || "asc",
       };
     }
-    
+
     return {
       page: 1,
       limit: 10,
@@ -241,7 +278,9 @@ const ContractManagementPage = () => {
     };
   };
 
-  const [paginationState, setPaginationState] = useState<PaginationState>(getInitialPaginationState);
+  const [paginationState, setPaginationState] = useState<PaginationState>(
+    getInitialPaginationState
+  );
 
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [invoiceFormData, setInvoiceFormData] = useState({
@@ -553,7 +592,7 @@ const ContractManagementPage = () => {
   // Track if search filters are active
   const [hasSearchFilters, setHasSearchFilters] = useState(
     Object.keys(paginationState.searchFilters).length > 0 &&
-    Object.values(paginationState.searchFilters).some((v) => v.trim() !== "")
+      Object.values(paginationState.searchFilters).some((v) => v.trim() !== "")
   );
 
   // Handle search filter changes from AdvanceSearchFilter component
@@ -654,7 +693,8 @@ const ContractManagementPage = () => {
 
   // Update filter active state
   useEffect(() => {
-    const statusActive = paginationState.status !== "" && paginationState.status !== "all";
+    const statusActive =
+      paginationState.status !== "" && paginationState.status !== "all";
     setIsFilterActive(hasSearchFilters || statusActive);
   }, [paginationState.status, hasSearchFilters]);
 
@@ -997,7 +1037,7 @@ Growth Grain Services`;
 
         {/* Advanced Search Filter */}
         <div className="w-full xl:w-[30rem] md:w-64 lg:w-80 relative">
-          <AdvanceSearchFilter 
+          <AdvanceSearchFilter
             onFilterChange={handleAdvanceFilterChange}
             initialFilters={paginationState.searchFilters}
           />
@@ -1021,7 +1061,8 @@ Growth Grain Services`;
               {totalPages > 0 && (
                 <span>
                   {" "}
-                  • Showing {(currentPage - 1) * paginationState.limit + 1} to{" "}
+                  • Showing {(currentPage - 1) * paginationState.limit +
+                    1} to{" "}
                   {Math.min(currentPage * paginationState.limit, totalRecords)}{" "}
                   entries
                 </span>
@@ -1275,9 +1316,7 @@ Growth Grain Services`;
               Showing {(currentPage - 1) * paginationState.limit + 1} to{" "}
               {Math.min(currentPage * paginationState.limit, totalRecords)} of{" "}
               {totalRecords} entries
-              {isFilterActive && (
-                <span> (filtered from total entries)</span>
-              )}
+              {isFilterActive && <span> (filtered from total entries)</span>}
             </div>
             <div className="mt-2 sm:mt-0">
               {selectedRows.length > 0 && (
