@@ -65,18 +65,39 @@ export interface PortZoneBid {
   updatedAt?: Date;
 }
 
+// export interface Buyer {
+//   _id?: string;
+//   name: string;
+//   abn: string;
+//   officeAddress: string;
+//   accountNumber: string;
+//   contactName: string[]; // Now an array instead of string
+//   email: string;
+//   phoneNumber: string;
+//   isDeleted?: boolean;
+//   deletedAt?: string;
+//   createdAt?: string;
+// }
+
+export interface ContactDetails {
+  name: string;
+  email: string;
+  phoneNumber: string;
+}
+
 export interface Buyer {
   _id?: string;
   name: string;
   abn: string;
   officeAddress: string;
   accountNumber: string;
-  contactName: string[]; // Now an array instead of string
-  email: string;
-  phoneNumber: string;
+  contacts: ContactDetails[]; // New field for contact details
+  email: string; // Main buyer email
+  phoneNumber: string; // Main buyer phone
   isDeleted?: boolean;
   deletedAt?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export type ContractStatus = "Draft" | "Incomplete" | "Complete" | "Invoiced";
@@ -107,7 +128,7 @@ export interface Seller {
   authorityToAct?: string;
   address?: string;
   mainNgr?: string;
-  contactName: string[];
+  contactName: ContactDetails [];
   locationZone?: string[];
   phoneNumber?: string;
   authorityActFormPdf?: string;
@@ -147,8 +168,8 @@ export interface TContract {
   termsAndConditions: string;
   notes: string;
   ngrNumber?: string;
-  buyerContactName?: string;
-  sellerContactName?: string;
+  buyerContact?: ContactDetails;
+  sellerContact?: ContactDetails;
   tonnes: string;
   tolerance: string;
   season: string;
@@ -157,6 +178,8 @@ export interface TContract {
   status: string;
   createdAt: string; // or Date if you'll parse it
   contractNumber: string;
+  xeroInvoiceId: string;
+  xeroInvoiceNumber: string;
   contractDate: string; // Added contractDate
 }
 export interface TUpdateContract {
@@ -190,12 +213,12 @@ export interface TUpdateContract {
   notes: string;
   tonnes: string;
   ngrNumber?: string;
-  buyerContactName?: string;
-  sellerContactName?: string;
+  buyerContact?: ContactDetails;
+  sellerContact?: ContactDetails;
   tolerance: string;
   season: string;
   status?: string;
-  contractDate: string; // Added contractDate
+  contractDate: string;
 }
 
 export interface FetchContractsParams {
@@ -277,7 +300,6 @@ export interface SellersPaginatedResponse {
   data: Seller[];
 }
 
-
 // Add these types to your types/types.ts file
 
 export interface XeroConnectionStatus {
@@ -289,7 +311,7 @@ export interface XeroConnectionStatus {
 }
 
 export interface CreateInvoiceRequest {
-  contractId: string;
+  contractIds: string[];
   invoiceDate: string;
   dueDate: string;
   reference: string;
@@ -316,14 +338,14 @@ export interface XeroContact {
 export interface XeroInvoice {
   invoiceID?: string;
   invoiceNumber?: string;
-  type: 'ACCREC' | 'ACCPAY';
+  type: "ACCREC" | "ACCPAY";
   contact: XeroContact;
   date: string;
   dueDate: string;
   lineItems: XeroInvoiceLineItem[];
   reference?: string;
-  status?: 'DRAFT' | 'SUBMITTED' | 'AUTHORISED' | 'PAID';
-  lineAmountTypes?: 'Exclusive' | 'Inclusive' | 'NoTax';
+  status?: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "PAID";
+  lineAmountTypes?: "Exclusive" | "Inclusive" | "NoTax";
   subTotal?: number;
   totalTax?: number;
   total?: number;

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { MdKeyboardBackspace, MdOutlineEdit } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
-import { BulkHandlerCredential, Seller } from "@/types/types";
+import { BulkHandlerCredential, ContactDetails, Seller } from "@/types/types";
 
 const handlerNames = [
   "Viterra",
@@ -166,10 +166,6 @@ const SellerInformationPage = () => {
             value={sellerData?.mainNgr || "N/A"}
           />
           <InfoRow
-            label="Seller Contact Name"
-            value={sellerData?.contactName.join(", ") || "N/A"}
-          />
-          <InfoRow
             label="Seller Phone Number"
             value={sellerData?.phoneNumber || "N/A"}
           />
@@ -190,6 +186,63 @@ const SellerInformationPage = () => {
             )}
           </div>
         </div>
+
+        {/* Contacts Information */}
+        {sellerData.contactName && sellerData.contactName.length > 0 && (
+          <div className="w-full mt-5 border border-gray-300 rounded-md overflow-hidden">
+            <div className="bg-gray-100 border-b border-gray-300 p-3">
+              <h3 className="font-semibold text-gray-700">
+                Contact Information ({sellerData.contactName.length})
+              </h3>
+            </div>
+            <div className="divide-y divide-gray-300">
+              {sellerData.contactName.map(
+                (contact: ContactDetails, index: number) => (
+                  <div key={index} className="p-4 hover:bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase mb-1">
+                          Contact Name
+                        </p>
+                        <p className="font-medium text-gray-900">
+                          {contact.name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase mb-1">
+                          Email
+                        </p>
+                        <p className="text-gray-900">{contact.email || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase mb-1">
+                          Phone Number
+                        </p>
+                        <p className="text-gray-900">
+                          {contact.phoneNumber || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* No contacts message */}
+        {(!sellerData.contactName || sellerData.contactName.length === 0) && (
+          <div className="w-full border border-gray-300 rounded-md overflow-hidden">
+            <div className="bg-gray-100 border-b border-gray-300 p-3">
+              <h3 className="font-semibold text-gray-700">
+                Contact Information
+              </h3>
+            </div>
+            <div className="p-8 text-center text-gray-500">
+              <p>No contact information available</p>
+            </div>
+          </div>
+        )}
 
         {/* Edit Button */}
         <div className="mt-10">
