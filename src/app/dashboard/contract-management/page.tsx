@@ -314,7 +314,7 @@ const ContractManagementPage = () => {
         setXeroStatus((prev) => ({ ...prev, isChecking: true }));
         const status = await getXeroConnectionStatus();
         setXeroStatus({
-          isConnected: status.isConnected,
+          isConnected: status.connected,
           isTokenValid: status.isTokenValid,
           isChecking: false,
         });
@@ -345,7 +345,7 @@ const ContractManagementPage = () => {
       // Refresh Xero status
       getXeroConnectionStatus().then((status) => {
         setXeroStatus({
-          isConnected: status.isConnected,
+          isConnected: status.connected,
           isTokenValid: status.isTokenValid,
           isChecking: false,
         });
@@ -402,24 +402,26 @@ const ContractManagementPage = () => {
     },
   });
 
-  // Helper function to group contracts by invoice recipient
-  const groupContractsByRecipient = (contracts: TContract[]) => {
+  // Group contracts by invoice recipient (based on brokeragePayableBy)
+  const groupContractsByInvoiceRecipient = (contracts: TContract[]) => {
     const groups: { [key: string]: TContract[] } = {};
 
     contracts.forEach((contract) => {
       let recipientKey = "";
+      const brokeragePayableBy =
+        contract.brokeragePayableBy?.toLowerCase() || "buyer";
 
-      if (contract.brokeragePayableBy === "buyer") {
-        recipientKey = contract.buyer?.email || contract.buyer?.name;
-      } else if (contract.brokeragePayableBy === "seller") {
-        recipientKey = contract.seller?.email || contract.seller?.legalName;
-      } else if (
-        contract.brokeragePayableBy === "buyer & seller" ||
-        contract.brokeragePayableBy === "seller & buyer"
-      ) {
-        recipientKey = contract.buyer?.email || contract.buyer?.name;
+      // Determine the invoice recipient based on brokeragePayableBy
+      if (brokeragePayableBy.includes("seller")) {
+        // If seller pays (fully or partially), group by seller
+        recipientKey = `seller|${
+          contract.seller?.email || contract.seller?.legalName
+        }|${brokeragePayableBy}`;
       } else {
-        recipientKey = contract.buyer?.email || contract.buyer?.name;
+        // If buyer pays, group by buyer
+        recipientKey = `buyer|${
+          contract.buyer?.email || contract.buyer?.name
+        }|${brokeragePayableBy}`;
       }
 
       if (!groups[recipientKey]) {
@@ -458,12 +460,12 @@ const ContractManagementPage = () => {
       return;
     }
 
-    const contractGroups = groupContractsByRecipient(selectedRows);
+    const contractGroups = groupContractsByInvoiceRecipient(selectedRows);
     const groupCount = Object.keys(contractGroups).length;
 
     if (groupCount > 1) {
-      toast.error(
-        `Selected contracts have ${groupCount} different recipients. They will be created as separate invoices.`,
+      toast.loading(
+        `Selected contracts will be split into ${groupCount} separate invoices based on invoice recipient and payment terms.`,
         { duration: 6000 }
       );
     }
@@ -472,12 +474,12 @@ const ContractManagementPage = () => {
       const status = await getXeroConnectionStatus();
 
       setXeroStatus({
-        isConnected: status.isConnected,
+        isConnected: status.connected,
         isTokenValid: status.isTokenValid,
         isChecking: false,
       });
 
-      if (!status.isConnected || !status.isTokenValid) {
+      if (!status.connected || !status.isTokenValid) {
         toast.loading("Connecting to Xero...");
 
         try {
@@ -491,7 +493,7 @@ const ContractManagementPage = () => {
 
           const newStatus = await getXeroConnectionStatus();
           setXeroStatus({
-            isConnected: newStatus.isConnected,
+            isConnected: newStatus.connected,
             isTokenValid: newStatus.isTokenValid,
             isChecking: false,
           });
@@ -499,7 +501,6 @@ const ContractManagementPage = () => {
           toast.success("Xero connected successfully!");
         } catch (error: any) {
           toast.dismiss();
-          console.error("Authorization error:", error);
           toast.error(error.message || "Failed to connect to Xero");
           return;
         }
@@ -527,8 +528,8 @@ const ContractManagementPage = () => {
       });
 
       setIsInvoiceModalOpen(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error("Error checking Xero status:", error);
       toast.error("Failed to verify Xero connection");
     }
   };
@@ -539,10 +540,11 @@ const ContractManagementPage = () => {
       return;
     }
 
-    const contractGroups = groupContractsByRecipient(selectedRows);
+    const contractGroups = groupContractsByInvoiceRecipient(selectedRows);
     const groupKeys = Object.keys(contractGroups);
 
     if (groupKeys.length === 1) {
+      // Single invoice for all contracts (same recipient and brokerage terms)
       createInvoiceMutation.mutate({
         contractIds: selectedRows.map((c) => c._id!),
         invoiceDate: invoiceFormData.invoiceDate,
@@ -551,15 +553,24 @@ const ContractManagementPage = () => {
         notes: invoiceFormData.notes,
       });
     } else {
+      // Multiple invoices for different recipients
       toast.loading(`Creating ${groupKeys.length} invoices...`);
 
       try {
         const promises = groupKeys.map((key) => {
           const contracts = contractGroups[key];
+          const [recipientType, brokerageKey] =
+            key.split("|");
+
+          const recipientName =
+            recipientType === "seller"
+              ? contracts[0].seller?.legalName
+              : contracts[0].buyer?.name;
+
           const groupReference =
             contracts.length === 1
-              ? `${contracts[0].contractNumber} - ${contracts[0].seller?.legalName}`
-              : `${invoiceFormData.reference} (${contracts.length} contracts)`;
+              ? `${contracts[0].contractNumber} - ${recipientName}`
+              : `Brokerage Invoice - ${recipientName} (${contracts.length} contracts, paid by ${brokerageKey})`;
 
           return createXeroInvoice({
             contractIds: contracts.map((c) => c._id!),
@@ -583,7 +594,6 @@ const ContractManagementPage = () => {
         });
       } catch (error: any) {
         toast.dismiss();
-        console.error("Error creating invoices:", error);
         toast.error(error.message || "Failed to create invoices");
       }
     }
@@ -1377,7 +1387,7 @@ Growth Grain Services`;
 
       {/* Xero Invoice Creation Modal */}
       {isInvoiceModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-center justify-between">

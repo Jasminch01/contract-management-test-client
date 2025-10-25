@@ -34,7 +34,6 @@ export const createXeroInvoice = async (
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error creating Xero invoice:", error.message);
     }
     throw handleXeroError(error);
   }
@@ -183,7 +182,7 @@ export const ensureXeroAuthorization = async (): Promise<boolean> => {
   try {
     const status = await getXeroConnectionStatus();
 
-    if (status.isConnected && status.isTokenValid) {
+    if (status.connected && status.isTokenValid) {
       return true;
     }
 

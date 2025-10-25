@@ -289,7 +289,7 @@ export interface SellersPaginatedResponse {
 // Add these types to your types/types.ts file
 
 export interface XeroConnectionStatus {
-  isConnected: boolean;
+  connected: boolean;
   isTokenValid: boolean;
   tenantId?: string;
   tenantName?: string;
