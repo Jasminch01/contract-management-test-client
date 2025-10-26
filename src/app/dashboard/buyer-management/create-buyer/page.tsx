@@ -166,7 +166,7 @@ const CreateBuyerPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-10 md:mt-32 px-4">
+    <div className="max-w-7xl mx-auto mt-10 md:mt-32 px-4 xl:overflow-scroll xl:h-[38rem] hide-scrollbar-xl">
       <Toaster />
       <div className="flex justify-center">
         <form onSubmit={handleSubmit} className="w-full max-w-4xl">

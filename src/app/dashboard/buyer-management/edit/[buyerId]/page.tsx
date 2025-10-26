@@ -290,7 +290,7 @@ const BuyerInformationEditPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl mt-10">
+      <div className="mx-auto max-w-6xl mt-10 xl:overflow-scroll xl:h-[38rem] hide-scrollbar-xl">
         <div className="flex flex-col items-center mx-auto max-w-6xl w-full mt-10 gap-6">
           {/* Main Buyer Information */}
           <div className="w-full border border-gray-300 rounded-md overflow-hidden bg-white">

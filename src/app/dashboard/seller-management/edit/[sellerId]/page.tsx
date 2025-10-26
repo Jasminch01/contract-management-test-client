@@ -650,7 +650,7 @@ const SellerInformationEditPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl mt-10 px-4">
+      <div className="mx-auto max-w-6xl mt-10 px-4 xl:overflow-scroll xl:h-[38rem] hide-scrollbar-xl">
         <div className="flex flex-col items-center mx-auto max-w-6xl w-full mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 w-full border border-gray-300 rounded-md p-6 gap-5 bg-white">
             <Field

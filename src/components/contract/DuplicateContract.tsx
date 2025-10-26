@@ -51,9 +51,8 @@ const EditableContract: React.FC<ContractProps> = ({
     useState(false);
   const [selectedBuyerContact, setSelectedBuyerContact] =
     useState<ContactDetails | null>(null);
-  const [selectedSellerContactName, setSelectedSellerContactName] = useState(
-    initialContract.sellerContactName || ""
-  );
+  const [selectedSellerContact, setSelectedSellerContact] =
+    useState<ContactDetails | null>(null);
   const [isLoadingContractNumber, setIsLoadingContractNumber] = useState(false);
   const [uploadingBuyerContract, setUploadingBuyerContract] = useState(false);
   const [uploadingSellerContract, setUploadingSellerContract] = useState(false);
@@ -180,32 +179,28 @@ const EditableContract: React.FC<ContractProps> = ({
     // ✅ Auto-select first contact (if available)
     if (selectedSeller.contactName && selectedSeller.contactName.length > 0) {
       const firstContact = selectedSeller.contactName[0];
-      setSelectedSellerContactName(firstContact.name);
+      setSelectedSellerContact(firstContact);
       setContract((prev) => ({
         ...prev,
-        sellerContactName: firstContact.name,
-        sellerContactEmail: firstContact.email,
-        sellerContactPhone: firstContact.phoneNumber,
+        sellerContact: firstContact,
       }));
     } else {
-      setSelectedSellerContactName("");
+      // No contacts available, clear contact field
+      setSelectedSellerContact(null);
       setContract((prev) => ({
         ...prev,
-        sellerContactName: "",
-        sellerContactEmail: "",
-        sellerContactPhone: "",
+        sellerContact: undefined,
       }));
     }
   };
 
   const handleSellerContact = (contact: ContactDetails) => {
-    if (contact.name !== contract.sellerContactName) {
-      setSelectedSellerContactName(contact.name);
+    // ✅ Only update if contact is different
+    if (contact.name !== contract.sellerContact?.name) {
+      setSelectedSellerContact(contact);
       setContract((prev) => ({
         ...prev,
-        sellerContactName: contact.name,
-        sellerContactEmail: contact.email,
-        sellerContactPhone: contact.phoneNumber,
+        sellerContact: contact,
       }));
       setHasChanges(true);
     }
@@ -515,9 +510,8 @@ const EditableContract: React.FC<ContractProps> = ({
           ? contract.attachedSellerContract
           : "",
 
-      buyerContactName: selectedBuyerContact || contract.buyerContactName,
-      sellerContactName:
-        selectedSellerContactName || contract.sellerContactName,
+      buyerContactName: selectedBuyerContact,
+      sellerContactName: selectedSellerContact,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, _v, updatedAt, ...contractWithoutId } =
@@ -970,7 +964,6 @@ const EditableContract: React.FC<ContractProps> = ({
         </div>
 
         {/* Buyer Information */}
-        {/* Buyer Information */}
         <div className="w-full border border-gray-300 rounded-md">
           <div className="border-b border-gray-300 p-3 bg-gray-50">
             <p className="font-semibold">Buyer Information</p>
@@ -1232,8 +1225,8 @@ const EditableContract: React.FC<ContractProps> = ({
                   }
                 >
                   <span className="text-gray-700">
-                    {selectedSellerContactName ||
-                      contract.sellerContactName ||
+                    {selectedSellerContact?.name||
+                      contract.sellerContact?.name ||
                       "No contact selected"}
                   </span>
                 </div>
@@ -1243,7 +1236,7 @@ const EditableContract: React.FC<ContractProps> = ({
                     <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
                       {selectedSeller.contactName.map((contact, index) => {
                         const isSelected =
-                          contact.name === contract.sellerContactName;
+                          contact.name === contract.sellerContact?.name;
                         return (
                           <div
                             key={index}
@@ -1282,7 +1275,9 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
                 <div className="w-full p-1 rounded bg-gray-50">
-                  {selectedSeller?.email || ""}
+                  {contract?.sellerContact?.email ||
+                    selectedSeller?.email ||
+                    ""}
                 </div>
               </div>
             </div>
@@ -1290,7 +1285,9 @@ const EditableContract: React.FC<ContractProps> = ({
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
                 <div className="w-full p-1 rounded bg-gray-50">
-                  {selectedSeller?.phoneNumber || ""}
+                  {contract.sellerContact?.phoneNumber ||
+                    selectedSeller?.phoneNumber ||
+                    ""}
                 </div>
               </div>
             </div>

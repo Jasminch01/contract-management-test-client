@@ -174,7 +174,7 @@ const BuyerInformationPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl xl:overflow-scroll xl:h-[38rem] hide-scrollbar-xl">
         <div className="my-10 text-center">
           <h2 className="text-2xl font-semibold">{buyerData.name}</h2>
           {isFetching && (

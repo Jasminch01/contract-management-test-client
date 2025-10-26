@@ -568,19 +568,23 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract?.buyer.contacts[0]?.name ||
-                  contract?.buyerContact?.name ||
+                {contract?.buyerContact?.name ||
+                  contract?.buyer.contacts[0]?.name ||
                   "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
-              <div className="w-1/2 p-3">{contract.buyer?.email || contract.buyerContact?.email || "N/A"}</div>
+              <div className="w-1/2 p-3">
+                {contract.buyerContact?.email || contract.buyer?.email || "N/A"}
+              </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract.buyer?.phoneNumber || contract.buyerContact?.phoneNumber || "N/A"}
+                {contract.buyerContact?.phoneNumber ||
+                  contract.buyer?.phoneNumber ||
+                  "N/A"}
               </div>
             </div>
           </div>
@@ -625,22 +629,24 @@ const Contract: React.FC<ContractProps> = ({ contract }) => {
                 Contact Name
               </div>
               <div className="w-1/2 p-3">
-                {contract.seller.contactName[0].name||contract?.sellerContact?.name || "N/A"}
+                {contract?.sellerContact?.name ||
+                  contract.seller.contactName[0].name ||
+                  "N/A"}
               </div>
             </div>
             <div className="flex border-b border-gray-300">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Email</div>
               <div className="w-1/2 p-3">
-                {contract?.seller?.email ||
-                  contract.sellerContact?.email ||
+                {contract.sellerContact?.email ||
+                  contract?.seller?.email ||
                   "N/A"}
               </div>
             </div>
             <div className="flex">
               <div className="w-1/2 p-3 text-[#1A1A1A] font-medium">Phone</div>
               <div className="w-1/2 p-3">
-                {contract?.seller?.phoneNumber ||
-                  contract.sellerContact?.phoneNumber ||
+                {contract.sellerContact?.phoneNumber ||
+                  contract?.seller?.phoneNumber ||
                   "N/A"}
               </div>
             </div>
