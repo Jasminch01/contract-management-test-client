@@ -1,30 +1,28 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError } from "axios";
 import {
   XeroConnectionStatus,
   CreateInvoiceRequest,
   CreateInvoiceResponse,
   XeroErrorResponse,
-} from '../types/types';
-import { instance } from './api';
+} from "../types/types";
+import { instance } from "./api";
 
 /**
  * Check if Xero is currently connected
  */
-export const getXeroConnectionStatus = async (): Promise<XeroConnectionStatus> => {
-  try {
-    const res  = await instance.get<XeroConnectionStatus>("/xero/status");
-    return res;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error fetching Xero status:", error.message);
+export const getXeroConnectionStatus =
+  async (): Promise<XeroConnectionStatus> => {
+    try {
+      const res = await instance.get<XeroConnectionStatus>("/xero/status");
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Error fetching Xero status:", error.message);
+      }
+      throw handleXeroError(error);
     }
-    throw handleXeroError(error);
-  }
-};
+  };
 
-/**
- * Create invoice in Xero
- */
 export const createXeroInvoice = async (
   invoiceData: CreateInvoiceRequest
 ): Promise<CreateInvoiceResponse> => {
@@ -36,19 +34,16 @@ export const createXeroInvoice = async (
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error creating Xero invoice:", error.message);
     }
     throw handleXeroError(error);
   }
 };
 
-/**
- * Authorize Xero connection via popup window
- * The popup will automatically close after successful authorization
- */
 export const authorizeXero = (): Promise<boolean> => {
   return new Promise((resolve, reject) => {
-    const authUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/xero/authorize`;
+    const authUrl = `${
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+    }/api/xero/authorize`;
 
     const width = 600;
     const height = 700;
@@ -62,7 +57,9 @@ export const authorizeXero = (): Promise<boolean> => {
     );
 
     if (!authWindow) {
-      return reject(new Error("Failed to open authorization window. Please allow popups."));
+      return reject(
+        new Error("Failed to open authorization window. Please allow popups.")
+      );
     }
 
     // Listen for authorization success/failure message
@@ -70,21 +67,24 @@ export const authorizeXero = (): Promise<boolean> => {
       // Verify origin for security
       const allowedOrigins = [
         process.env.NEXT_PUBLIC_API_URL,
-        'http://localhost:8000',
-        'http://localhost:3000',
-        window.location.origin
+        "http://localhost:8000",
+        "http://localhost:3000",
+        window.location.origin,
       ];
 
-      if (!allowedOrigins.some(origin => event.origin === origin)) {
+      if (!allowedOrigins.some((origin) => event.origin === origin)) {
         return;
       }
 
       // Handle success message
-      if (event.data === "xero_authorized" || event.data?.type === "xero_authorized") {
+      if (
+        event.data === "xero_authorized" ||
+        event.data?.type === "xero_authorized"
+      ) {
         window.removeEventListener("message", messageListener);
         clearInterval(checkAuthWindow);
         clearTimeout(timeoutId);
-        
+
         // Give the window time to close itself
         setTimeout(() => {
           if (!authWindow.closed) {
@@ -92,13 +92,16 @@ export const authorizeXero = (): Promise<boolean> => {
           }
           resolve(true);
         }, 100);
-      } 
+      }
       // Handle failure message
-      else if (event.data === "xero_auth_failed" || event.data?.type === "xero_auth_failed") {
+      else if (
+        event.data === "xero_auth_failed" ||
+        event.data?.type === "xero_auth_failed"
+      ) {
         window.removeEventListener("message", messageListener);
         clearInterval(checkAuthWindow);
         clearTimeout(timeoutId);
-        
+
         setTimeout(() => {
           if (!authWindow.closed) {
             authWindow.close();
@@ -132,9 +135,6 @@ export const authorizeXero = (): Promise<boolean> => {
   });
 };
 
-/**
- * Disconnect from Xero
- */
 export const disconnectXero = async (): Promise<void> => {
   try {
     await instance.post("/xero/disconnect");
@@ -144,9 +144,6 @@ export const disconnectXero = async (): Promise<void> => {
   }
 };
 
-/**
- * Handle Xero API errors
- */
 export const handleXeroError = (error: unknown): Error => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<XeroErrorResponse>;
@@ -154,41 +151,41 @@ export const handleXeroError = (error: unknown): Error => {
       axiosError.response?.data?.message ||
       axiosError.response?.data?.error ||
       axiosError.message ||
-      'An error occurred while communicating with Xero';
-    
+      "An error occurred while communicating with Xero";
+
     // Check for specific error types
     if (axiosError.response?.status === 401) {
-      return new Error('Xero authorization expired. Please reconnect.');
+      return new Error("Xero authorization expired. Please reconnect.");
     }
     if (axiosError.response?.status === 403) {
-      return new Error('Insufficient permissions to perform this action in Xero.');
+      return new Error(
+        "Insufficient permissions to perform this action in Xero."
+      );
     }
     if (axiosError.response?.status === 404) {
-      return new Error('Xero resource not found. Please check your configuration.');
+      return new Error(
+        "Xero resource not found. Please check your configuration."
+      );
     }
-    
+
     return new Error(message);
   }
-  
+
   if (error instanceof Error) {
     return error;
   }
-  
-  return new Error('An unexpected error occurred');
+
+  return new Error("An unexpected error occurred");
 };
 
-/** 
- * Check and authorize Xero if needed
- * Returns true if authorized, false otherwise
- */
 export const ensureXeroAuthorization = async (): Promise<boolean> => {
   try {
     const status = await getXeroConnectionStatus();
-    
-    if (status.isConnected && status.isTokenValid) {
+
+    if (status.connected && status.isTokenValid) {
       return true;
     }
-    
+
     // Need to authorize
     return await authorizeXero();
   } catch (error) {
