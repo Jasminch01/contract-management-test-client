@@ -114,7 +114,7 @@ export interface Seller {
   authorityToAct?: string;
   address?: string;
   mainNgr?: string;
-  contactName: ContactDetails [];
+  contactName: ContactDetails[];
   locationZone?: string[];
   phoneNumber?: string;
   authorityActFormPdf?: string;
@@ -290,10 +290,8 @@ export interface SellersPaginatedResponse {
 
 export interface XeroConnectionStatus {
   connected: boolean;
-  isTokenValid: boolean;
-  tenantId?: string;
-  tenantName?: string;
-  expiresAt?: string;
+  tenantName: string ;
+  connectedAt: string;
 }
 
 export interface CreateInvoiceRequest {

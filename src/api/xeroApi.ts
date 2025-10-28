@@ -14,6 +14,7 @@ export const getXeroConnectionStatus =
   async (): Promise<XeroConnectionStatus> => {
     try {
       const res = await instance.get<XeroConnectionStatus>("/xero/status");
+      console.log(res)
       return res.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -182,7 +183,7 @@ export const ensureXeroAuthorization = async (): Promise<boolean> => {
   try {
     const status = await getXeroConnectionStatus();
 
-    if (status.connected && status.isTokenValid) {
+    if (status.connected && status.tenantName) {
       return true;
     }
 
