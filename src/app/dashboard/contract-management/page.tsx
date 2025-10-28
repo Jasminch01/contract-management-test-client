@@ -292,14 +292,13 @@ const ContractManagementPage = () => {
 
   const [xeroStatus, setXeroStatus] = useState<{
     isConnected: boolean;
-    isTokenValid: boolean;
+    tenantName: string | null; // ✅ CORRECT
     isChecking: boolean;
   }>({
     isConnected: false,
-    isTokenValid: false,
+    tenantName: null, // ✅ CORRECT
     isChecking: false,
   });
-
   // Save filters to localStorage whenever pagination state changes
   useEffect(() => {
     if (isMounted) {
@@ -313,16 +312,17 @@ const ContractManagementPage = () => {
       try {
         setXeroStatus((prev) => ({ ...prev, isChecking: true }));
         const status = await getXeroConnectionStatus();
+
         setXeroStatus({
           isConnected: status.connected,
-          isTokenValid: status.isTokenValid,
+          tenantName: status.tenantName || null,
           isChecking: false,
         });
       } catch (error) {
         console.error("Error checking Xero status:", error);
         setXeroStatus({
           isConnected: false,
-          isTokenValid: false,
+          tenantName: null,
           isChecking: false,
         });
       }
@@ -333,7 +333,7 @@ const ContractManagementPage = () => {
     }
   }, [isMounted]);
 
-  // Updated mutation for creating invoice (now supports multiple contracts)
+  //mutation for creating invoice (now supports multiple contracts)
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: any) => {
       const result = await createXeroInvoice(data);
@@ -342,11 +342,11 @@ const ContractManagementPage = () => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
 
-      // Refresh Xero status
+      // Refresh Xero status after successful invoice creation
       getXeroConnectionStatus().then((status) => {
         setXeroStatus({
           isConnected: status.connected,
-          isTokenValid: status.isTokenValid,
+          tenantName: status.tenantName || null,
           isChecking: false,
         });
       });
@@ -376,24 +376,27 @@ const ContractManagementPage = () => {
 
       const errorMessage = error.message || "Failed to create invoice";
 
+      // If token expired, update status and ask to try again
       if (
         errorMessage.includes("not connected") ||
         errorMessage.includes("authorization") ||
-        errorMessage.includes("expired")
+        errorMessage.includes("expired") ||
+        errorMessage.includes("token")
       ) {
         toast.error(
           <div>
-            <p className="font-semibold">Xero Authorization Required</p>
+            <p className="font-semibold">Xero Authorization Issue</p>
             <p className="text-sm mt-1">
-              Please reconnect to Xero and try again.
+              Please click Create Invoice again to reconnect.
             </p>
           </div>,
           { duration: 5000 }
         );
 
+        // Reset connection status so next click will reconnect
         setXeroStatus({
           isConnected: false,
-          isTokenValid: false,
+          tenantName: null,
           isChecking: false,
         });
       } else {
@@ -471,15 +474,13 @@ const ContractManagementPage = () => {
     }
 
     try {
+      // Check current connection status
       const status = await getXeroConnectionStatus();
 
-      setXeroStatus({
-        isConnected: status.connected,
-        isTokenValid: status.isTokenValid,
-        isChecking: false,
-      });
+      console.log("Xero Status:", status);
 
-      if (!status.connected || !status.isTokenValid) {
+      // If not connected, automatically initiate connection
+      if (!status.connected || !status.tenantName) {
         toast.loading("Connecting to Xero...");
 
         try {
@@ -491,21 +492,42 @@ const ContractManagementPage = () => {
             return;
           }
 
+          // Verify connection after authorization
           const newStatus = await getXeroConnectionStatus();
+
+          console.log("New Xero Status:", newStatus);
+
           setXeroStatus({
             isConnected: newStatus.connected,
-            isTokenValid: newStatus.isTokenValid,
+            tenantName: newStatus.tenantName || null,
             isChecking: false,
           });
 
-          toast.success("Xero connected successfully!");
+          if (!newStatus.connected || !newStatus.tenantName) {
+            toast.error(
+              "Xero connection verification failed. Please try again."
+            );
+            return;
+          }
+
+          toast.success(
+            `Xero connected successfully to ${newStatus.tenantName}!`
+          );
         } catch (error: any) {
           toast.dismiss();
           toast.error(error.message || "Failed to connect to Xero");
           return;
         }
+      } else {
+        // Already connected, update UI state
+        setXeroStatus({
+          isConnected: true,
+          tenantName: status.tenantName,
+          isChecking: false,
+        });
       }
 
+      // Prepare invoice form data
       const defaultDueDate = new Date();
       defaultDueDate.setDate(defaultDueDate.getDate() + 30);
 
@@ -528,9 +550,9 @@ const ContractManagementPage = () => {
       });
 
       setIsInvoiceModalOpen(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to verify Xero connection");
+    } catch (error: any) {
+      console.error("Error in handleCreateInvoice:", error);
+      toast.error(error.message || "Failed to verify Xero connection");
     }
   };
 
@@ -559,8 +581,7 @@ const ContractManagementPage = () => {
       try {
         const promises = groupKeys.map((key) => {
           const contracts = contractGroups[key];
-          const [recipientType, brokerageKey] =
-            key.split("|");
+          const [recipientType, brokerageKey] = key.split("|");
 
           const recipientName =
             recipientType === "seller"
@@ -1096,20 +1117,29 @@ Growth Grain Services`;
             <button
               onClick={handleCreateInvoice}
               disabled={
+                selectedRows.length === 0 ||
                 selectedRows[0]?.status?.toLowerCase() === "draft" ||
                 xeroStatus.isChecking
               }
               className={`w-full md:w-auto xl:px-3 xl:py-2 border rounded flex items-center justify-center gap-2 text-sm transition-colors ${
+                selectedRows.length > 0 &&
                 selectedRows[0]?.status?.toLowerCase() !== "draft" &&
                 !xeroStatus.isChecking
                   ? "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer"
                   : "border-gray-200 cursor-not-allowed opacity-50 pointer-events-none"
               }`}
             >
-              <IoReceiptOutline />
-              {!xeroStatus.isConnected
-                ? "Connect & Create Invoice"
-                : "Create Invoice"}
+              {xeroStatus.isChecking ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <IoReceiptOutline />
+                  Create Invoice
+                </>
+              )}
             </button>
 
             <button
