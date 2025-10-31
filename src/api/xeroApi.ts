@@ -32,6 +32,7 @@ export const createXeroInvoice = async (
       "/xero/create-invoice",
       invoiceData
     );
+    console.log(data)
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

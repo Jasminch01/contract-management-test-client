@@ -337,6 +337,7 @@ export interface XeroInvoice {
 }
 
 export interface CreateInvoiceResponse {
+  isUpdate: boolean;
   success: boolean;
   message: string;
   data?: {
@@ -344,6 +345,7 @@ export interface CreateInvoiceResponse {
     invoiceNumber: string;
     xeroUrl: string;
     invoice: XeroInvoice;
+    isUpdate : boolean;
   };
 }
 

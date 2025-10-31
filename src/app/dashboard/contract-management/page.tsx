@@ -296,7 +296,7 @@ const ContractManagementPage = () => {
     isChecking: boolean;
   }>({
     isConnected: false,
-    tenantName: null, // ✅ CORRECT
+    tenantName: null,
     isChecking: false,
   });
   // Save filters to localStorage whenever pagination state changes
@@ -314,8 +314,8 @@ const ContractManagementPage = () => {
         const status = await getXeroConnectionStatus();
 
         setXeroStatus({
-          isConnected: status.connected,
-          tenantName: status.tenantName || null,
+          isConnected: status?.connected,
+          tenantName: status?.tenantName || null,
           isChecking: false,
         });
       } catch (error) {
@@ -333,12 +333,13 @@ const ContractManagementPage = () => {
     }
   }, [isMounted]);
 
-  //mutation for creating invoice (now supports multiple contracts)
+  //mutation for creating invoice ( multiple contracts)
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: any) => {
       const result = await createXeroInvoice(data);
       return result;
     },
+
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
 
@@ -354,52 +355,112 @@ const ContractManagementPage = () => {
       setIsInvoiceModalOpen(false);
       setSelectedRows([]);
       setToggleCleared((prev) => !prev);
+
+      // Check if it was an update or creation
+      const isUpdate = response?.isUpdate || false;
       toast.success(
         <div>
-          <p className="font-semibold">Invoice created successfully</p>
-          {response.data?.xeroUrl && (
-            <a
-              href={response.data.xeroUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline text-sm mt-1 inline-block"
-            >
-              View in Xero →
-            </a>
-          )}
+          <p className="font-semibold">
+            Invoice {isUpdate ? "updated" : "created"} successfully
+          </p>
         </div>,
         { duration: 5000 }
       );
     },
-    onError: (error: any) => {
+
+    onError: async (error: any) => {
       console.error("Error creating invoice:", error);
 
-      const errorMessage = error.message || "Failed to create invoice";
+      const errorData = error.response?.data || error;
+      const errorMessage =
+        errorData.message || error.message || "Failed to create invoice";
+      const requiresReconnection = errorData.requiresReconnection || false;
+      const errorCode = errorData.error;
 
-      // If token expired, update status and ask to try again
+      // Handle token expiration - automatically reconnect
       if (
-        errorMessage.includes("not connected") ||
-        errorMessage.includes("authorization") ||
+        requiresReconnection ||
+        errorCode === "TOKEN_EXPIRED" ||
+        errorCode === "REFRESH_TOKEN_EXPIRED" ||
+        errorCode === "AUTHENTICATION_ERROR" ||
+        errorCode === "NO_CREDENTIALS" ||
         errorMessage.includes("expired") ||
-        errorMessage.includes("token")
+        errorMessage.includes("reconnect")
       ) {
-        toast.error(
-          <div>
-            <p className="font-semibold">Xero Authorization Issue</p>
-            <p className="text-sm mt-1">
-              Please click Create Invoice again to reconnect.
-            </p>
-          </div>,
-          { duration: 5000 }
-        );
+        toast.dismiss();
 
-        // Reset connection status so next click will reconnect
-        setXeroStatus({
-          isConnected: false,
-          tenantName: null,
-          isChecking: false,
+        // Show reconnection in progress
+        toast.loading("Xero session expired. Reconnecting...", {
+          duration: 3000,
         });
+
+        try {
+          // Reset connection status
+          setXeroStatus({
+            isConnected: false,
+            tenantName: null,
+            isChecking: false,
+          });
+
+          // Wait a moment for the toast to show
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Attempt automatic reconnection
+          const authorized = await authorizeXero();
+          toast.dismiss();
+
+          if (!authorized) {
+            toast.error(
+              <div>
+                <p className="font-semibold">Reconnection Failed</p>
+                <p className="text-sm mt-1">
+                  Please try creating the invoice again to reconnect.
+                </p>
+              </div>,
+              { duration: 5000 }
+            );
+            return;
+          }
+
+          // Verify the new connection
+          const newStatus = await getXeroConnectionStatus();
+
+          setXeroStatus({
+            isConnected: newStatus.connected,
+            tenantName: newStatus.tenantName || null,
+            isChecking: false,
+          });
+
+          if (newStatus.connected && newStatus.tenantName) {
+            toast.success(
+              <div>
+                <p className="font-semibold">Reconnected to Xero!</p>
+                <p className="text-sm mt-1">
+                  Please click &quot;Create Invoice&quot; again to proceed.
+                </p>
+              </div>,
+              { duration: 5000 }
+            );
+          } else {
+            toast.error("Failed to verify Xero connection. Please try again.");
+          }
+        } catch (reconnectError: any) {
+          toast.dismiss();
+          console.error("Auto-reconnection failed:", reconnectError);
+
+          toast.error(
+            <div>
+              <p className="font-semibold">Unable to Reconnect</p>
+              <p className="text-sm mt-1">
+                {reconnectError.message ||
+                  "Please try clicking 'Create Invoice' again."}
+              </p>
+            </div>,
+            { duration: 6000 }
+          );
+        }
       } else {
+        // Other errors
         toast.error(errorMessage, { duration: 4000 });
       }
     },
@@ -410,26 +471,37 @@ const ContractManagementPage = () => {
     const groups: { [key: string]: TContract[] } = {};
 
     contracts.forEach((contract) => {
-      let recipientKey = "";
       const brokeragePayableBy =
-        contract.brokeragePayableBy?.toLowerCase() || "buyer";
+        contract.brokeragePayableBy?.toLowerCase().trim() || "buyer";
+
+      let recipientKey = "";
 
       // Determine the invoice recipient based on brokeragePayableBy
       if (brokeragePayableBy.includes("seller")) {
         // If seller pays (fully or partially), group by seller
-        recipientKey = `seller|${
-          contract.seller?.email || contract.seller?.legalName
-        }|${brokeragePayableBy}`;
+        // Use email as primary key, fallback to legal name
+        const sellerEmail = contract.seller?.email?.toLowerCase().trim() || "";
+        const sellerName = contract.seller?.legalName?.trim() || "";
+
+        // Create a consistent key using email (preferred) or name
+        const sellerIdentifier = sellerEmail || sellerName;
+        recipientKey = `seller|${sellerIdentifier}`;
       } else {
         // If buyer pays, group by buyer
-        recipientKey = `buyer|${
-          contract.buyer?.email || contract.buyer?.name
-        }|${brokeragePayableBy}`;
+        // Use email as primary key, fallback to name
+        const buyerEmail = contract.buyer?.email?.toLowerCase().trim() || "";
+        const buyerName = contract.buyer?.name?.trim() || "";
+
+        // Create a consistent key using email (preferred) or name
+        const buyerIdentifier = buyerEmail || buyerName;
+        recipientKey = `buyer|${buyerIdentifier}`;
       }
 
+      // Initialize group if it doesn't exist
       if (!groups[recipientKey]) {
         groups[recipientKey] = [];
       }
+
       groups[recipientKey].push(contract);
     });
 
@@ -442,24 +514,45 @@ const ContractManagementPage = () => {
       return;
     }
 
+    // Filter out contracts that are not completed or invoiced
+    const allowedStatuses = ["complete", "invoiced"];
+
     const invalidContracts = selectedRows.filter(
       (contract) =>
         !contract?._id ||
-        contract.status?.toLowerCase() === "draft" ||
+        !allowedStatuses.includes(contract.status?.toLowerCase()) ||
         !contract.buyer?.name ||
         !contract.buyer?.email
     );
 
     if (invalidContracts.length > 0) {
       const issues = [];
-      if (invalidContracts.some((c) => !c?._id))
-        issues.push("invalid contract data");
-      if (invalidContracts.some((c) => c.status?.toLowerCase() === "draft"))
-        issues.push("draft contracts");
-      if (invalidContracts.some((c) => !c.buyer?.name || !c.buyer?.email))
-        issues.push("incomplete buyer information");
 
-      toast.error(`Cannot create invoice: ${issues.join(", ")}`);
+      if (invalidContracts.some((c) => !c?._id)) {
+        issues.push("invalid contract data");
+      }
+
+      const invalidStatusContracts = invalidContracts.filter(
+        (c) => !allowedStatuses.includes(c.status?.toLowerCase())
+      );
+
+      if (invalidStatusContracts.length > 0) {
+        const statusList = invalidStatusContracts
+          .map((c) => `${c.contractNumber} (${c.status || "unknown"})`)
+          .join(", ");
+        issues.push(`invalid status: ${statusList}`);
+      }
+
+      if (invalidContracts.some((c) => !c.buyer?.name || !c.buyer?.email)) {
+        issues.push("incomplete buyer information");
+      }
+
+      toast.error(
+        `Cannot create invoice: ${issues.join(
+          "; "
+        )}. Only completed or invoiced contracts can be invoiced.`,
+        { duration: 6000 }
+      );
       return;
     }
 
@@ -562,16 +655,81 @@ const ContractManagementPage = () => {
       return;
     }
 
+    // Check connection status before proceeding
+    try {
+      const currentStatus = await getXeroConnectionStatus();
+
+      if (!currentStatus.connected || !currentStatus.tenantName) {
+        toast.loading("Xero not connected. Connecting now...");
+
+        try {
+          const authorized = await authorizeXero();
+          toast.dismiss();
+
+          if (!authorized) {
+            toast.error("Failed to connect to Xero. Please try again.");
+            return;
+          }
+
+          const newStatus = await getXeroConnectionStatus();
+
+          setXeroStatus({
+            isConnected: newStatus.connected,
+            tenantName: newStatus.tenantName || null,
+            isChecking: false,
+          });
+
+          if (!newStatus.connected || !newStatus.tenantName) {
+            toast.error("Connection verification failed. Please try again.");
+            return;
+          }
+
+          toast.success(`Connected to Xero: ${newStatus.tenantName}`);
+        } catch (connectError: any) {
+          toast.dismiss();
+          toast.error(connectError.message || "Failed to connect to Xero");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking Xero status:", error);
+    }
+
     const contractGroups = groupContractsByInvoiceRecipient(selectedRows);
     const groupKeys = Object.keys(contractGroups);
 
+    console.log("Contract Groups:", contractGroups);
+    console.log("Number of invoices to create:", groupKeys.length);
+
     if (groupKeys.length === 1) {
-      // Single invoice for all contracts (same recipient and brokerage terms)
+      // Single invoice for all contracts (same recipient)
+      const contracts = contractGroups[groupKeys[0]];
+      const firstContract = contracts[0];
+
+      // Determine recipient info
+      const brokeragePayableBy =
+        firstContract.brokeragePayableBy?.toLowerCase() || "buyer";
+      const recipientType = brokeragePayableBy.includes("seller")
+        ? "seller"
+        : "buyer";
+      const recipientName =
+        recipientType === "seller"
+          ? firstContract.seller?.legalName
+          : firstContract.buyer?.name;
+
+      console.log(
+        `Creating single invoice for ${contracts.length} contracts - ${recipientName}`
+      );
+
       createInvoiceMutation.mutate({
-        contractIds: selectedRows.map((c) => c._id!),
+        contractIds: contracts.map((c) => c._id!),
         invoiceDate: invoiceFormData.invoiceDate,
         dueDate: invoiceFormData.dueDate,
-        reference: invoiceFormData.reference,
+        reference:
+          invoiceFormData.reference ||
+          (contracts.length === 1
+            ? `${contracts[0].contractNumber} - ${recipientName}`
+            : `Brokerage Invoice - ${recipientName} (${contracts.length} contracts)`),
         notes: invoiceFormData.notes,
       });
     } else {
@@ -581,17 +739,27 @@ const ContractManagementPage = () => {
       try {
         const promises = groupKeys.map((key) => {
           const contracts = contractGroups[key];
-          const [recipientType, brokerageKey] = key.split("|");
+          const firstContract = contracts[0];
 
+          // Determine recipient info
+          const brokeragePayableBy =
+            firstContract.brokeragePayableBy?.toLowerCase() || "buyer";
+          const recipientType = brokeragePayableBy.includes("seller")
+            ? "seller"
+            : "buyer";
           const recipientName =
             recipientType === "seller"
-              ? contracts[0].seller?.legalName
-              : contracts[0].buyer?.name;
+              ? firstContract.seller?.legalName
+              : firstContract.buyer?.name;
 
           const groupReference =
             contracts.length === 1
               ? `${contracts[0].contractNumber} - ${recipientName}`
-              : `Brokerage Invoice - ${recipientName} (${contracts.length} contracts, paid by ${brokerageKey})`;
+              : `Brokerage Invoice - ${recipientName} (${contracts.length} contracts)`;
+
+          console.log(
+            `Creating invoice for ${contracts.length} contracts - ${recipientName}`
+          );
 
           return createXeroInvoice({
             contractIds: contracts.map((c) => c._id!),
@@ -602,7 +770,7 @@ const ContractManagementPage = () => {
           });
         });
 
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
         toast.dismiss();
 
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
@@ -610,12 +778,50 @@ const ContractManagementPage = () => {
         setSelectedRows([]);
         setToggleCleared((prev) => !prev);
 
-        toast.success(`Successfully created ${groupKeys.length} invoices!`, {
+        // Count how many were updated vs created
+        const updatedCount = results.filter((r) => r.data?.isUpdate).length;
+        const createdCount = results.length - updatedCount;
+
+        let successMessage = "";
+        if (updatedCount > 0 && createdCount > 0) {
+          successMessage = `Successfully created ${createdCount} and updated ${updatedCount} invoices!`;
+        } else if (updatedCount > 0) {
+          successMessage = `Successfully updated ${updatedCount} invoice${
+            updatedCount > 1 ? "s" : ""
+          }!`;
+        } else {
+          successMessage = `Successfully created ${createdCount} invoice${
+            createdCount > 1 ? "s" : ""
+          }!`;
+        }
+
+        toast.success(successMessage, {
           duration: 5000,
         });
       } catch (error: any) {
         toast.dismiss();
-        toast.error(error.message || "Failed to create invoices");
+
+        // Handle token expiration in batch invoice creation
+        const errorData = error.response?.data || error;
+        if (errorData.requiresReconnection) {
+          toast.error(
+            <div>
+              <p className="font-semibold">Xero Session Expired</p>
+              <p className="text-sm mt-1">
+                Please close this dialog and try again to reconnect.
+              </p>
+            </div>,
+            { duration: 5000 }
+          );
+
+          setXeroStatus({
+            isConnected: false,
+            tenantName: null,
+            isChecking: false,
+          });
+        } else {
+          toast.error(error.message || "Failed to create invoices");
+        }
       }
     }
   };
